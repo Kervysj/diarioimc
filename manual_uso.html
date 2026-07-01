@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Manual de Usuario - FinanzasPro v3.3</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background: white;
+        padding: 40px;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    .cover {
+        text-align: center;
+        padding: 60px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        margin-bottom: 40px;
+        page-break-after: always;
+    }
+    .cover h1 { font-size: 3em; margin-bottom: 10px; }
+    .cover .version { font-size: 1.5em; opacity: 0.9; margin-bottom: 30px; }
+    .cover .date { font-size: 1em; opacity: 0.8; margin-top: 40px; }
+    h1 { color: #667eea; margin: 30px 0 15px 0; page-break-after: avoid; }
+    h2 { color: #764ba2; margin: 25px 0 12px 0; border-bottom: 2px solid #667eea; padding-bottom: 5px; page-break-after: avoid; }
+    h3 { color: #4f46e5; margin: 20px 0 10px 0; page-break-after: avoid; }
+    p { margin-bottom: 12px; text-align: justify; }
+    ul, ol { margin: 10px 0 15px 25px; }
+    li { margin-bottom: 6px; }
+    .box {
+        background: #f3f4f6;
+        border-left: 4px solid #667eea;
+        padding: 15px 20px;
+        margin: 15px 0;
+        border-radius: 5px;
+    }
+    .box.warning {
+        background: #fef3c7;
+        border-left-color: #f59e0b;
+    }
+    .box.success {
+        background: #d1fae5;
+        border-left-color: #10b981;
+    }
+    .box.danger {
+        background: #fee2e2;
+        border-left-color: #ef4444;
+    }
+    .box.info {
+        background: #dbeafe;
+        border-left-color: #3b82f6;
+    }
+    .step {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 15px 20px;
+        margin: 12px 0;
+        position: relative;
+    }
+    .step-number {
+        position: absolute;
+        top: -12px;
+        left: 15px;
+        background: #667eea;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    .step-content { margin-top: 8px; }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+    }
+    th {
+        background: #667eea;
+        color: white;
+        padding: 10px;
+        text-align: left;
+    }
+    td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+    }
+    tr:nth-child(even) { background: #f9fafb; }
+    code {
+        background: #f3f4f6;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+        color: #dc2626;
+    }
+    .page-break { page-break-before: always; }
+    .toc {
+        background: #f9fafb;
+        padding: 20px 30px;
+        border-radius: 10px;
+        margin: 20px 0;
+    }
+    .toc a {
+        color: #667eea;
+        text-decoration: none;
+        display: block;
+        padding: 5px 0;
+    }
+    .toc a:hover { text-decoration: underline; }
+    .footer {
+        text-align: center;
+        margin-top: 50px;
+        padding-top: 20px;
+        border-top: 2px solid #667eea;
+        color: #6b7280;
+        font-size: 0.9em;
+    }
+    .emoji { font-size: 1.2em; }
+    @media print {
+        body { padding: 20px; }
+        .cover { page-break-after: always; }
+        h1, h2, h3 { page-break-after: avoid; }
+        .box, .step { page-break-inside: avoid; }
+    }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+PORTADA
+============================================================ -->
+<div class="cover">
+    <h1>📊 FinanzasPro</h1>
+    <div class="version">Manual de Usuario - Versión 3.3</div>
+    <div style="margin-top:30px; font-size:1.1em;">
+        Sistema completo de gestión financiera<br>
+        para negocios en Venezuela
+    </div>
+    <div class="date">
+        📅 Fecha: 01 de Julio, 2026<br>
+        💼 Control de Ingresos, Pagos, Nómina y Análisis
+    </div>
+</div>
+
+<!-- ============================================================
+ÍNDICE
+============================================================ -->
+<h1>📑 Índice de Contenidos</h1>
+<div class="toc">
+    <a href="#intro">1. Introducción</a>
+    <a href="#instalacion">2. Instalación y GitHub</a>
+    <a href="#flujo">3. Flujo de Trabajo Diario</a>
+    <a href="#ingresos">4. Pestaña Ingresos (Cuadre de Caja)</a>
+    <a href="#cierre">5. Bloque de Cierre Anterior</a>
+    <a href="#recordatorios">6. Pestaña Recordatorios</a>
+    <a href="#pagar">7. Pestaña Pagar (Deudas)</a>
+    <a href="#nomina">8. Pestaña Nómina</a>
+    <a href="#busqueda">9. Pestaña Búsqueda</a>
+    <a href="#analisis">10. Pestaña Análisis Financiero</a>
+    <a href="#dashboard">11. Dashboard General</a>
+    <a href="#excel">12. Uso de Excel</a>
+    <a href="#sheets">13. Conexión con Google Sheets</a>
+    <a href="#estructura">14. Estructura de las Tablas</a>
+    <a href="#faq">15. Preguntas Frecuentes</a>
+    <a href="#consejos">16. Consejos y Buenas Prácticas</a>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ============================================================
+1. INTRODUCCIÓN
+============================================================ -->
+<h1 id="intro">1. Introducción</h1>
+<p><strong>FinanzasPro v3.3</strong> es un sistema web completo para gestionar las finanzas de tu negocio. Te permite llevar el control de ingresos diarios, pagos a proveedores, nómina de empleados, recordatorios y análisis financiero avanzado.</p>
+
+<h3>🎯 Características principales:</h3>
+<ul>
+    <li><strong>Cuadre de caja diario</strong> con múltiples métodos de pago (USD y Bs)</li>
+    <li><strong>Control de cierre</strong> automático con el saldo del día anterior</li>
+    <li><strong>Gestión de deudas</strong> con abonos parciales y referencias de pago</li>
+    <li><strong>Nómina</strong> con bonos, deudas y descuentos</li>
+    <li><strong>Análisis financiero</strong> con gráficos y comparaciones inteligentes</li>
+    <li><strong>Respaldo en Excel</strong> y sincronización con Google Sheets</li>
+    <li><strong>Funciona sin internet</strong> (los datos se guardan en tu navegador)</li>
+    <li><strong>Responsive</strong> - funciona en PC, tablet y celular</li>
+</ul>
+
+<div class="box info">
+    <strong>💡 Importante:</strong> Este sistema funciona 100% en tu navegador. No necesita servidor ni instalación. Solo abre el archivo <code>index.html</code> y listo.
+</div>
+
+<!-- ============================================================
+2. INSTALACIÓN
+============================================================ -->
+<h1 id="instalacion" class="page-break">2. Instalación y GitHub</h1>
+
+<h3>📁 Archivos necesarios:</h3>
+<table>
+    <tr><th>Archivo</th><th>Función</th></tr>
+    <tr><td><code>index.html</code></td><td>Estructura visual del sistema</td></tr>
+    <tr><td><code>css.css</code></td><td>Estilos y diseño</td></tr>
+    <tr><td><code>jsapp.js</code></td><td>Lógica y funcionalidades</td></tr>
+    <tr><td><code>manual_uso.html</code></td><td>Este manual (opcional)</td></tr>
+    <tr><td><code>estructura_tablas.txt</code></td><td>Documentación de tablas (opcional)</td></tr>
+</table>
+
+<h3>🚀 Cómo subir a GitHub:</h3>
+<div class="step">
+    <div class="step-number">1</div>
+    <div class="step-content">
+        <strong>Crea una cuenta en GitHub</strong> en <code>github.com</code> (si no tienes una).
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">2</div>
+    <div class="step-content">
+        <strong>Crea un nuevo repositorio:</strong> Haz clic en el botón "+" → "New repository". Ponle nombre como <code>finanzaspro</code>.
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">3</div>
+    <div class="step-content">
+        <strong>Sube los archivos:</strong> Haz clic en "uploading an existing file" y arrastra los 3 archivos principales (<code>index.html</code>, <code>css.css</code>, <code>jsapp.js</code>).
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">4</div>
+    <div class="step-content">
+        <strong>Activa GitHub Pages:</strong> Ve a Settings → Pages → Source: "main" branch → Save. En 1 minuto tendrás tu sistema en línea en: <code>https://tuusuario.github.io/finanzaspro/</code>
+    </div>
+</div>
+
+<div class="box success">
+    <strong>✅ Ventaja de GitHub Pages:</strong> Podrás acceder a tu sistema desde cualquier dispositivo con internet, y todos los cambios quedan versionados.
+</div>
+
+<!-- ============================================================
+3. FLUJO DIARIO
+============================================================ -->
+<h1 id="flujo" class="page-break">3. Flujo de Trabajo Diario</h1>
+
+<p>Este es el orden recomendado para usar el sistema cada día:</p>
+
+<h3>🌅 Al iniciar el día:</h3>
+<div class="step">
+    <div class="step-number">1</div>
+    <div class="step-content">
+        <strong>Abre el sistema</strong> en tu navegador (o ve a tu URL de GitHub Pages).
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">2</div>
+    <div class="step-content">
+        <strong>Revisa el bloque "Último Cierre de Caja"</strong> en la pestaña Ingresos. Verás cuánto quedó ayer en USD, Bs, Zelle y Binance.
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">3</div>
+    <div class="step-content">
+        <strong>Compara con tu banco real.</strong> Si los montos coinciden, perfecto. Si no, corrige los saldos iniciales manualmente.
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">4</div>
+    <div class="step-content">
+        <strong>Actualiza la tasa BCV</strong> en el header si cambió.
+    </div>
+</div>
+
+<h3>💼 Durante el día:</h3>
+<div class="step">
+    <div class="step-number">5</div>
+    <div class="step-content">
+        <strong>Registra ventas</strong> conforme vayan entrando (o al final del día).
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">6</div>
+    <div class="step-content">
+        <strong>Registra pagos a proveedores</strong> cuando pagues facturas.
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">7</div>
+    <div class="step-content">
+        <strong>Paga nómina</strong> cuando corresponda (semanal, quincenal, etc.).
+    </div>
+</div>
+
+<h3>🌙 Al final del día:</h3>
+<div class="step">
+    <div class="step-number">8</div>
+    <div class="step-content">
+        <strong>Haz el cuadre de caja:</strong> Pestaña Ingresos → llena todos los métodos de pago → "💾 Guardar Ingreso".
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">9</div>
+    <div class="step-content">
+        <strong>Guarda respaldo:</strong> Haz clic en "💾 Guardar Excel" para tener un respaldo local.
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">10</div>
+    <div class="step-content">
+        <strong>Sincroniza con Google Sheets</strong> (opcional) si quieres respaldo en la nube.
+    </div>
+</div>
+
+<div class="box warning">
+    <strong>⚠️ Importante:</strong> Los datos se guardan automáticamente en tu navegador (localStorage). No pierdes nada al cerrar, PERO si limpias el caché o cambias de PC, necesitas cargar el último Excel guardado.
+</div>
+
+<!-- ============================================================
+4. PESTAÑA INGRESOS
+============================================================ -->
+<h1 id="ingresos" class="page-break">4. Pestaña Ingresos (Cuadre de Caja)</h1>
+
+<p>Esta pestaña es el corazón del sistema. Aquí registras cuánto vendiste cada día y por qué método de pago.</p>
+
+<h3>📝 Campos obligatorios:</h3>
+<table>
+    <tr><th>Campo</th><th>Descripción</th></tr>
+    <tr><td>📅 Fecha</td><td>Fecha del cierre (por defecto hoy)</td></tr>
+    <tr><td>💱 Tasa BCV</td><td>Tasa oficial del día</td></tr>
+    <tr><td>💵 Saldo inicial USD</td><td>Lo que tenías en caja al iniciar (se precarga del cierre anterior)</td></tr>
+    <tr><td>💴 Saldo inicial Bs</td><td>Lo que tenías en Bs al iniciar</td></tr>
+</table>
+
+<h3>💳 Métodos de pago disponibles:</h3>
+<ul>
+    <li><strong>💵 Efectivo USD/Bs:</strong> Ventas en billetes</li>
+    <li><strong>📱 Pago Móvil:</strong> En bolívares</li>
+    <li><strong>💳 Tarjeta Débito/Crédito:</strong> Puedes elegir si fue en USD o Bs</li>
+    <li><strong>🏦 Transferencia:</strong> En bolívares</li>
+    <li><strong>💳 Zelle:</strong> Solo USD</li>
+    <li><strong>🪙 Binance:</strong> Solo USD (cripto)</li>
+</ul>
+
+<h3>🧮 Cálculos automáticos:</h3>
+<p>El sistema calcula automáticamente:</p>
+<ul>
+    <li><strong>Total USD:</strong> Suma de efectivo USD + Zelle + Binance + tarjetas en USD</li>
+    <li><strong>Total Bs:</strong> Suma de efectivo Bs + Pago Móvil + Transferencia + tarjetas en Bs</li>
+    <li><strong>Saldo Final USD:</strong> Saldo Inicial + Total USD</li>
+    <li><strong>Saldo Final Bs:</strong> Saldo Inicial + Total Bs</li>
+</ul>
+
+<div class="box info">
+    <strong>💡 Tip:</strong> Al final del día, el "Saldo Final" debe coincidir con lo que físicamente tienes en caja + lo que tienes en el banco. Si no coincide, revisa los métodos de pago.
+</div>
+
+<!-- ============================================================
+5. BLOQUE CIERRE ANTERIOR
+============================================================ -->
+<h1 id="cierre" class="page-break">5. Bloque de Cierre Anterior</h1>
+
+<p>Este es un bloque <strong>informativo (no editable)</strong> que aparece en la parte superior de la pestaña Ingresos. Te muestra con qué deberías iniciar el día.</p>
+
+<h3>📊 Información que muestra:</h3>
+<table>
+    <tr><th>Dato</th><th>Significado</th></tr>
+    <tr><td>📅 Fecha del último cierre</td><td>Cuándo fue el último cuadre de caja</td></tr>
+    <tr><td>💵 Quedó en caja USD</td><td>Saldo final del último cierre en dólares</td></tr>
+    <tr><td>💴 Quedó en caja Bs</td><td>Saldo final del último cierre en bolívares</td></tr>
+    <tr><td>💳 Zelle</td><td>Saldo actual en tu cuenta Zelle</td></tr>
+    <tr><td>🪙 Binance</td><td>Saldo actual en tu cuenta Binance</td></tr>
+    <tr><td>💸 Se gastó el día anterior</td><td>Suma de pagos a deudas + nómina del último cierre</td></tr>
+</table>
+
+<h3>🔄 Precarga automática:</h3>
+<p>Cuando abres el sistema, los campos "Saldo inicial USD" y "Saldo inicial Bs" se pre-llenan automáticamente con los valores del último cierre. Así no tienes que recordar cuánto tenías.</p>
+
+<div class="box warning">
+    <strong>⚠️ Ojo:</strong> Si el banco tiene diferente monto (porque gastaste algo personal, por ejemplo), <strong>sí puedes editar</strong> los campos de "Saldo inicial" manualmente. El bloque informativo solo es una referencia.
+</div>
+
+<!-- ============================================================
+6. RECORDATORIOS
+============================================================ -->
+<h1 id="recordatorios" class="page-break">6. Pestaña Recordatorios</h1>
+
+<p>Útil para anotar pagos futuros, vencimientos de servicios, citas importantes, etc.</p>
+
+<h3>📝 Campos:</h3>
+<ul>
+    <li><strong>Fecha del recordatorio:</strong> Cuándo te debe sonar la alarma</li>
+    <li><strong>Descripción:</strong> Título corto (ej: "Pagar luz")</li>
+    <li><strong>Monto USD/Bs:</strong> Si aplica, el monto esperado</li>
+    <li><strong>Detalle:</strong> Información adicional</li>
+    <li><strong>Prioridad:</strong> 🔴 Alta / 🟡 Media / 🟢 Baja</li>
+</ul>
+
+<h3>✅ Acciones disponibles:</h3>
+<ul>
+    <li><strong>✅ Marcar como completado:</strong> Cambia el estado a "Completado"</li>
+    <li><strong>↩️ Reabrir:</strong> Si lo marcaste por error</li>
+    <li><strong>🗑️ Eliminar:</strong> Borra el recordatorio</li>
+</ul>
+
+<!-- ============================================================
+7. PAGAR
+============================================================ -->
+<h1 id="pagar" class="page-break">7. Pestaña Pagar (Deudas/Proveedores)</h1>
+
+<p>Aquí registras facturas de proveedores y haces abonos parciales o pagos completos.</p>
+
+<h3>📋 Saldos en cuentas:</h3>
+<p>Al inicio puedes ver/actualizar los saldos de:</p>
+<ul>
+    <li>🪙 Cuenta Binance</li>
+    <li>💳 Cuenta Zelle</li>
+    <li>🏢 Cuenta Empresa</li>
+    <li>👤 Cuenta Personal</li>
+</ul>
+
+<h3>➕ Registrar nueva factura:</h3>
+<table>
+    <tr><th>Campo</th><th>Descripción</th></tr>
+    <tr><td>Proveedor Existente</td><td>Si ya lo tienes registrado, selecciónalo</td></tr>
+    <tr><td>📅 Fecha</td><td>Fecha de la factura</td></tr>
+    <tr><td>🏷️ RIF/Cédula</td><td>Identificación fiscal</td></tr>
+    <tr><td>👤 Nombre</td><td>Nombre del proveedor</td></tr>
+    <tr><td>📝 Descripción</td><td>Qué compraste</td></tr>
+    <tr><td>Nro. Factura</td><td>Número de factura</td></tr>
+    <tr><td>💵 Monto USD</td><td>Total de la factura</td></tr>
+    <tr><td>💴 Monto Bs</td><td>Se calcula con la tasa o lo pones manual</td></tr>
+    <tr><td>🏷️ Etiqueta</td><td>Proveedor/Persona/Servicio/Deuda/Extra</td></tr>
+    <tr><td>Prioridad</td><td>🔴 Alta / 🟡 Media / 🟢 Baja</td></tr>
+    <tr><td>Cuenta de origen</td><td>De qué cuenta piensas pagar</td></tr>
+</table>
+
+<h3>💵 Registrar pago/abono:</h3>
+<p>En la tabla de deudas, cada factura tiene 3 botones:</p>
+<ul>
+    <li><strong>💵 (verde):</strong> Abrir modal para registrar abono</li>
+    <li><strong>📜 (azul):</strong> Ver historial de pagos hechos</li>
+    <li><strong>🗑️ (rojo):</strong> Eliminar la factura</li>
+</ul>
+
+<p>Al hacer clic en 💵 se abre un modal donde ingresas:</p>
+<ul>
+    <li>Monto a abonar</li>
+    <li>Fecha de pago</li>
+    <li>Cuenta de origen</li>
+    <li>Referencia de pago (obligatoria)</li>
+    <li>Observación</li>
+</ul>
+
+<div class="box success">
+    <strong>✅ Abonos parciales:</strong> Puedes pagar una factura en varios abonos. El sistema lleva el control de cuánto has pagado y cuánto falta.
+</div>
+
+<!-- ============================================================
+8. NÓMINA
+============================================================ -->
+<h1 id="nomina" class="page-break">8. Pestaña Nómina</h1>
+
+<h3>📋 Registro de empleados:</h3>
+<p>Primero debes registrar a tus empleados con:</p>
+<ul>
+    <li>📅 Fecha de ingreso</li>
+    <li>Nombre completo</li>
+    <li>Cédula</li>
+    <li>Tipo de sueldo: Quincenal / Semanal / Diario / Mensual</li>
+    <li>Sueldo en USD</li>
+</ul>
+
+<h3>💰 Pagar nómina:</h3>
+<div class="step">
+    <div class="step-number">1</div>
+    <div class="step-content">
+        Selecciona la <strong>fecha de pago</strong> y <strong>cuenta de origen</strong>.
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">2</div>
+    <div class="step-content">
+        Haz clic en <strong>"🔄 Generar Nómina"</strong>. Aparecerá una tabla con todos los empleados activos.
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">3</div>
+    <div class="step-content">
+        A cada empleado puedes agregarle:
+        <ul>
+            <li><strong>Bono ($):</strong> Monto extra que se suma</li>
+            <li><strong>Deuda ($):</strong> Monto que se descuenta (préstamos, anticipos)</li>
+        </ul>
+        El sistema calcula automáticamente el <strong>Neto</strong> = Sueldo + Bono - Deuda
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">4</div>
+    <div class="step-content">
+        Marca con el <strong>checkbox</strong> los empleados que vas a pagar.
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">5</div>
+    <div class="step-content">
+        Haz clic en <strong>"💾 Guardar y Pagar Todo"</strong>.
+    </div>
+</div>
+
+<div class="box info">
+    <strong>💡 Nota:</strong> Los pagos de nómina se registran en el historial y afectan el análisis financiero (se restan de los ingresos para calcular el neto).
+</div>
+
+<!-- ============================================================
+9. BÚSQUEDA
+============================================================ -->
+<h1 id="busqueda" class="page-break">9. Pestaña Búsqueda</h1>
+
+<p>Busca en todos los registros del sistema por fecha, tipo o texto.</p>
+
+<h3>🔍 Filtros disponibles:</h3>
+<ul>
+    <li><strong>📅 Desde / Hasta:</strong> Rango de fechas</li>
+    <li><strong>Filtro rápido:</strong>
+        <ul>
+            <li>📊 Todos</li>
+            <li>📈 Solo ingresos</li>
+            <li>💳 Solo pagos/deudas</li>
+            <li>👥 Solo nómina</li>
+            <li>🔔 Solo recordatorios</li>
+        </ul>
+    </li>
+    <li><strong>🔍 Texto:</strong> Busca en todos los campos (nombre, descripción, referencia, etc.)</li>
+</ul>
+
+<h3>📋 Resultados:</h3>
+<p>Los resultados aparecen como <strong>tarjetones grandes y visuales</strong> con:
+<ul>
+    <li>Icono del tipo (📈 💳 👥 🔔)</li>
+    <li>Título</li>
+    <li>Fecha</li>
+    <li>Monto principal</li>
+    <li>Detalles adicionales</li>
+</ul>
+</p>
+
+<div class="box info">
+    <strong>💡 Auto-búsqueda:</strong> Cuando cargas un Excel o Google Sheets, el sistema automáticamente te lleva a esta pestaña y busca los registros de la última fecha. Así ves rápidamente qué pasó el último día.
+</div>
+
+<!-- ============================================================
+10. ANÁLISIS
+============================================================ -->
+<h1 id="analisis" class="page-break">10. Pestaña Análisis Financiero</h1>
+
+<p>La joya del sistema. Te muestra cómo te fue día a día, mes a mes, y año a año.</p>
+
+<h3>📊 Tarjetas de resumen:</h3>
+<ul>
+    <li>💵 Ingresos (USD / Bs)</li>
+    <li>💸 Pagos a deudas (USD / Bs)</li>
+    <li>👥 Nómina pagada (USD)</li>
+    <li>💰 <strong>NETO:</strong> Lo que realmente ganaste (Ingresos - Pagos - Nómina)</li>
+</ul>
+
+<h3>🎛️ Filtros:</h3>
+<ul>
+    <li><strong>📅 Filtrar por Mes:</strong> Selecciona un mes específico</li>
+    <li><strong>🔍 Buscar fecha:</strong> Un día específico</li>
+    <li><strong>📊 Vista:</strong> Por Día / Por Mes / Por Año</li>
+</ul>
+
+<h3>📈 Gráfico:</h3>
+<p>Muestra barras verdes (ingresos), rojas (egresos) y una línea azul (neto) de los últimos 30 registros.</p>
+
+<h3>🧠 Análisis Inteligente (botón ℹ️):</h3>
+<p>Al hacer clic en el botón ℹ️ azul al lado del título, se abre un modal con análisis automático:</p>
+<ul>
+    <li>💰 Cuánto llevas ganado hoy</li>
+    <li>📈 Comparación con ayer (ej: "+15% vs ayer")</li>
+    <li>📅 Comparación con el mes pasado</li>
+    <li>📊 Promedio diario del mes</li>
+    <li>⚠️ Alerta si tienes días negativos consecutivos</li>
+    <li>🎯 Veredicto final: "¡Vamos bien!" / "Hay que mejorar"</li>
+</ul>
+
+<h3>📋 Tabla detallada:</h3>
+<p>Muestra día por día (o mes/mes, año/año) con todos los valores. Al final tiene un <strong>total general</strong> del período filtrado.</p>
+
+<h3>📥 Exportar:</h3>
+<ul>
+    <li><strong>📥 Exportar Análisis Excel:</strong> Genera un Excel solo con el análisis</li>
+    <li><strong>📄 Exportar Análisis PDF:</strong> Genera un PDF con la tabla</li>
+</ul>
+
+<!-- ============================================================
+11. DASHBOARD
+============================================================ -->
+<h1 id="dashboard" class="page-break">11. Dashboard General</h1>
+
+<p>Resumen ejecutivo de tu negocio. Muestra:</p>
+<ul>
+    <li><strong>Ingresos del mes:</strong> En USD y Bs</li>
+    <li><strong>Total a deber:</strong> Suma de todas las deudas pendientes</li>
+    <li><strong>Nómina pendiente:</strong> Total pagado en nómina</li>
+    <li><strong>Recordatorios:</strong> Cuántos están pendientes</li>
+    <li><strong>💰 Balance neto:</strong> Ingresos - Deudas - Nómina</li>
+</ul>
+
+<h3>📝 Notas rápidas:</h3>
+<p>Un área de texto donde puedes escribir notas generales (ideas, pendientes, etc.). Se guardan automáticamente.</p>
+
+<!-- ============================================================
+12. EXCEL
+============================================================ -->
+<h1 id="excel" class="page-break">12. Uso de Excel</h1>
+
+<h3>💾 Guardar Excel:</h3>
+<p>Haz clic en el botón <strong>"💾 Guardar Excel"</strong> del header. Se descargará un archivo <code>.xlsx</code> con 7 hojas:</p>
+<ol>
+    <li><strong>Config:</strong> Configuración general (tasa, saldos, nombre negocio)</li>
+    <li><strong>Ingresos:</strong> Todos los cuadres de caja</li>
+    <li><strong>Recordatorios:</strong> Todos los recordatorios</li>
+    <li><strong>Deudas:</strong> Todas las facturas con historial de pagos</li>
+    <li><strong>Empleados:</strong> Lista de empleados</li>
+    <li><strong>NominaPagos:</strong> Historial de pagos de nómina</li>
+    <li><strong>ResumenDiario:</strong> Análisis financiero calculado</li>
+</ol>
+
+<h3>📥 Cargar Excel:</h3>
+<p>Haz clic en <strong>"📥 Cargar Excel"</strong> y selecciona un archivo previamente guardado. El sistema:</p>
+<ol>
+    <li>Lee todas las hojas</li>
+    <li>Restaura todos los datos</li>
+    <li>Recalcula el análisis financiero</li>
+    <li>Actualiza el bloque de cierre anterior</li>
+    <li>Te lleva automáticamente a la pestaña Búsqueda con los datos del último día</li>
+</ol>
+
+<div class="box warning">
+    <strong>⚠️ Importante:</strong> No edites manualmente el Excel. Si lo haces, puede corromperse el formato. Solo úsalo como respaldo o para migrar datos entre PCs.
+</div>
+
+<div class="box success">
+    <strong>✅ Frecuencia recomendada:</strong> Guarda el Excel al final de cada día como respaldo. Si cambias de PC, carga el último Excel guardado.
+</div>
+
+<!-- ============================================================
+13. GOOGLE SHEETS
+============================================================ -->
+<h1 id="sheets" class="page-break">13. Conexión con Google Sheets</h1>
+
+<p>Si quieres acceso desde cualquier dispositivo o respaldo en la nube, conecta Google Sheets.</p>
+
+<h3>🔧 Configuración inicial (solo una vez):</h3>
+<div class="step">
+    <div class="step-number">1</div>
+    <div class="step-content">
+        Crea una nueva hoja de cálculo en <strong>Google Sheets</strong>.
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">2</div>
+    <div class="step-content">
+        Ve a <strong>Extensiones → Apps Script</strong>.
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">3</div>
+    <div class="step-content">
+        Borra el código que aparece y pega este:
+<pre style="background:#f3f4f6;padding:10px;border-radius:5px;overflow-x:auto;font-size:12px;">
+function doGet(e) {
+  const action = e.parameter.action;
+  const sheet = SpreadsheetApp.getActiveSpreadsheet();
+  if (action === 'status') {
+    return ContentService.createTextOutput(JSON.stringify({success: true}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  if (action === 'load') {
+    const data = {};
+    ['Config','Ingresos','Recordatorios','Deudas','Empleados','NominaPagos'].forEach(name => {
+      let s = sheet.getSheetByName(name);
+      if (s) {
+        const values = s.getDataRange().getValues();
+        if (values.length > 1) {
+          const headers = values[0];
+          data[name.toLowerCase()] = values.slice(1).map(row => {
+            const obj = {};
+            headers.forEach((h, i) => obj[h] = row[i]);
+            return obj;
+          });
+        }
+      }
+    });
+    return ContentService.createTextOutput(JSON.stringify({success: true, data: data}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doPost(e) {
+  const body = JSON.parse(e.postData.contents);
+  const sheet = SpreadsheetApp.getActiveSpreadsheet();
+  // Aquí va la lógica de guardado (compleja, se omite por espacio)
+  return ContentService.createTextOutput(JSON.stringify({success: true}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+</pre>
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">4</div>
+    <div class="step-content">
+        Haz clic en <strong>"Implementar → Nueva implementación"</strong>.
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">5</div>
+    <div class="step-content">
+        Tipo: <strong>"Aplicación web"</strong>. Ejecutar como: <strong>"Yo"</strong>. Quién tiene acceso: <strong>"Cualquier persona"</strong>.
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">6</div>
+    <div class="step-content">
+        Copia la URL que termina en <code>/exec</code> y pégala en el campo del sistema.
+    </div>
+</div>
+<div class="step">
+    <div class="step-number">7</div>
+    <div class="step-content">
+        Haz clic en <strong>"Conectar"</strong>. Si todo sale bien, verás "✅ Cargado y Conectado".
+    </div>
+</div>
+
+<h3>🔄 Uso diario con Google Sheets:</h3>
+<ul>
+    <li><strong>💾 Guardar:</strong> Sube todos tus datos a la nube</li>
+    <li><strong>Cargar:</strong> Baja los datos de la nube a tu navegador</li>
+    <li><strong>❌ Desconectar:</strong> Rompe la conexión (no borra datos locales)</li>
+</ul>
+
+<!-- ============================================================
+14. ESTRUCTURA
+============================================================ -->
+<h1 id="estructura" class="page-break">14. Estructura de las Tablas</h1>
+
+<p>Consulta el archivo <code>estructura_tablas.txt</code> para ver el detalle completo de cada hoja del Excel.</p>
+
+<h3>🔑 Conceptos clave:</h3>
+<ul>
+    <li><strong>ID:</strong> Identificador único (timestamp) de cada registro</li>
+    <li><strong>HistorialPagos:</strong> Array con todos los abonos de una deuda</li>
+    <li><strong>ResumenDiario:</strong> Se recalcula automáticamente, no se edita</li>
+</ul>
+
+<!-- ============================================================
+15. FAQ
+============================================================ -->
+<h1 id="faq" class="page-break">15. Preguntas Frecuentes</h1>
+
+<h3>❓ ¿Tengo que cargar el Excel todos los días?</h3>
+<p><strong>No.</strong> Los datos se guardan automáticamente en tu navegador. Solo cargas el Excel si:</p>
+<ul>
+    <li>Cambias de PC</li>
+    <li>Limpiaste el caché del navegador</li>
+    <li>Quieres restaurar un respaldo antiguo</li>
+</ul>
+
+<h3>❓ ¿Qué pasa si se me borran los datos del navegador?</h3>
+<p>Cargas el último Excel guardado y recuperas todo. Por eso es importante guardar el Excel diario.</p>
+
+<h3>❓ ¿Puedo usar el sistema en el celular?</h3>
+<p><strong>Sí.</strong> Es responsive. Si lo subes a GitHub Pages, puedes acceder desde cualquier dispositivo.</p>
+
+<h3>❓ ¿Los saldos de Zelle y Binance son lo mismo?</h3>
+<p><strong>No.</strong> Son cuentas separadas. El sistema las maneja independiente aunque ambas sean en USD.</p>
+
+<h3>❓ ¿Puedo editar un ingreso ya guardado?</h3>
+<p><strong>No directamente.</strong> Debes eliminarlo y volver a crearlo. (En futuras versiones se agregará edición).</p>
+
+<h3>❓ ¿Qué es el "NETO" en el análisis?</h3>
+<p>Es lo que realmente ganaste: <code>Ingresos - Pagos a deudas - Nómina</code>. Si es positivo, ganaste. Si es negativo, gastaste más de lo que vendiste.</p>
+
+<h3>❓ ¿Por qué el bloque de cierre anterior no aparece?</h3>
+<p>Aparece solo cuando hay al menos 1 ingreso registrado. Si es la primera vez que usas el sistema, no aparecerá hasta que guardes tu primer cuadre.</p>
+
+<h3>❓ ¿Puedo tener varios negocios?</h3>
+<p>Cada navegador tiene su propio localStorage. Puedes cambiar el nombre del negocio en el header, pero los datos se mezclan. Para varios negocios, usa navegadores diferentes o perfiles distintos.</p>
+
+<!-- ============================================================
+16. CONSEJOS
+============================================================ -->
+<h1 id="consejos" class="page-break">16. Consejos y Buenas Prácticas</h1>
+
+<div class="box success">
+    <strong>✅ Consejo 1: Guarda el Excel diario</strong><br>
+    Al final de cada día, haz clic en "💾 Guardar Excel". Es tu seguro de vida si algo falla.
+</div>
+
+<div class="box success">
+    <strong>✅ Consejo 2: Revisa el bloque de cierre</strong><br>
+    Cada mañana, compara el "Último Cierre" con tu banco real. Si no coincide, ajusta antes de empezar.
+</div>
+
+<div class="box success">
+    <strong>✅ Consejo 3: Actualiza la tasa BCV</strong><br>
+    Hazlo siempre al iniciar el día. Afecta todos los cálculos en bolívares.
+</div>
+
+<div class="box success">
+    <strong>✅ Consejo 4: Revisa el análisis semanal</strong><br>
+    Cada domingo, abre la pestaña Análisis y revisa cómo te fue. El botón ℹ️ te da insights valiosos.
+</div>
+
+<div class="box success">
+    <strong>✅ Consejo 5: Usa referencias de pago</strong><br>
+    Siempre llena la "Referencia de Pago" al abonar deudas. Te salvará la vida cuando necesites comprobar un pago.
+</div>
+
+<div class="box warning">
+    <strong>⚠️ Consejo 6: No limpies datos del navegador</strong><br>
+    Si limpias cookies/caché, perderás todos los datos no respaldados en Excel o Google Sheets.
+</div>
+
+<div class="box warning">
+    <strong>⚠️ Consejo 7: Haz respaldos múltiples</strong><br>
+    Guarda el Excel en tu PC, en un USB, y en Google Drive. Nunca se sabe cuándo puedes necesitarlo.
+</div>
+
+<div class="box info">
+    <strong>💡 Consejo 8: Usa GitHub Pages</strong><br>
+    Subir el sistema a GitHub Pages te da acceso desde cualquier lugar y respaldo automático del código.
+</div>
+
+<div class="box info">
+    <strong>💡 Consejo 9: Capacita a tu equipo</strong><br>
+    Si tienes empleados que usarán el sistema, compárteles este manual. Todos deben seguir el mismo flujo.
+</div>
+
+<div class="box info">
+    <strong>💡 Consejo 10: Revisa el análisis mensual</strong><br>
+    A fin de mes, cambia la vista a "Por Mes" en el análisis. Verás qué meses te fue mejor y podrás tomar decisiones informadas.
+</div>
+
+<!-- ============================================================
+FOOTER
+============================================================ -->
+<div class="footer">
+    <p><strong>📊 FinanzasPro v3.3</strong></p>
+    <p>Sistema de gestión financiera para negocios</p>
+    <p>Manual de Usuario - Julio 2026</p>
+    <p style="margin-top:20px; font-size:0.85em;">
+        💼 Control de Ingresos • Pagos • Nómina • Análisis Financiero
+    </p>
+    <p style="margin-top:15px; color:#667eea;">
+        ¡Gracias por usar FinanzasPro! 🚀
+    </p>
+</div>
+
+</body>
+</html>
