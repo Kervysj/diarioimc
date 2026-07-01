@@ -120,6 +120,18 @@ header h1 {
     color: #333;
 }
 
+/* 🆕 BOTÓN RESET (ROJO) */
+.header-actions .btn-reset {
+    background: #ef4444 !important;
+    color: white !important;
+    border-color: #ef4444 !important;
+}
+.header-actions .btn-reset:hover {
+    background: #dc2626 !important;
+    border-color: #dc2626 !important;
+    transform: scale(1.05);
+}
+
 /* ============================================================
 CONFIG SECTION
 ============================================================ */
@@ -600,7 +612,7 @@ RESULTADOS BUSQUEDA
     color: #667eea;
 }
 
-/* Botón info */
+/* Botón info (análisis inteligente) */
 .btn-info-icon {
     background: #3b82f6;
     color: white;
@@ -685,6 +697,37 @@ RESULTADOS BUSQUEDA
 }
 
 /* ============================================================
+🆕 MODAL RESET CON CLAVE
+============================================================ */
+#modalReset .modal-content {
+    animation: shakeModal 0.5s;
+}
+@keyframes shakeModal {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+#modalReset input[type="password"] {
+    font-size: 16px;
+    padding: 12px;
+    letter-spacing: 2px;
+}
+#modalReset input[type="password"]:focus {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+#modalReset .btn-danger {
+    padding: 12px 25px;
+    font-size: 16px;
+    font-weight: bold;
+    animation: pulseDanger 2s infinite;
+}
+@keyframes pulseDanger {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+}
+
+/* ============================================================
 RESPONSIVE
 ============================================================ */
 @media (max-width: 768px) {
@@ -745,5 +788,8 @@ RESPONSIVE
     }
     .tab-content {
         padding: 15px;
+    }
+    .modal-content {
+        padding: 20px;
     }
 }
