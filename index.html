@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FinanzasPro v3.3</title>
+<title>FinanzasPro v3.4</title>
 <link rel="stylesheet" href="css.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -37,6 +37,8 @@ HEADER
         <input type="file" id="inputExcel" accept=".xlsx,.xls" style="display:none" onchange="cargarExcel(event)">
         <button onclick="guardarExcel()">💾 Guardar Excel</button>
         <button onclick="generarPDF()">📄 PDF</button>
+        <button onclick="generarGuiaGoogleSheets()">📋 Guía Google Sheets</button>
+        <button class="btn-reset" onclick="resetearSistema()">🔄 Reset</button>
         <label>Tasa BCV: <input type="number" id="tasaBCV" step="0.01" style="width:100px" onchange="actualizarTasa()"></label>
         <label>Negocio: <input type="text" id="nombreNegocio" style="width:150px" onchange="actualizarNegocio()"></label>
     </div>
@@ -611,20 +613,10 @@ TAB ANÁLISIS FINANCIERO
             </div>
         </div>
 
-        <!-- 🆕 Gráfico -->
+        <!-- Gráfico -->
         <div class="grafico-container" style="margin-top:30px">
             <h3>📈 Gráfico de Ingresos vs Egresos</h3>
             <canvas id="graficoAnalisis" height="100"></canvas>
-        </div>
-
-        <!-- 🆕 Panel Análisis Inteligente -->
-        <div id="panelAnalisisInteligente" class="panel-inteligente" style="display:none">
-            <div class="panel-header">
-                <span>🧠</span>
-                <h3>Análisis Inteligente</h3>
-                <button class="btn-cerrar-panel" onclick="cerrarPanelInteligente()">✖</button>
-            </div>
-            <div id="contenidoInteligente" class="panel-body"></div>
         </div>
 
         <!-- Tabla detallada -->
@@ -826,6 +818,54 @@ MODAL ANÁLISIS INTELIGENTE
         <div id="contenidoAnalisisInteligente"></div>
         <div class="form-actions">
             <button class="btn btn-danger" onclick="document.getElementById('modalAnalisisInteligente').style.display='none'">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+🆕 MODAL RESET SISTEMA (CON CLAVE SECRETA)
+============================================================ -->
+<div id="modalReset" class="modal">
+    <div class="modal-content" style="max-width:500px; border: 3px solid #ef4444;">
+        <h2 style="color:#ef4444">🔄 RESET COMPLETO DEL SISTEMA</h2>
+        <div style="background:#fee2e2; padding:15px; border-radius:8px; margin-bottom:20px; border-left:4px solid #ef4444;">
+            <strong style="color:#991b1b">⚠️ ADVERTENCIA:</strong>
+            <p style="color:#991b1b; margin-top:8px;">
+                Esta acción <strong>BORRARÁ TODOS LOS DATOS</strong> del sistema de forma <strong>PERMANENTE</strong>:
+            </p>
+            <ul style="color:#991b1b; margin-left:20px; margin-top:5px;">
+                <li>Todos los ingresos</li>
+                <li>Todas las deudas</li>
+                <li>Todos los empleados</li>
+                <li>Todos los pagos de nómina</li>
+                <li>Todos los recordatorios</li>
+                <li>Todo el análisis financiero</li>
+                <li>Configuración completa</li>
+            </ul>
+            <p style="color:#991b1b; margin-top:10px; font-weight:bold;">
+                Esta acción NO se puede deshacer.
+            </p>
+        </div>
+        
+        <div class="form-group">
+            <label>🔑 Ingresa la clave de administrador (1ra vez):</label>
+            <input type="password" id="resetClave1" placeholder="Clave de seguridad" style="border:2px solid #ef4444;">
+        </div>
+        <div class="form-group">
+            <label>🔑 Confirma la clave (2da vez):</label>
+            <input type="password" id="resetClave2" placeholder="Repite la clave" style="border:2px solid #ef4444;">
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="resetConfirmacion"> 
+                <strong style="color:#991b1b">Entiendo que perderé TODOS los datos permanentemente</strong>
+            </label>
+        </div>
+        
+        <div class="form-actions">
+            <button class="btn btn-danger" onclick="confirmarReset()">🗑️ SÍ, RESETEAR TODO</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('modalReset').style.display='none'">❌ Cancelar</button>
         </div>
     </div>
 </div>
