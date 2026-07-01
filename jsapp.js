@@ -1,5 +1,5 @@
 // ============================================================
-// FinanzasPro v3.3 - Lógica Principal COMPLETA + ANÁLISIS
+// FinanzasPro v3.4 - Lógica Principal COMPLETA + RESET + ANÁLISIS
 // ============================================================
 let DB = {
     config: {
@@ -24,6 +24,9 @@ let GS_URL = localStorage.getItem('FinanzasPro_GS_URL') || '';
 let GS_CONECTADO = false;
 let nominaTemporal = [];
 let graficoAnalisis = null;
+
+// 🔑 CLAVE SECRETA DEL PROGRAMADOR (solo tú la conoces)
+const CLAVE_ADMIN = 'Adri2712*';
 
 // ============================================================
 // INICIALIZACIÓN
@@ -140,13 +143,11 @@ function actualizarBloqueCierre() {
         return;
     }
 
-    // Ordenar ingresos por fecha descendente
     const ingresosOrdenados = [...DB.ingresos].sort((a, b) => 
         (b.Fecha || '').localeCompare(a.Fecha || '')
     );
     const ultimo = ingresosOrdenados[0];
 
-    // Calcular cuánto se gastó ese mismo día (pagos de deudas + nómina)
     const fechaUltimo = ultimo.Fecha;
     let gastadoDia = 0;
 
@@ -166,7 +167,6 @@ function actualizarBloqueCierre() {
         }
     });
 
-    // Actualizar valores
     document.getElementById('cierreFechaTexto').textContent = 
         `📅 Fecha del último cierre: ${fechaUltimo}`;
     document.getElementById('cierreUSD').textContent = 
@@ -182,7 +182,6 @@ function actualizarBloqueCierre() {
 
     bloque.style.display = 'block';
 
-    // 🆕 Precargar saldo inicial con el cierre anterior
     const saldoIniUSD = document.getElementById('saldoIniUSD');
     const saldoIniBS = document.getElementById('saldoIniBS');
     if (saldoIniUSD && saldoIniUSD.value === '0') {
@@ -192,7 +191,6 @@ function actualizarBloqueCierre() {
         saldoIniBS.value = (ultimo.SaldoFin_Bs || 0).toFixed(2);
     }
 
-    // Actualizar también los saldos del tab Pagar
     const saldoUltimoUSD = document.getElementById('saldoUltimoUSD');
     const saldoUltimoBS = document.getElementById('saldoUltimoBS');
     if (saldoUltimoUSD) saldoUltimoUSD.textContent = (ultimo.SaldoFin_USD || 0).toFixed(2);
@@ -382,7 +380,6 @@ function agruparPorMes(datos) {
     });
     return Object.values(meses).map(m => {
         const totalEgresosUSD = m.PagosUSD + m.NominaUSD;
-        const totalEgresosBS = m.PagosBS + m.NominaBS;
         return {
             Fecha: m.Fecha,
             IngresosUSD: m.IngresosUSD,
@@ -393,7 +390,7 @@ function agruparPorMes(datos) {
             NominaBS: m.NominaBS,
             TasaBCV: m.contadorTasa > 0 ? m.TasaBCV / m.contadorTasa : 0,
             NetoUSD: m.IngresosUSD - totalEgresosUSD,
-            NetoBS: m.IngresosBS - totalEgresosBS
+            NetoBS: m.IngresosBS - (m.PagosBS + m.NominaBS)
         };
     }).sort((a, b) => b.Fecha.localeCompare(a.Fecha));
 }
@@ -535,7 +532,6 @@ function mostrarAnalisisInteligente() {
 
     let html = '<div style="padding:10px;">';
 
-    // Análisis del día
     html += '<h3 style="color:#667eea;margin-bottom:10px;">📊 Análisis del Día</h3>';
     if (hoyData.IngresosUSD > 0) {
         html += `<div class="insight ${hoyData.NetoUSD > 0 ? 'positivo' : 'negativo'}">
@@ -545,7 +541,6 @@ function mostrarAnalisisInteligente() {
         html += `<div class="insight neutro">ℹ️ Aún no hay registros para hoy.</div>`;
     }
 
-    // Comparación con ayer
     if (ayerData.IngresosUSD > 0) {
         const diff = hoyData.NetoUSD - ayerData.NetoUSD;
         const pct = ayerData.NetoUSD !== 0 ? ((diff / Math.abs(ayerData.NetoUSD)) * 100).toFixed(1) : 0;
@@ -556,23 +551,20 @@ function mostrarAnalisisInteligente() {
         </div>`;
     }
 
-    // Comparación con mes pasado
     html += '<h3 style="color:#667eea;margin:20px 0 10px 0;">📅 Comparación Mensual</h3>';
     if (mesPasadoData.IngresosUSD > 0) {
         const diffMes = mesActualData.NetoUSD - mesPasadoData.NetoUSD;
         const pctMes = mesPasadoData.NetoUSD !== 0 ? ((diffMes / Math.abs(mesPasadoData.NetoUSD)) * 100).toFixed(1) : 0;
         const clase = diffMes >= 0 ? 'positivo' : 'negativo';
         html += `<div class="insight ${clase}">
-            ${diffMes >= 0 ? '🚀' : '⚠️'} Mes actual vs mes pasado: <strong>${diffMes >= 0 ? '+' : ''}$${diffMes.toFixed(2)} (${pct}%)</strong>
+            ${diffMes >= 0 ? '🚀' : '⚠️'} Mes actual vs mes pasado: <strong>${diffMes >= 0 ? '+' : ''}$${diffMes.toFixed(2)} (${pctMes}%)</strong>
         </div>`;
     }
 
-    // Promedio diario
     html += `<div class="insight neutro">
         📊 Promedio diario este mes: <strong>$${promedioMensual.toFixed(2)}</strong>
     </div>`;
 
-    // Días negativos consecutivos
     if (diasConsecutivosNegativos >= 2) {
         html += `<div class="insight negativo">
             ⚠️ <strong>${diasConsecutivosNegativos} días seguidos con pérdidas.</strong> Revisa gastos.
@@ -583,7 +575,6 @@ function mostrarAnalisisInteligente() {
         </div>`;
     }
 
-    // Veredicto final
     html += '<h3 style="color:#667eea;margin:20px 0 10px 0;">🎯 Veredicto</h3>';
     let veredicto = '';
     if (mesActualData.NetoUSD > mesPasadoData.NetoUSD && mesPasadoData.NetoUSD > 0) {
@@ -1487,6 +1478,351 @@ function guardarNotas() {
 }
 
 // ============================================================
+// 🆕 RESET DEL SISTEMA CON CLAVE SECRETA
+// ============================================================
+function resetearSistema() {
+    // Limpiar campos del modal
+    document.getElementById('resetClave1').value = '';
+    document.getElementById('resetClave2').value = '';
+    document.getElementById('resetConfirmacion').checked = false;
+    document.getElementById('modalReset').style.display = 'flex';
+}
+
+function confirmarReset() {
+    const clave1 = document.getElementById('resetClave1').value;
+    const clave2 = document.getElementById('resetClave2').value;
+    const confirmado = document.getElementById('resetConfirmacion').checked;
+
+    // Validación 1: Checkbox
+    if (!confirmado) {
+        alert('⚠️ Debes marcar la casilla de confirmación');
+        return;
+    }
+
+    // Validación 2: Clave 1
+    if (clave1 !== CLAVE_ADMIN) {
+        alert('❌ Clave INCORRECTA. Acceso denegado.');
+        document.getElementById('resetClave1').value = '';
+        document.getElementById('resetClave1').focus();
+        return;
+    }
+
+    // Validación 3: Clave 2
+    if (clave2 !== CLAVE_ADMIN) {
+        alert('❌ La segunda clave es INCORRECTA o no coincide.');
+        document.getElementById('resetClave2').value = '';
+        document.getElementById('resetClave2').focus();
+        return;
+    }
+
+    // Validación 4: Ambas claves iguales
+    if (clave1 !== clave2) {
+        alert('❌ Las claves no coinciden entre sí.');
+        return;
+    }
+
+    // Confirmación final
+    if (!confirm('⚠️ ÚLTIMA ADVERTENCIA ⚠️\n\n¿Estás 100% seguro de que quieres BORRAR TODOS los datos?\n\nEsta acción NO se puede deshacer.')) {
+        return;
+    }
+
+    // 🔥 RESETEO COMPLETO
+    DB = {
+        config: {
+            TasaBCV: 0,
+            SaldoBinance_USD: 0,
+            SaldoZelle_USD: 0,
+            SaldoEmpresa_USD: 0,
+            SaldoPersonal_USD: 0,
+            SaldoEmpresa_Bs: 0,
+            SaldoPersonal_Bs: 0,
+            NombreNegocio: 'Mi Negocio'
+        },
+        ingresos: [],
+        recordatorios: [],
+        deudas: [],
+        empleados: [],
+        nominaPagos: [],
+        resumenDiario: [],
+        notas: ''
+    };
+
+    // Limpiar localStorage
+    localStorage.removeItem('FinanzasProDB');
+
+    // Limpiar campos visuales
+    document.getElementById('tasaBCV').value = '';
+    document.getElementById('nombreNegocio').value = 'Mi Negocio';
+    document.getElementById('saldoBinance').value = '';
+    document.getElementById('saldoZelle').value = '';
+    document.getElementById('saldoEmpresa').value = '';
+    document.getElementById('saldoPersonal').value = '';
+    document.getElementById('notasRapidas').value = '';
+    document.getElementById('recordatorioTasa').value = '';
+
+    // Re-renderizar todo
+    renderizarIngresos();
+    renderizarRecordatorios();
+    renderizarDeudas();
+    renderizarEmpleados();
+    renderizarHistorialNomina();
+    actualizarDashboard();
+    actualizarListaProveedores();
+    actualizarBloqueCierre();
+    recalcularResumenDiario();
+
+    // Cerrar modal
+    document.getElementById('modalReset').style.display = 'none';
+
+    // Mensaje final
+    alert('✅ Sistema reseteado completamente.\n\nTodos los datos han sido eliminados.\nEl sistema está como nuevo.');
+}
+
+// ============================================================
+// 🆕 GENERADOR DE GUÍA GOOGLE SHEETS (PDF)
+// ============================================================
+function generarGuiaGoogleSheets() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    let y = 20;
+    const addText = (texto, size = 10, bold = false) => {
+        if (y > 270) {
+            doc.addPage();
+            y = 20;
+        }
+        doc.setFontSize(size);
+        if (bold) doc.setFont('helvetica', 'bold');
+        else doc.setFont('helvetica', 'normal');
+        
+        const lines = doc.splitTextToSize(texto, 180);
+        doc.text(lines, 15, y);
+        y += lines.length * (size * 0.4);
+    };
+    
+    // PORTADA
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text('GUÍA DE CONFIGURACIÓN', 105, 40, {align: 'center'});
+    doc.text('GOOGLE SHEETS', 105, 55, {align: 'center'});
+    doc.setFontSize(14);
+    doc.text('FinanzasPro v3.4', 105, 75, {align: 'center'});
+    doc.setFontSize(10);
+    doc.text('Sigue estos pasos para conectar tu sistema con Google Sheets', 105, 95, {align: 'center'});
+    
+    y = 130;
+    
+    addText('PASO 1: Crear la hoja de Google Sheets', 14, true);
+    y += 3;
+    addText('1. Abre tu navegador y ve a: https://sheets.google.com');
+    addText('2. Haz clic en "+ Hoja de cálculo en blanco"');
+    addText('3. Ponle nombre: "FinanzasPro" (o el que quieras)');
+    y += 5;
+    
+    addText('PASO 2: Abrir el editor de Apps Script', 14, true);
+    y += 3;
+    addText('1. En el menú superior, haz clic en "Extensiones"');
+    addText('2. Selecciona "Apps Script"');
+    addText('3. Se abrirá una nueva pestaña con el editor de código');
+    y += 5;
+    
+    addText('PASO 3: Pegar el código (ver página siguiente)', 14, true);
+    y += 3;
+    addText('1. Borra TODO el código que aparece por defecto');
+    addText('2. Copia el código de la página siguiente');
+    addText('3. Pégalo en el editor');
+    addText('4. Haz clic en el ícono de disquete (Guardar) o Ctrl+S');
+    y += 5;
+    
+    addText('PASO 4: Implementar como aplicación web', 14, true);
+    y += 3;
+    addText('1. Arriba a la derecha, haz clic en "Implementar"');
+    addText('2. Selecciona "Nueva implementación"');
+    addText('3. Haz clic en el engranaje y selecciona "Aplicación web"');
+    addText('4. Descripción: "FinanzasPro API"');
+    addText('5. Ejecutar como: "Yo"');
+    addText('6. Quién tiene acceso: "Cualquier persona"');
+    addText('7. Haz clic en "Implementar"');
+    y += 5;
+    
+    addText('PASO 5: Autorizar permisos', 14, true);
+    y += 3;
+    addText('1. Te pedirá autorización, haz clic en "Autorizar acceso"');
+    addText('2. Selecciona tu cuenta de Google');
+    addText('3. Aparecerá advertencia - haz clic en "Configuración avanzada"');
+    addText('4. Haz clic en "Ir al proyecto (no seguro)"');
+    addText('5. Haz clic en "Permitir"');
+    y += 5;
+    
+    addText('PASO 6: Copiar la URL', 14, true);
+    y += 3;
+    addText('1. Te dará una URL que termina en /exec');
+    addText('2. COPIA ESA URL COMPLETA');
+    y += 5;
+    
+    addText('PASO 7: Conectar con FinanzasPro', 14, true);
+    y += 3;
+    addText('1. Abre FinanzasPro');
+    addText('2. Pega la URL en el campo superior');
+    addText('3. Haz clic en "Conectar"');
+    addText('4. Verás: "✅ Cargado y Conectado"');
+    y += 5;
+    
+    addText('✅ ¡LISTO! Ya puedes usar Google Sheets', 12, true);
+    
+    // PÁGINA CON EL CÓDIGO
+    doc.addPage();
+    y = 20;
+    addText('CÓDIGO APPS SCRIPT (copia todo esto)', 14, true);
+    y += 3;
+    doc.setFontSize(7);
+    doc.setFont('courier', 'normal');
+    
+    const codigo = `function doGet(e) {
+  const action = e.parameter.action;
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  try {
+    if (action === 'status') {
+      return jsonResponse({success: true});
+    }
+    if (action === 'load') {
+      crearHojasSiNoExisten(ss);
+      const data = {
+        config: leerHojaConfig(ss),
+        ingresos: leerHojaDatos(ss, 'Ingresos'),
+        recordatorios: leerHojaDatos(ss, 'Recordatorios'),
+        deudas: leerHojaDatos(ss, 'Deudas'),
+        empleados: leerHojaDatos(ss, 'Empleados'),
+        nominaPagos: leerHojaDatos(ss, 'NominaPagos'),
+        notas: leerNota(ss)
+      };
+      return jsonResponse({success: true, data: data});
+    }
+  } catch(err) {
+    return jsonResponse({success: false, error: err.toString()});
+  }
+}
+
+function doPost(e) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  try {
+    crearHojasSiNoExisten(ss);
+    const body = JSON.parse(e.postData.contents);
+    if (body.action === 'save') {
+      const data = body.data;
+      guardarHojaConfig(ss, data.config);
+      guardarHojaDatos(ss, 'Ingresos', data.ingresos || []);
+      guardarHojaDatos(ss, 'Recordatorios', data.recordatorios || []);
+      guardarHojaDatos(ss, 'Deudas', data.deudas || []);
+      guardarHojaDatos(ss, 'Empleados', data.empleados || []);
+      guardarHojaDatos(ss, 'NominaPagos', data.nominaPagos || []);
+      guardarNota(ss, data.notas || '');
+      return jsonResponse({success: true});
+    }
+  } catch(err) {
+    return jsonResponse({success: false, error: err.toString()});
+  }
+}
+
+function crearHojasSiNoExisten(ss) {
+  const hojas = ['Config','Ingresos','Recordatorios','Deudas','Empleados','NominaPagos','Notas'];
+  hojas.forEach(nombre => {
+    if (!ss.getSheetByName(nombre)) {
+      const hoja = ss.insertSheet(nombre);
+      if (nombre === 'Config') hoja.getRange(1,1,1,2).setValues([['Clave','Valor']]);
+      else if (nombre === 'Ingresos') hoja.getRange(1,1,1,20).setValues([['ID','Fecha','TasaBCV','SaldoIni_USD','SaldoIni_Bs','Efectivo_USD','Efectivo_Bs','PagoMovil_Bs','TarjetaDebito','TarjetaDebitoMoneda','TarjetaCredito','TarjetaCreditoMoneda','Transferencia_Bs','Zelle_USD','Binance_USD','Observacion','Total_USD','Total_Bs','SaldoFin_USD','SaldoFin_Bs']]);
+      else if (nombre === 'Recordatorios') hoja.getRange(1,1,1,9).setValues([['ID','FechaCreacion','FechaRecordatorio','Descripcion','MontoUSD','MontoBs','Detalle','Prioridad','Completado']]);
+      else if (nombre === 'Deudas') hoja.getRange(1,1,1,16).setValues([['ID','Fecha','TasaBCV','RIF','Nombre','Descripcion','NroFactura','MontoUSD','MontoBs','Etiqueta','Prioridad','CuentaOrigen','Pagado','TotalAbonado','SaldoPendiente','HistorialPagos']]);
+      else if (nombre === 'Empleados') hoja.getRange(1,1,1,7).setValues([['ID','FechaIngreso','Nombre','Cedula','TipoSueldo','SueldoUSD','Status']]);
+      else if (nombre === 'NominaPagos') hoja.getRange(1,1,1,11).setValues([['ID','FechaPago','CuentaOrigen','Nombre','Cedula','Tipo','Sueldo','Bono','Deuda','Neto','Status']]);
+      else if (nombre === 'Notas') hoja.getRange(1,1).setValue('Contenido');
+      hoja.getRange(1,1,1,hoja.getLastColumn()).setFontWeight('bold').setBackground('#667eea').setFontColor('#ffffff');
+    }
+  });
+  const h1 = ss.getSheetByName('Hoja 1');
+  if (h1 && ss.getSheets().length > 1) ss.deleteSheet(h1);
+}
+
+function leerHojaConfig(ss) {
+  const h = ss.getSheetByName('Config');
+  if (!h || h.getLastRow() < 2) return {};
+  const d = h.getDataRange().getValues();
+  const c = {};
+  for (let i = 1; i < d.length; i++) if (d[i][0]) c[d[i][0]] = d[i][1];
+  return c;
+}
+
+function leerHojaDatos(ss, n) {
+  const h = ss.getSheetByName(n);
+  if (!h || h.getLastRow() < 2) return [];
+  const d = h.getDataRange().getValues();
+  const enc = d[0];
+  const r = [];
+  for (let i = 1; i < d.length; i++) {
+    const f = {};
+    enc.forEach((e, idx) => {
+      let v = d[i][idx];
+      if (typeof v === 'string' && (v.startsWith('[') || v.startsWith('{'))) {
+        try { v = JSON.parse(v); } catch(e) {}
+      }
+      f[e] = v;
+    });
+    r.push(f);
+  }
+  return r;
+}
+
+function leerNota(ss) {
+  const h = ss.getSheetByName('Notas');
+  return (!h || h.getLastRow() < 2) ? '' : (h.getRange(2,1).getValue() || '');
+}
+
+function guardarHojaConfig(ss, config) {
+  const h = ss.getSheetByName('Config');
+  if (!h) return;
+  if (h.getLastRow() > 1) h.getRange(2,1,h.getLastRow()-1,2).clearContent();
+  const f = Object.entries(config).map(([k,v]) => [k,v]);
+  if (f.length > 0) h.getRange(2,1,f.length,2).setValues(f);
+}
+
+function guardarHojaDatos(ss, n, datos) {
+  const h = ss.getSheetByName(n);
+  if (!h) return;
+  if (h.getLastRow() > 1) h.getRange(2,1,h.getLastRow()-1,h.getLastColumn()).clearContent();
+  if (!datos || datos.length === 0) return;
+  const enc = h.getRange(1,1,1,h.getLastColumn()).getValues()[0];
+  const f = datos.map(item => enc.map(e => {
+    let v = item[e];
+    if (typeof v === 'object' && v !== null) v = JSON.stringify(v);
+    return v !== undefined ? v : '';
+  }));
+  h.getRange(2,1,f.length,enc.length).setValues(f);
+}
+
+function guardarNota(ss, nota) {
+  const h = ss.getSheetByName('Notas');
+  if (h) h.getRange(2,1).setValue(nota);
+}
+
+function jsonResponse(data) {
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+}`;
+    
+    const lines = doc.splitTextToSize(codigo, 180);
+    lines.forEach(line => {
+        if (y > 280) {
+            doc.addPage();
+            y = 20;
+        }
+        doc.text(line, 15, y);
+        y += 3;
+    });
+    
+    doc.save('Guia_Google_Sheets_FinanzasPro.pdf');
+    alert('✅ Guía generada. Ábrela y sigue los pasos.');
+}
+
+// ============================================================
 // LOCAL STORAGE
 // ============================================================
 function guardarEnLocalStorage() {
@@ -1569,7 +1905,7 @@ function cargarExcel(event) {
         
         alert('✅ Excel cargado: ' + file.name);
 
-        // 🆕 Auto-búsqueda al cargar Excel
+        // Auto-búsqueda al cargar Excel
         if (DB.ingresos.length > 0) {
             const ultimaFecha = DB.ingresos[DB.ingresos.length - 1].Fecha;
             document.getElementById('busqDesde').value = ultimaFecha;
@@ -1577,7 +1913,6 @@ function cargarExcel(event) {
             document.getElementById('busqFiltro').value = 'todos';
             realizarBusqueda();
             
-            // Cambiar a tab Búsqueda
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.querySelector('[data-tab="tabBusqueda"]').classList.add('active');
@@ -1740,7 +2075,6 @@ async function cargarDesdeSheets() {
             cambiarEstadoGS('conectado');
             alert('✅ Datos cargados desde Google Sheets correctamente');
 
-            // 🆕 Auto-búsqueda
             if (DB.ingresos.length > 0) {
                 const ultimaFecha = DB.ingresos[DB.ingresos.length - 1].Fecha;
                 document.getElementById('busqDesde').value = ultimaFecha;
