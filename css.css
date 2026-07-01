@@ -1,0 +1,577 @@
+/* ============================================================
+ESTILOS GENERALES
+============================================================ */
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+min-height: 100vh;
+padding: 20px;
+}
+
+/* ============================================================
+GOOGLE SHEETS SECTION
+============================================================ */
+.google-sheets-section {
+background: white;
+padding: 15px;
+border-radius: 10px;
+margin-bottom: 20px;
+box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.gs-status {
+display: flex;
+align-items: center;
+gap: 10px;
+margin-bottom: 10px;
+font-weight: 600;
+}
+
+.status-dot {
+width: 12px;
+height: 12px;
+border-radius: 50%;
+background: #ef4444;
+}
+
+.status-dot.estado-cargando {
+background: #f59e0b;
+animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+0%, 100% { opacity: 1; }
+50% { opacity: 0.5; }
+}
+
+.google-sheets-section input[type="text"] {
+width: 100%;
+padding: 8px;
+border: 2px solid #ddd;
+border-radius: 5px;
+margin-bottom: 10px;
+}
+
+.google-sheets-section button {
+padding: 8px 15px;
+margin-right: 5px;
+border: none;
+border-radius: 5px;
+cursor: pointer;
+font-weight: 600;
+transition: all 0.3s;
+}
+
+.google-sheets-section button:first-of-type {
+background: #667eea;
+color: white;
+}
+
+.google-sheets-section button:nth-of-type(2) {
+background: #10b981;
+color: white;
+}
+
+.google-sheets-section button:nth-of-type(3) {
+background: #f59e0b;
+color: white;
+}
+
+.google-sheets-section button.btn-danger {
+background: #ef4444;
+color: white;
+}
+
+/* ============================================================
+HEADER
+============================================================ */
+header {
+background: white;
+padding: 20px;
+border-radius: 10px;
+margin-bottom: 20px;
+box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+header h1 {
+color: #333;
+margin-bottom: 15px;
+font-size: 2em;
+}
+
+.header-actions {
+display: flex;
+gap: 10px;
+flex-wrap: wrap;
+}
+
+.header-actions button {
+padding: 10px 20px;
+border: 2px solid #667eea;
+background: white;
+color: #667eea;
+border-radius: 5px;
+cursor: pointer;
+font-weight: 600;
+transition: all 0.3s;
+}
+
+.header-actions button:hover {
+background: #667eea;
+color: white;
+}
+
+/* ============================================================
+CONFIG SECTION
+============================================================ */
+.config-section {
+background: white;
+padding: 20px;
+border-radius: 10px;
+margin-bottom: 20px;
+box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+display: flex;
+gap: 20px;
+flex-wrap: wrap;
+}
+
+.form-group {
+flex: 1;
+min-width: 200px;
+}
+
+.form-group label {
+display: block;
+margin-bottom: 5px;
+font-weight: 600;
+color: #333;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+width: 100%;
+padding: 10px;
+border: 2px solid #ddd;
+border-radius: 5px;
+font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+outline: none;
+border-color: #667eea;
+}
+
+/* ============================================================
+DASHBOARD
+============================================================ */
+.dashboard {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+gap: 20px;
+margin-bottom: 20px;
+}
+
+.card {
+background: white;
+padding: 20px;
+border-radius: 10px;
+box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+text-align: center;
+}
+
+.card h3 {
+color: #667eea;
+margin-bottom: 10px;
+font-size: 1.1em;
+}
+
+.card .monto {
+font-size: 2em;
+font-weight: bold;
+color: #333;
+margin: 10px 0;
+}
+
+.card small {
+color: #6b7280;
+}
+
+/* ============================================================
+TABS
+============================================================ */
+.tabs {
+display: flex;
+gap: 5px;
+margin-bottom: 20px;
+flex-wrap: wrap;
+background: white;
+padding: 10px;
+border-radius: 10px;
+box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.tab {
+padding: 12px 20px;
+border: none;
+background: #f3f4f6;
+color: #333;
+border-radius: 5px;
+cursor: pointer;
+font-weight: 600;
+transition: all 0.3s;
+}
+
+.tab:hover {
+background: #e5e7eb;
+}
+
+.tab.active {
+background: #667eea;
+color: white;
+}
+
+.tab-content {
+display: none;
+background: white;
+padding: 30px;
+border-radius: 10px;
+box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+margin-bottom: 20px;
+}
+
+.tab-content.active {
+display: block;
+}
+
+/* ============================================================
+SECTIONS
+============================================================ */
+.section {
+margin-bottom: 30px;
+}
+
+.section h2 {
+color: #333;
+margin-bottom: 20px;
+padding-bottom: 10px;
+border-bottom: 3px solid #667eea;
+}
+
+.section h3 {
+color: #667eea;
+margin: 20px 0 15px 0;
+}
+
+/* ============================================================
+FORM ROWS
+============================================================ */
+.form-row {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+gap: 15px;
+margin-bottom: 15px;
+}
+
+/* ============================================================
+BUTTONS
+============================================================ */
+.btn {
+padding: 10px 20px;
+border: none;
+border-radius: 5px;
+cursor: pointer;
+font-weight: 600;
+transition: all 0.3s;
+}
+
+.btn-primary {
+background: #667eea;
+color: white;
+}
+
+.btn-primary:hover {
+background: #5568d3;
+}
+
+.btn-secondary {
+background: #10b981;
+color: white;
+}
+
+.btn-secondary:hover {
+background: #059669;
+}
+
+.btn-danger {
+background: #ef4444;
+color: white;
+}
+
+.btn-danger:hover {
+background: #dc2626;
+}
+
+.btn-success {
+background: #10b981;
+color: white;
+}
+
+.btn-warning {
+background: #f59e0b;
+color: white;
+}
+
+.btn-small {
+padding: 5px 10px;
+font-size: 12px;
+}
+
+.form-actions {
+display: flex;
+gap: 10px;
+margin-top: 20px;
+}
+
+/* ============================================================
+TABLES
+============================================================ */
+.table-container {
+overflow-x: auto;
+margin-top: 20px;
+}
+
+table {
+width: 100%;
+border-collapse: collapse;
+background: white;
+}
+
+thead {
+background: #667eea;
+color: white;
+}
+
+th, td {
+padding: 12px;
+text-align: left;
+border-bottom: 1px solid #ddd;
+}
+
+tbody tr:hover {
+background: #f9fafb;
+}
+
+/* ============================================================
+BADGES
+============================================================ */
+.badge {
+padding: 4px 10px;
+border-radius: 12px;
+font-size: 12px;
+font-weight: 600;
+}
+
+.badge-high {
+background: #fee2e2;
+color: #dc2626;
+}
+
+.badge-medium {
+background: #fef3c7;
+color: #d97706;
+}
+
+.badge-low {
+background: #d1fae5;
+color: #059669;
+}
+
+/* ============================================================
+ALERTAS Y MENSAJES
+============================================================ */
+.alerta-obligatorio {
+background: linear-gradient(135deg, #fef3c7, #fde68a);
+border-left: 4px solid #f59e0b;
+padding: 15px 20px;
+border-radius: 8px;
+margin-bottom: 20px;
+color: #92400e;
+font-size: 14px;
+}
+
+.campo-obligatorio {
+position: relative;
+}
+
+.campo-obligatorio input {
+border: 2px solid #f59e0b !important;
+background: #fffbeb;
+}
+
+.badge-required {
+background: #ef4444;
+color: white;
+padding: 2px 8px;
+border-radius: 4px;
+font-size: 10px;
+font-weight: bold;
+}
+
+.help-text {
+font-size: 11px;
+color: #6b7280;
+margin-top: 3px;
+}
+
+/* ============================================================
+MODAL
+============================================================ */
+.modal {
+display: none;
+position: fixed;
+z-index: 1000;
+left: 0;
+top: 0;
+width: 100%;
+height: 100%;
+background-color: rgba(0,0,0,0.5);
+justify-content: center;
+align-items: center;
+}
+
+.modal-content {
+background: white;
+padding: 30px;
+border-radius: 15px;
+max-width: 700px;
+width: 90%;
+max-height: 90vh;
+overflow-y: auto;
+box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+.modal-content h2 {
+margin-bottom: 20px;
+color: #333;
+}
+
+/* ============================================================
+DASHBOARD GRID
+============================================================ */
+.dashboard-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+gap: 20px;
+}
+
+.card-dash {
+background: white;
+padding: 20px;
+border-radius: 10px;
+box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+text-align: center;
+}
+
+.card-dash h3 {
+color: #667eea;
+margin-bottom: 10px;
+font-size: 0.9em;
+}
+
+.card-dash .monto-grande {
+font-size: 1.8em;
+font-weight: bold;
+color: #333;
+margin: 10px 0;
+}
+
+.card-dash.card-balance {
+background: linear-gradient(135deg, #667eea, #764ba2);
+color: white;
+}
+
+.card-dash.card-balance h3,
+.card-dash.card-balance .monto-grande {
+color: white;
+}
+
+/* ============================================================
+SALDOS INFO
+============================================================ */
+.saldos-info {
+background: #f3f4f6;
+padding: 15px;
+border-radius: 8px;
+margin-bottom: 20px;
+}
+
+.saldos-cuentas {
+background: #f9fafb;
+padding: 15px;
+border-radius: 8px;
+margin-bottom: 20px;
+}
+
+.saldos-cuentas h4 {
+margin-bottom: 10px;
+color: #667eea;
+}
+
+.resumen-deudas {
+background: #fef3c7;
+padding: 15px;
+border-radius: 8px;
+margin-top: 20px;
+font-weight: 600;
+}
+
+/* ============================================================
+RESULTADOS BUSQUEDA
+============================================================ */
+.resultados {
+margin-top: 20px;
+}
+
+/* ============================================================
+RESPONSIVE
+============================================================ */
+@media (max-width: 768px) {
+body {
+padding: 10px;
+}
+
+header h1 {
+font-size: 1.5em;
+}
+
+.card .monto {
+font-size: 1.5em;
+}
+
+.form-row {
+grid-template-columns: 1fr;
+}
+
+.tabs {
+flex-direction: column;
+}
+
+.tab {
+width: 100%;
+text-align: center;
+}
+
+th, td {
+padding: 8px;
+font-size: 14px;
+}
+}
