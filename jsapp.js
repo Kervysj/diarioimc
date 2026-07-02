@@ -1,5 +1,5 @@
 // ============================================================
-// FinanzasPro v3.5 - Lógica Principal COMPLETA
+// FinanzasPro v3.6 - Lógica Principal COMPLETA
 // ============================================================
 let DB = {
     config: {
@@ -24,6 +24,7 @@ let GS_URL = localStorage.getItem('FinanzasPro_GS_URL') || '';
 let GS_CONECTADO = false;
 let nominaTemporal = [];
 let graficoAnalisis = null;
+let monedaFacturaActual = 'USD'; // ✅ NUEVO: Moneda de factura seleccionada
 const CLAVE_ADMIN = 'Adri2712*';
 
 // ============================================================
@@ -33,27 +34,19 @@ window.addEventListener('DOMContentLoaded', () => {
     const hoy = new Date().toISOString().split('T')[0];
     const mesActual = hoy.substring(0, 7);
     
-    // ✅ NUEVO: Establecer fecha máxima (hoy) en todos los inputs de fecha excepto búsqueda
+    // Establecer fecha máxima (hoy) en todos los inputs de fecha excepto búsqueda
     const inputsFecha = document.querySelectorAll('input[type="date"]:not(#busqDesde):not(#busqHasta):not(#analisisFecha)');
     inputsFecha.forEach(input => {
         input.setAttribute('max', hoy);
     });
     
-    // ✅ NUEVO: En pagar proveedor, la fecha debe ser solo hoy (no anteriores)
-    const deudaFecha = document.getElementById('deudaFecha');
-    if (deudaFecha) {
-        deudaFecha.setAttribute('min', hoy);
-        deudaFecha.setAttribute('max', hoy);
-    }
-    
     const ingresoFecha = document.getElementById('ingresoFecha');
     if (ingresoFecha) ingresoFecha.value = hoy;
 
-    const recFechaActual = document.getElementById('recordatorioFechaActual');
-    if (recFechaActual) recFechaActual.value = hoy;
     const recFecha = document.getElementById('recordatorioFecha');
     if (recFecha) recFecha.value = hoy;
 
+    const deudaFecha = document.getElementById('deudaFecha');
     if (deudaFecha) deudaFecha.value = hoy;
 
     const empFecha = document.getElementById('empleadoFecha');
@@ -67,8 +60,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
     cargarDesdeLocalStorage();
     
-    // ✅ NUEVO: Actualizar panel de saldos al cargar
+    // Actualizar panel de saldos y contexto
     actualizarPanelSaldos();
+    actualizarContexto();
 
     if (GS_URL) {
         const urlInput = document.getElementById('urlGoogleSheets');
@@ -85,7 +79,7 @@ document.querySelectorAll('.tab').forEach(tab => {
         tab.classList.add('active');
         document.getElementById(tab.dataset.tab).classList.add('active');
         
-        // ✅ NUEVO: Actualizar panel de saldos al cambiar de pestaña
+        // Actualizar panel de saldos al cambiar de pestaña
         actualizarPanelSaldos();
         
         if (tab.dataset.tab === 'tabAnalisis') {
@@ -95,22 +89,65 @@ document.querySelectorAll('.tab').forEach(tab => {
 });
 
 // ============================================================
-// ✅ NUEVO: ACTUALIZAR PANEL DE SALDOS EN TODAS LAS PESTAÑAS
+// ACTUALIZAR PANEL DE SALDOS EN TODAS LAS PESTAÑAS
 // ============================================================
 function actualizarPanelSaldos() {
     const saldoBinance = document.getElementById('saldoBinanceDisplay');
     const saldoZelle = document.getElementById('saldoZelleDisplay');
     const saldoEmpresa = document.getElementById('saldoEmpresaDisplay');
-    const saldoPersonal = document.getElementById('saldoPersonalDisplay');
     const saldoEmpresaBs = document.getElementById('saldoEmpresaBsDisplay');
+    const saldoPersonal = document.getElementById('saldoPersonalDisplay');
     const saldoPersonalBs = document.getElementById('saldoPersonalBsDisplay');
     
     if (saldoBinance) saldoBinance.textContent = '$' + (DB.config.SaldoBinance_USD || 0).toFixed(2);
     if (saldoZelle) saldoZelle.textContent = '$' + (DB.config.SaldoZelle_USD || 0).toFixed(2);
     if (saldoEmpresa) saldoEmpresa.textContent = '$' + (DB.config.SaldoEmpresa_USD || 0).toFixed(2);
-    if (saldoPersonal) saldoPersonal.textContent = '$' + (DB.config.SaldoPersonal_USD || 0).toFixed(2);
     if (saldoEmpresaBs) saldoEmpresaBs.textContent = 'Bs. ' + (DB.config.SaldoEmpresa_Bs || 0).toFixed(2);
+    if (saldoPersonal) saldoPersonal.textContent = '$' + (DB.config.SaldoPersonal_USD || 0).toFixed(2);
     if (saldoPersonalBs) saldoPersonalBs.textContent = 'Bs. ' + (DB.config.SaldoPersonal_Bs || 0).toFixed(2);
+}
+
+// ============================================================
+// ACTUALIZAR BARRA DE CONTEXTO (Fecha + Tasa)
+// ============================================================
+function actualizarContexto() {
+    const hoy = new Date().toLocaleDateString('es-VE');
+    const contextoFecha = document.getElementById('contextoFecha');
+    const contextoTasa = document.getElementById('contextoTasa');
+    const contextoNegocio = document.getElementById('contextoNegocio');
+    
+    if (contextoFecha) contextoFecha.textContent = hoy;
+    if (contextoTasa) contextoTasa.textContent = 'Bs. ' + (DB.config.TasaBCV || 0).toFixed(2);
+    if (contextoNegocio) contextoNegocio.textContent = DB.config.NombreNegocio || 'Mi Negocio';
+}
+
+// ============================================================
+// REFRESCAR TODO
+// ============================================================
+function refrescarTodo() {
+    if (confirm('¿Refrescar la página? Se perderán los datos no guardados.')) {
+        location.reload();
+    }
+}
+
+// ============================================================
+// ABRIR MANUAL DE USUARIO
+// ============================================================
+function abrirManualUsuario() {
+    document.getElementById('modalManualUsuario').style.display = 'flex';
+}
+
+// ============================================================
+// INDICADOR DE GUARDADO
+// ============================================================
+function mostrarIndicadorGuardado() {
+    const indicador = document.getElementById('saveIndicator');
+    if (!indicador) return;
+    
+    indicador.style.display = 'block';
+    setTimeout(() => {
+        indicador.style.display = 'none';
+    }, 2000);
 }
 
 // ============================================================
@@ -126,6 +163,34 @@ function validarSaldoInicial() {
     } else {
         alerta.style.display = 'none';
         return true;
+    }
+}
+
+// ============================================================
+// VERIFICAR DISCREPANCIA
+// ============================================================
+function verificarDiscrepancia() {
+    if (DB.ingresos.length === 0) return;
+    
+    const ingresosOrdenados = [...DB.ingresos].sort((a, b) => 
+        (b.Fecha || '').localeCompare(a.Fecha || '')
+    );
+    const ultimo = ingresosOrdenados[0];
+    
+    const saldoIniUSD = parseFloat(document.getElementById('saldoIniUSD').value) || 0;
+    const saldoIniBS = parseFloat(document.getElementById('saldoIniBS').value) || 0;
+    
+    const saldoEsperadoUSD = ultimo.SaldoFin_USD || 0;
+    const saldoEsperadoBS = ultimo.SaldoFin_Bs || 0;
+    
+    const diferenciaUSD = Math.abs(saldoIniUSD - saldoEsperadoUSD);
+    const diferenciaBS = Math.abs(saldoIniBS - saldoEsperadoBS);
+    
+    const alerta = document.getElementById('alertaDiscrepancia');
+    if (diferenciaUSD > 0.01 || diferenciaBS > 0.01) {
+        alerta.style.display = 'block';
+    } else {
+        alerta.style.display = 'none';
     }
 }
 
@@ -155,18 +220,62 @@ function calcularTotales() {
     document.getElementById('totalBS').textContent = 'Bs. ' + totalBS.toFixed(2);
 }
 
-// ✅ CORREGIDO: Usar ingresoTasa en lugar de tasaBCV
 function calcularMontoBSRecordatorio() {
     const tasa = parseFloat(document.getElementById('ingresoTasa').value) || 0;
-    const montoUSD = parseFloat(document.getElementById('recordatorioMontoUSD').value) || 0;
-    document.getElementById('recordatorioMontoBSCalculado').value = (montoUSD * tasa).toFixed(2);
+    const moneda = document.getElementById('recordatorioMoneda').value;
+    const monto = parseFloat(document.getElementById('recordatorioMontoUSD').value) || 0;
+    
+    if (moneda === 'USD') {
+        document.getElementById('recordatorioMontoBSCalculado').value = (monto * tasa).toFixed(2);
+    } else {
+        document.getElementById('recordatorioMontoBSCalculado').value = (monto / tasa).toFixed(2);
+    }
 }
 
-// ✅ CORREGIDO: Usar ingresoTasa en lugar de tasaBCV
-function calcularMontoBSDeuda() {
+// ✅ NUEVO: Calcular monto de deuda según moneda seleccionada
+function calcularMontoDeuda() {
     const tasa = parseFloat(document.getElementById('ingresoTasa').value) || 0;
-    const montoUSD = parseFloat(document.getElementById('deudaMontoUSD').value) || 0;
-    document.getElementById('deudaMontoBSCalculado').value = (montoUSD * tasa).toFixed(2);
+    
+    if (monedaFacturaActual === 'USD') {
+        const montoUSD = parseFloat(document.getElementById('deudaMontoUSD').value) || 0;
+        document.getElementById('deudaMontoBSCalculado').value = (montoUSD * tasa).toFixed(2);
+    } else {
+        const montoBS = parseFloat(document.getElementById('deudaMontoBS').value) || 0;
+        document.getElementById('deudaMontoBSCalculado').value = montoBS.toFixed(2);
+        if (tasa > 0) {
+            document.getElementById('deudaMontoUSD').value = (montoBS / tasa).toFixed(2);
+        }
+    }
+}
+
+function calcularMontoDeudaInverso() {
+    const tasa = parseFloat(document.getElementById('ingresoTasa').value) || 0;
+    const montoBS = parseFloat(document.getElementById('deudaMontoBS').value) || 0;
+    
+    if (tasa > 0) {
+        document.getElementById('deudaMontoUSD').value = (montoBS / tasa).toFixed(2);
+    }
+}
+
+// ✅ NUEVO: Seleccionar moneda de factura
+function seleccionarMonedaFactura(moneda) {
+    monedaFacturaActual = moneda;
+    
+    document.getElementById('currencyUSD').classList.remove('active');
+    document.getElementById('currencyBS').classList.remove('active');
+    document.getElementById('currency' + moneda).classList.add('active');
+    
+    const labelMonto = document.getElementById('labelMontoPrincipal');
+    if (moneda === 'USD') {
+        labelMonto.textContent = '💵 Monto ($)';
+    } else {
+        labelMonto.textContent = ' Monto (Bs)';
+    }
+    
+    // Limpiar campos
+    document.getElementById('deudaMontoUSD').value = '';
+    document.getElementById('deudaMontoBS').value = '';
+    document.getElementById('deudaMontoBSCalculado').value = '';
 }
 
 // ============================================================
@@ -590,7 +699,7 @@ function mostrarAnalisisInteligente() {
         const pctMes = mesPasadoData.NetoUSD !== 0 ? ((diffMes / Math.abs(mesPasadoData.NetoUSD)) * 100).toFixed(1) : 0;
         const clase = diffMes >= 0 ? 'positivo' : 'negativo';
         html += `<div class="insight ${clase}">
-            ${diffMes >= 0 ? '' : '⚠️'} Mes actual vs mes pasado: <strong>${diffMes >= 0 ? '+' : ''}$${diffMes.toFixed(2)} (${pctMes}%)</strong>
+            ${diffMes >= 0 ? '🚀' : '️'} Mes actual vs mes pasado: <strong>${diffMes >= 0 ? '+' : ''}$${diffMes.toFixed(2)} (${pctMes}%)</strong>
          </div>`;
     }
 
@@ -604,7 +713,7 @@ function mostrarAnalisisInteligente() {
          </div>`;
     } else if (diasConsecutivosNegativos === 1) {
         html += `<div class="insight neutro">
-            ℹ️ Ayer fue un día negativo, pero hoy puedes recuperarte.
+            ️ Ayer fue un día negativo, pero hoy puedes recuperarte.
          </div>`;
     }
 
@@ -616,7 +725,7 @@ function mostrarAnalisisInteligente() {
          </div>`;
     } else if (mesActualData.NetoUSD < 0) {
         veredicto = `<div class="insight negativo" style="font-size:1.1em;font-weight:bold;">
-            ⚠️ <strong>Hay que mejorar.</strong> Este mes va en negativo.
+            ️ <strong>Hay que mejorar.</strong> Este mes va en negativo.
          </div>`;
     } else if (mesActualData.NetoUSD > 0 && mesActualData.NetoUSD < mesPasadoData.NetoUSD) {
         veredicto = `<div class="insight neutro" style="font-size:1.1em;font-weight:bold;">
@@ -670,7 +779,7 @@ function exportarAnalisisExcel() {
 
 function exportarAnalisisPDF() {
     if (DB.resumenDiario.length === 0) {
-        alert('️ No hay datos de análisis para exportar');
+        alert('⚠️ No hay datos de análisis para exportar');
         return;
     }
     const { jsPDF } = window.jspdf;
@@ -738,7 +847,7 @@ function guardarIngreso() {
     ingreso.SaldoFin_USD = ingreso.SaldoIni_USD + ingreso.Total_USD;
     ingreso.SaldoFin_Bs = ingreso.SaldoIni_Bs + ingreso.Total_Bs;
 
-    // ✅ NUEVO: Sumar los ingresos a las cuentas correspondientes
+    // Sumar los ingresos a las cuentas correspondientes
     DB.config.SaldoBinance_USD += ingreso.Binance_USD;
     DB.config.SaldoZelle_USD += ingreso.Zelle_USD;
     DB.config.SaldoEmpresa_Bs += ingreso.Efectivo_Bs + ingreso.PagoMovil_Bs + ingreso.Transferencia_Bs +
@@ -752,9 +861,11 @@ function guardarIngreso() {
     renderizarIngresos();
     recalcularResumenDiario();
     actualizarBloqueCierre();
-    actualizarPanelSaldos(); // ✅ NUEVO
+    actualizarPanelSaldos();
+    actualizarContexto();
     limpiarIngreso();
     actualizarDashboard();
+    mostrarIndicadorGuardado();
     alert('✅ Ingreso guardado correctamente');
 }
 
@@ -764,7 +875,7 @@ function renderizarIngresos() {
     tbody.innerHTML = '';
     DB.ingresos.forEach(ing => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${ing.Fecha}</td><td>${ing.TasaBCV}</td><td>${ing.SaldoIni_USD.toFixed(2)}</td><td>${ing.SaldoIni_Bs.toFixed(2)}</td><td>${ing.Efectivo_USD.toFixed(2)}</td><td>${ing.Efectivo_Bs.toFixed(2)}</td><td>${ing.PagoMovil_Bs.toFixed(2)}</td><td>${ing.TarjetaDebito.toFixed(2)}</td><td>${ing.TarjetaCredito.toFixed(2)}</td><td>${ing.Transferencia_Bs.toFixed(2)}</td><td>${ing.Zelle_USD.toFixed(2)}</td><td>${ing.Binance_USD.toFixed(2)}</td><td><strong>${ing.Total_USD.toFixed(2)}</strong></td><td><strong>${ing.Total_Bs.toFixed(2)}</strong></td><td>${ing.SaldoFin_USD.toFixed(2)}</td><td>${ing.SaldoFin_Bs.toFixed(2)}</td><td><button class="btn btn-danger" onclick="eliminarIngreso(${ing.ID})">️</button></td>`;
+        tr.innerHTML = `<td>${ing.Fecha}</td><td>${ing.TasaBCV}</td><td>${ing.SaldoIni_USD.toFixed(2)}</td><td>${ing.SaldoIni_Bs.toFixed(2)}</td><td>${ing.Efectivo_USD.toFixed(2)}</td><td>${ing.Efectivo_Bs.toFixed(2)}</td><td>${ing.PagoMovil_Bs.toFixed(2)}</td><td>${ing.TarjetaDebito.toFixed(2)}</td><td>${ing.TarjetaCredito.toFixed(2)}</td><td>${ing.Transferencia_Bs.toFixed(2)}</td><td>${ing.Zelle_USD.toFixed(2)}</td><td>${ing.Binance_USD.toFixed(2)}</td><td><strong>${ing.Total_USD.toFixed(2)}</strong></td><td><strong>${ing.Total_Bs.toFixed(2)}</strong></td><td>${ing.SaldoFin_USD.toFixed(2)}</td><td>${ing.SaldoFin_Bs.toFixed(2)}</td><td><button class="btn btn-danger" onclick="eliminarIngreso(${ing.ID})">🗑️</button></td>`;
         tbody.appendChild(tr);
     });
 }
@@ -803,6 +914,7 @@ function guardarRecordatorio() {
         FechaCreacion: new Date().toISOString(),
         FechaRecordatorio: document.getElementById('recordatorioFecha').value,
         Descripcion: document.getElementById('recordatorioDescripcion').value,
+        Moneda: document.getElementById('recordatorioMoneda').value,
         MontoUSD: parseFloat(document.getElementById('recordatorioMontoUSD').value) || 0,
         MontoBs: parseFloat(document.getElementById('recordatorioMontoBS').value) || 0,
         Detalle: document.getElementById('recordatorioDetalle').value,
@@ -814,6 +926,7 @@ function guardarRecordatorio() {
     renderizarRecordatorios();
     limpiarRecordatorio();
     actualizarDashboard();
+    mostrarIndicadorGuardado();
     alert('✅ Recordatorio guardado correctamente');
 }
 
@@ -824,7 +937,7 @@ function renderizarRecordatorios() {
     DB.recordatorios.forEach(rec => {
         const tr = document.createElement('tr');
         const badgeClass = rec.Prioridad === 'Alta' ? 'badge-high' : rec.Prioridad === 'Media' ? 'badge-medium' : 'badge-low';
-        tr.innerHTML = `<td>${rec.FechaRecordatorio}</td><td>${rec.Descripcion}</td><td>$${rec.MontoUSD.toFixed(2)}</td><td>Bs. ${rec.MontoBs.toFixed(2)}</td><td><span class="badge ${badgeClass}">${rec.Prioridad}</span></td><td>${rec.Detalle}</td><td>${rec.Completado ? '✅ Completado' : '⏳ Pendiente'}</td><td><button class="btn btn-${rec.Completado ? 'warning' : 'success'}" onclick="toggleRecordatorio(${rec.ID})"> ${rec.Completado ? '↩️' : '✅'} </button><button class="btn btn-danger" onclick="eliminarRecordatorio(${rec.ID})">🗑️</button></td>`;
+        tr.innerHTML = `<td>${rec.FechaRecordatorio}</td><td>${rec.Descripcion}</td><td>$${rec.MontoUSD.toFixed(2)}</td><td>Bs. ${rec.MontoBs.toFixed(2)}</td><td><span class="badge ${badgeClass}">${rec.Prioridad}</span></td><td>${rec.Detalle}</td><td>${rec.Completado ? '✅ Completado' : ' Pendiente'}</td><td><button class="btn btn-${rec.Completado ? 'warning' : 'success'}" onclick="toggleRecordatorio(${rec.ID})"> ${rec.Completado ? '↩️' : '✅'} </button><button class="btn btn-danger" onclick="eliminarRecordatorio(${rec.ID})">🗑️</button></td>`;
         tbody.appendChild(tr);
     });
 }
@@ -900,8 +1013,10 @@ function actualizarListaProveedores() {
 function guardarDeuda() {
     const nombre = document.getElementById('deudaNombre').value.trim();
     const montoUSD = parseFloat(document.getElementById('deudaMontoUSD').value) || 0;
+    const montoBS = parseFloat(document.getElementById('deudaMontoBS').value) || 0;
+    
     if (!nombre) { alert('⚠️ Debes ingresar el nombre del proveedor'); return; }
-    if (montoUSD <= 0) { alert('⚠️ Debes ingresar un monto mayor a 0'); return; }
+    if (montoUSD <= 0 && montoBS <= 0) { alert('️ Debes ingresar un monto mayor a 0'); return; }
     
     const deuda = {
         ID: Date.now(),
@@ -911,14 +1026,14 @@ function guardarDeuda() {
         Nombre: nombre,
         Descripcion: document.getElementById('deudaDescripcion').value,
         NroFactura: document.getElementById('deudaFactura').value,
-        MontoUSD: montoUSD,
-        MontoBs: parseFloat(document.getElementById('deudaMontoBS').value) || (montoUSD * DB.config.TasaBCV) || 0,
+        Moneda: monedaFacturaActual,
+        MontoUSD: monedaFacturaActual === 'USD' ? montoUSD : (montoBS / DB.config.TasaBCV) || 0,
+        MontoBs: monedaFacturaActual === 'BS' ? montoBS : (montoUSD * DB.config.TasaBCV) || 0,
         Etiqueta: document.getElementById('deudaEtiqueta').value,
         Prioridad: document.getElementById('deudaPrioridad').value,
-        CuentaOrigen: document.getElementById('deudaCuentaOrigen').value,
         Pagado: false,
         TotalAbonado: 0,
-        SaldoPendiente: montoUSD,
+        SaldoPendiente: monedaFacturaActual === 'USD' ? montoUSD : (montoBS / DB.config.TasaBCV) || 0,
         HistorialPagos: []
     };
 
@@ -928,6 +1043,7 @@ function guardarDeuda() {
     actualizarListaProveedores();
     limpiarDeuda();
     actualizarDashboard();
+    mostrarIndicadorGuardado();
     alert('✅ Factura guardada correctamente');
 }
 
@@ -953,16 +1069,15 @@ function renderizarDeudas() {
                 <td>${deuda.Descripcion}</td>
                 <td>${deuda.NroFactura}</td>
                 <td>$${deuda.MontoUSD.toFixed(2)}</td>
+                <td>Bs. ${deuda.MontoBs.toFixed(2)}</td>
                 <td>$${deuda.TotalAbonado.toFixed(2)}</td>
                 <td><strong>$${deuda.SaldoPendiente.toFixed(2)}</strong></td>
-                <td>Bs. ${deuda.MontoBs.toFixed(2)}</td>
                 <td>${deuda.Etiqueta}</td>
                 <td><span class="badge ${badgeClass}">${deuda.Prioridad}</span></td>
-                <td>${deuda.CuentaOrigen || '-'}</td>
                 <td>
-                    <button class="btn btn-success" onclick="abrirModalPago(${deuda.ID})"></button>
-                    <button class="btn btn-primary" onclick="verHistorialPagos(${deuda.ID})">📜</button>
-                    <button class="btn btn-danger" onclick="eliminarDeuda(${deuda.ID})">🗑️</button>
+                    <button class="btn btn-success" onclick="abrirModalPago(${deuda.ID})" title="💵 Pagar">💵</button>
+                    <button class="btn btn-primary" onclick="verHistorialPagos(${deuda.ID})" title="📜 Historial">📜</button>
+                    <button class="btn btn-danger" onclick="eliminarDeuda(${deuda.ID})" title="🗑️ Eliminar">🗑️</button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -977,7 +1092,7 @@ function renderizarDeudas() {
     if (elTotalDeudas) elTotalDeudas.textContent = deudasActivas;
 }
 
-// ✅ NUEVO: Mostrar saldos en el modal de pago
+// Mostrar saldos en el modal de pago
 function abrirModalPago(id) {
     const deuda = DB.deudas.find(d => d.ID === id);
     if (!deuda) return;
@@ -990,11 +1105,13 @@ function abrirModalPago(id) {
     document.getElementById('pagoDeudaReferencia').value = '';
     document.getElementById('pagoDeudaObservacion').value = '';
     
-    // ✅ NUEVO: Mostrar saldos disponibles
+    // Mostrar saldos disponibles
     document.getElementById('modalSaldoBinance').textContent = '$' + (DB.config.SaldoBinance_USD || 0).toFixed(2);
     document.getElementById('modalSaldoZelle').textContent = '$' + (DB.config.SaldoZelle_USD || 0).toFixed(2);
     document.getElementById('modalSaldoEmpresa').textContent = '$' + (DB.config.SaldoEmpresa_USD || 0).toFixed(2);
+    document.getElementById('modalSaldoEmpresaBs').textContent = 'Bs. ' + (DB.config.SaldoEmpresa_Bs || 0).toFixed(2);
     document.getElementById('modalSaldoPersonal').textContent = '$' + (DB.config.SaldoPersonal_USD || 0).toFixed(2);
+    document.getElementById('modalSaldoPersonalBs').textContent = 'Bs. ' + (DB.config.SaldoPersonal_Bs || 0).toFixed(2);
     
     // Ocultar alerta de saldo insuficiente
     document.getElementById('alertaSaldoInsuficiente').style.display = 'none';
@@ -1002,7 +1119,7 @@ function abrirModalPago(id) {
     document.getElementById('modalPagoDeuda').style.display = 'flex';
 }
 
-// ✅ NUEVO: Verificar si hay saldo suficiente
+// Verificar si hay saldo suficiente
 function verificarSaldoDisponible() {
     const montoPago = parseFloat(document.getElementById('pagoDeudaMonto').value) || 0;
     const cuentaOrigen = document.getElementById('pagoDeudaCuenta').value;
@@ -1015,8 +1132,12 @@ function verificarSaldoDisponible() {
         saldoDisponible = DB.config.SaldoZelle_USD || 0;
     } else if (cuentaOrigen === 'Empresa') {
         saldoDisponible = DB.config.SaldoEmpresa_USD || 0;
+    } else if (cuentaOrigen === 'Empresa_Bs') {
+        saldoDisponible = DB.config.SaldoEmpresa_Bs || 0;
     } else if (cuentaOrigen === 'Personal') {
         saldoDisponible = DB.config.SaldoPersonal_USD || 0;
+    } else if (cuentaOrigen === 'Personal_Bs') {
+        saldoDisponible = DB.config.SaldoPersonal_Bs || 0;
     }
     
     if (montoPago > saldoDisponible) {
@@ -1045,7 +1166,7 @@ function confirmarPagoDeuda() {
     if (!fechaPago) { alert('⚠️ Debes seleccionar la fecha de pago'); return; }
     if (!referencia) { alert('⚠️ Debes ingresar la referencia de pago'); return; }
 
-    // ✅ NUEVO: Verificar saldo suficiente antes de pagar
+    // Verificar saldo suficiente antes de pagar
     let saldoDisponible = 0;
     if (cuentaOrigen === 'Binance') {
         saldoDisponible = DB.config.SaldoBinance_USD || 0;
@@ -1053,8 +1174,12 @@ function confirmarPagoDeuda() {
         saldoDisponible = DB.config.SaldoZelle_USD || 0;
     } else if (cuentaOrigen === 'Empresa') {
         saldoDisponible = DB.config.SaldoEmpresa_USD || 0;
+    } else if (cuentaOrigen === 'Empresa_Bs') {
+        saldoDisponible = DB.config.SaldoEmpresa_Bs || 0;
     } else if (cuentaOrigen === 'Personal') {
         saldoDisponible = DB.config.SaldoPersonal_USD || 0;
+    } else if (cuentaOrigen === 'Personal_Bs') {
+        saldoDisponible = DB.config.SaldoPersonal_Bs || 0;
     }
     
     if (montoPago > saldoDisponible) {
@@ -1062,15 +1187,19 @@ function confirmarPagoDeuda() {
         return;
     }
 
-    // ✅ NUEVO: Descontar de la cuenta seleccionada
+    // Descontar de la cuenta seleccionada
     if (cuentaOrigen === 'Binance') {
         DB.config.SaldoBinance_USD -= montoPago;
     } else if (cuentaOrigen === 'Zelle') {
         DB.config.SaldoZelle_USD -= montoPago;
     } else if (cuentaOrigen === 'Empresa') {
         DB.config.SaldoEmpresa_USD -= montoPago;
+    } else if (cuentaOrigen === 'Empresa_Bs') {
+        DB.config.SaldoEmpresa_Bs -= montoPago * DB.config.TasaBCV;
     } else if (cuentaOrigen === 'Personal') {
         DB.config.SaldoPersonal_USD -= montoPago;
+    } else if (cuentaOrigen === 'Personal_Bs') {
+        DB.config.SaldoPersonal_Bs -= montoPago * DB.config.TasaBCV;
     }
 
     const tasa = DB.config.TasaBCV || 0;
@@ -1099,9 +1228,10 @@ function confirmarPagoDeuda() {
     actualizarListaProveedores();
     recalcularResumenDiario();
     actualizarBloqueCierre();
-    actualizarPanelSaldos(); // ✅ NUEVO
+    actualizarPanelSaldos();
     actualizarDashboard();
     cerrarModalPago();
+    mostrarIndicadorGuardado();
 
     if (deuda.Pagado) {
         alert('✅ Deuda PAGADA completamente. Referencia: ' + referencia);
@@ -1113,7 +1243,7 @@ function confirmarPagoDeuda() {
 function verHistorialPagos(id) {
     const deuda = DB.deudas.find(d => d.ID === id);
     if (!deuda || !deuda.HistorialPagos || deuda.HistorialPagos.length === 0) {
-        alert(' No hay pagos registrados para esta factura');
+        alert('📋 No hay pagos registrados para esta factura');
         return;
     }
     document.getElementById('histDeudaID').value = deuda.ID;
@@ -1156,8 +1286,68 @@ function limpiarDeuda() {
     document.getElementById('deudaDescripcion').value = '';
     document.getElementById('deudaFactura').value = '';
     document.getElementById('deudaMontoUSD').value = '';
+    document.getElementById('deudaMontoBS').value = '';
     document.getElementById('deudaMontoBSCalculado').value = '';
-    document.getElementById('deudaCuentaOrigen').value = '';
+}
+
+// ✅ NUEVO: Modo Registro Rápido
+function registroRapido() {
+    const nombre = document.getElementById('quickNombre').value.trim();
+    const montoUSD = parseFloat(document.getElementById('quickMontoUSD').value) || 0;
+    const montoBS = parseFloat(document.getElementById('quickMontoBS').value) || 0;
+    
+    if (!nombre) { alert('⚠️ Debes ingresar el nombre'); return; }
+    if (montoUSD <= 0 && montoBS <= 0) { alert('️ Debes ingresar un monto'); return; }
+    
+    // Crear deuda y pagarla inmediatamente
+    const deuda = {
+        ID: Date.now(),
+        Fecha: new Date().toISOString().split('T')[0],
+        TasaBCV: DB.config.TasaBCV,
+        RIF: '',
+        Nombre: nombre,
+        Descripcion: 'Pago rápido',
+        NroFactura: 'R-' + Date.now(),
+        Moneda: montoUSD > 0 ? 'USD' : 'BS',
+        MontoUSD: montoUSD > 0 ? montoUSD : (montoBS / DB.config.TasaBCV) || 0,
+        MontoBs: montoBS > 0 ? montoBS : (montoUSD * DB.config.TasaBCV) || 0,
+        Etiqueta: 'Proveedor',
+        Prioridad: 'Media',
+        Pagado: true,
+        TotalAbonado: montoUSD > 0 ? montoUSD : (montoBS / DB.config.TasaBCV) || 0,
+        SaldoPendiente: 0,
+        HistorialPagos: [{
+            Fecha: new Date().toISOString().split('T')[0],
+            MontoUSD: montoUSD > 0 ? montoUSD : (montoBS / DB.config.TasaBCV) || 0,
+            MontoBs: montoBS > 0 ? montoBS : (montoUSD * DB.config.TasaBCV) || 0,
+            CuentaOrigen: 'Empresa',
+            ReferenciaPago: 'Pago rápido',
+            Observacion: 'Registro rápido'
+        }]
+    };
+
+    DB.deudas.push(deuda);
+    
+    // Descontar de cuenta empresa
+    if (montoUSD > 0) {
+        DB.config.SaldoEmpresa_USD -= montoUSD;
+    } else {
+        DB.config.SaldoEmpresa_Bs -= montoBS;
+    }
+
+    guardarEnLocalStorage();
+    renderizarDeudas();
+    actualizarListaProveedores();
+    actualizarPanelSaldos();
+    actualizarDashboard();
+    mostrarIndicadorGuardado();
+    
+    // Limpiar campos
+    document.getElementById('quickNombre').value = '';
+    document.getElementById('quickMontoUSD').value = '';
+    document.getElementById('quickMontoBS').value = '';
+    
+    alert('✅ Pago rápido registrado correctamente');
 }
 
 // ============================================================
@@ -1186,6 +1376,7 @@ function guardarEmpleado() {
     renderizarEmpleados();
     limpiarEmpleado();
     actualizarDashboard();
+    mostrarIndicadorGuardado();
     alert('✅ Empleado guardado correctamente');
 }
 
@@ -1224,7 +1415,7 @@ function guardarEdicionEmpleado() {
 
     if (!nombre) { alert('⚠️ Debes ingresar el nombre'); return; }
     if (!cedula) { alert('⚠️ Debes ingresar la cédula'); return; }
-    if (sueldo <= 0) { alert('⚠️ Debes ingresar un sueldo mayor a 0'); return; }
+    if (sueldo <= 0) { alert('️ Debes ingresar un sueldo mayor a 0'); return; }
 
     emp.FechaIngreso = document.getElementById('editEmpleadoFecha').value;
     emp.Nombre = nombre;
@@ -1237,6 +1428,7 @@ function guardarEdicionEmpleado() {
     renderizarEmpleados();
     actualizarDashboard();
     cerrarModalEmpleado();
+    mostrarIndicadorGuardado();
     alert('✅ Empleado actualizado correctamente');
 }
 
@@ -1288,7 +1480,7 @@ function renderizarNominaPagos() {
     let totalPagar = 0;
     nominaTemporal.forEach((emp, index) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${emp.Nombre}</td><td>${emp.Cedula}</td><td>${emp.TipoSueldo}</td><td>$${emp.Sueldo.toFixed(2)}</td><td><input type="number" step="0.01" value="${emp.Bono}" onchange="actualizarNetoNomina(${index}, this.value, 'bono')" style="width:80px;padding:5px;"></td><td><input type="number" step="0.01" value="${emp.Deuda}" onchange="actualizarNetoNomina(${index}, this.value, 'deuda')" style="width:80px;padding:5px;"></td><td><strong>$${emp.Neto.toFixed(2)}</strong></td><td><input type="checkbox" ${emp.Pagado ? 'checked' : ''} onchange="togglePagoNomina(${index})"></td><td><button class="btn btn-danger" onclick="eliminarDeNomina(${index})">️</button></td>`;
+        tr.innerHTML = `<td>${emp.Nombre}</td><td>${emp.Cedula}</td><td>${emp.TipoSueldo}</td><td>$${emp.Sueldo.toFixed(2)}</td><td><input type="number" step="0.01" value="${emp.Bono}" onchange="actualizarNetoNomina(${index}, this.value, 'bono')" style="width:80px;padding:5px;"></td><td><input type="number" step="0.01" value="${emp.Deuda}" onchange="actualizarNetoNomina(${index}, this.value, 'deuda')" style="width:80px;padding:5px;"></td><td><strong>$${emp.Neto.toFixed(2)}</strong></td><td><input type="checkbox" ${emp.Pagado ? 'checked' : ''} onchange="togglePagoNomina(${index})"></td><td><button class="btn btn-danger" onclick="eliminarDeNomina(${index})">🗑️</button></td>`;
         tbody.appendChild(tr);
         totalPagar += emp.Neto;
     });
@@ -1325,7 +1517,7 @@ function guardarNominaPagos() {
 
     const totalNomina = pagosRealizados.reduce((sum, emp) => sum + emp.Neto, 0);
     
-    // ✅ NUEVO: Verificar saldo suficiente antes de pagar nómina
+    // Verificar saldo suficiente antes de pagar nómina
     let saldoDisponible = 0;
     if (cuentaOrigen === 'Binance') {
         saldoDisponible = DB.config.SaldoBinance_USD || 0;
@@ -1333,24 +1525,32 @@ function guardarNominaPagos() {
         saldoDisponible = DB.config.SaldoZelle_USD || 0;
     } else if (cuentaOrigen === 'Empresa') {
         saldoDisponible = DB.config.SaldoEmpresa_USD || 0;
+    } else if (cuentaOrigen === 'Empresa_Bs') {
+        saldoDisponible = DB.config.SaldoEmpresa_Bs || 0;
     } else if (cuentaOrigen === 'Personal') {
         saldoDisponible = DB.config.SaldoPersonal_USD || 0;
+    } else if (cuentaOrigen === 'Personal_Bs') {
+        saldoDisponible = DB.config.SaldoPersonal_Bs || 0;
     }
     
     if (totalNomina > saldoDisponible) {
-        alert('⚠️ Saldo insuficiente en la cuenta seleccionada. Saldo disponible: $' + saldoDisponible.toFixed(2) + ' | Total a pagar: $' + totalNomina.toFixed(2));
+        alert('️ Saldo insuficiente en la cuenta seleccionada. Saldo disponible: $' + saldoDisponible.toFixed(2) + ' | Total a pagar: $' + totalNomina.toFixed(2));
         return;
     }
 
-    // ✅ NUEVO: Descontar de la cuenta seleccionada
+    // Descontar de la cuenta seleccionada
     if (cuentaOrigen === 'Binance') {
         DB.config.SaldoBinance_USD -= totalNomina;
     } else if (cuentaOrigen === 'Zelle') {
         DB.config.SaldoZelle_USD -= totalNomina;
     } else if (cuentaOrigen === 'Empresa') {
         DB.config.SaldoEmpresa_USD -= totalNomina;
+    } else if (cuentaOrigen === 'Empresa_Bs') {
+        DB.config.SaldoEmpresa_Bs -= totalNomina * DB.config.TasaBCV;
     } else if (cuentaOrigen === 'Personal') {
         DB.config.SaldoPersonal_USD -= totalNomina;
+    } else if (cuentaOrigen === 'Personal_Bs') {
+        DB.config.SaldoPersonal_Bs -= totalNomina * DB.config.TasaBCV;
     }
 
     pagosRealizados.forEach(emp => {
@@ -1374,8 +1574,9 @@ function guardarNominaPagos() {
     renderizarHistorialNomina();
     recalcularResumenDiario();
     actualizarBloqueCierre();
-    actualizarPanelSaldos(); // ✅ NUEVO
+    actualizarPanelSaldos();
     actualizarDashboard();
+    mostrarIndicadorGuardado();
 
     nominaTemporal = [];
     document.getElementById('tablaNominaContainer').style.display = 'none';
@@ -1419,7 +1620,7 @@ function realizarBusqueda() {
             resultados.push({ 
                 tipo: 'Ingreso', 
                 fecha: ing.Fecha, 
-                icono: '📈',
+                icono: '',
                 titulo: `Ingreso del ${ing.Fecha}`,
                 texto: `Total: $${ing.Total_USD.toFixed(2)} / Bs.${ing.Total_Bs.toFixed(2)}`,
                 detalle: `Tasa: ${ing.TasaBCV} | Saldo Final: $${ing.SaldoFin_USD.toFixed(2)}`
@@ -1518,23 +1719,10 @@ function actualizarDashboard() {
 // ============================================================
 // UTILIDADES
 // ============================================================
-function actualizarTasa() {
-    DB.config.TasaBCV = parseFloat(document.getElementById('tasaBCV').value) || 0;
-    const tasaInput = document.getElementById('recordatorioTasa');
-    if (tasaInput) tasaInput.value = 'Bs. ' + DB.config.TasaBCV.toFixed(2);
-    const ingresoTasa = document.getElementById('ingresoTasa');
-    if (ingresoTasa) ingresoTasa.value = DB.config.TasaBCV;
-    guardarEnLocalStorage();
-}
-
-function actualizarNegocio() {
-    DB.config.NombreNegocio = document.getElementById('nombreNegocio').value;
-    guardarEnLocalStorage();
-}
-
 function guardarNotas() {
     DB.notas = document.getElementById('notasRapidas').value;
     guardarEnLocalStorage();
+    mostrarIndicadorGuardado();
     alert('✅ Notas guardadas');
 }
 
@@ -1566,7 +1754,7 @@ function confirmarReset() {
     }
 
     if (clave2 !== CLAVE_ADMIN) {
-        alert('❌ La segunda clave es INCORRECTA o no coincide.');
+        alert(' La segunda clave es INCORRECTA o no coincide.');
         document.getElementById('resetClave2').value = '';
         document.getElementById('resetClave2').focus();
         return;
@@ -1577,7 +1765,7 @@ function confirmarReset() {
         return;
     }
 
-    if (!confirm('⚠️ ÚLTIMA ADVERTENCIA ⚠️\n\n¿Estás 100% seguro de que quieres BORRAR TODOS los datos?\n\nEsta acción NO se puede deshacer.')) {
+    if (!confirm('⚠️ ÚLTIMA ADVERTENCIA ️\n\n¿Estás 100% seguro de que quieres BORRAR TODOS los datos?\n\nEsta acción NO se puede deshacer.')) {
         return;
     }
 
@@ -1603,15 +1791,6 @@ function confirmarReset() {
 
     localStorage.removeItem('FinanzasProDB');
 
-    document.getElementById('tasaBCV').value = '';
-    document.getElementById('nombreNegocio').value = 'Mi Negocio';
-    document.getElementById('saldoBinance').value = '';
-    document.getElementById('saldoZelle').value = '';
-    document.getElementById('saldoEmpresa').value = '';
-    document.getElementById('saldoPersonal').value = '';
-    document.getElementById('notasRapidas').value = '';
-    document.getElementById('recordatorioTasa').value = '';
-
     renderizarIngresos();
     renderizarRecordatorios();
     renderizarDeudas();
@@ -1622,6 +1801,7 @@ function confirmarReset() {
     actualizarBloqueCierre();
     recalcularResumenDiario();
     actualizarPanelSaldos();
+    actualizarContexto();
 
     document.getElementById('modalReset').style.display = 'none';
 
@@ -1642,14 +1822,7 @@ function cargarDesdeLocalStorage() {
         if (!DB.resumenDiario) DB.resumenDiario = [];
         if (!DB.config.SaldoZelle_USD) DB.config.SaldoZelle_USD = 0;
         
-        document.getElementById('tasaBCV').value = DB.config.TasaBCV;
-        const tasaInput = document.getElementById('recordatorioTasa');
-        if (tasaInput) tasaInput.value = 'Bs. ' + DB.config.TasaBCV.toFixed(2);
-        document.getElementById('nombreNegocio').value = DB.config.NombreNegocio;
-        document.getElementById('saldoBinance').value = DB.config.SaldoBinance_USD;
-        document.getElementById('saldoZelle').value = DB.config.SaldoZelle_USD;
-        document.getElementById('saldoEmpresa').value = DB.config.SaldoEmpresa_USD;
-        document.getElementById('saldoPersonal').value = DB.config.SaldoPersonal_USD;
+        document.getElementById('ingresoTasa').value = DB.config.TasaBCV;
         document.getElementById('notasRapidas').value = DB.notas || '';
 
         renderizarIngresos();
@@ -1689,14 +1862,7 @@ function cargarExcel(event) {
         
         if (!DB.config.SaldoZelle_USD) DB.config.SaldoZelle_USD = 0;
 
-        document.getElementById('tasaBCV').value = DB.config.TasaBCV;
-        const tasaInput = document.getElementById('recordatorioTasa');
-        if (tasaInput) tasaInput.value = 'Bs. ' + DB.config.TasaBCV.toFixed(2);
-        document.getElementById('nombreNegocio').value = DB.config.NombreNegocio;
-        document.getElementById('saldoBinance').value = DB.config.SaldoBinance_USD;
-        document.getElementById('saldoZelle').value = DB.config.SaldoZelle_USD;
-        document.getElementById('saldoEmpresa').value = DB.config.SaldoEmpresa_USD;
-        document.getElementById('saldoPersonal').value = DB.config.SaldoPersonal_USD;
+        document.getElementById('ingresoTasa').value = DB.config.TasaBCV;
         
         guardarEnLocalStorage();
         renderizarIngresos();
@@ -1709,6 +1875,7 @@ function cargarExcel(event) {
         actualizarDashboard();
         actualizarListaProveedores();
         actualizarPanelSaldos();
+        actualizarContexto();
         
         alert('✅ Excel cargado: ' + file.name);
 
@@ -1857,12 +2024,7 @@ async function cargarDesdeSheets() {
             if (!DB.config.SaldoZelle_USD) DB.config.SaldoZelle_USD = 0;
             
             if (DB.config) {
-                document.getElementById('tasaBCV').value = DB.config.TasaBCV || 0;
-                document.getElementById('nombreNegocio').value = DB.config.NombreNegocio || '';
-                document.getElementById('saldoBinance').value = DB.config.SaldoBinance_USD || 0;
-                document.getElementById('saldoZelle').value = DB.config.SaldoZelle_USD || 0;
-                document.getElementById('saldoEmpresa').value = DB.config.SaldoEmpresa_USD || 0;
-                document.getElementById('saldoPersonal').value = DB.config.SaldoPersonal_USD || 0;
+                document.getElementById('ingresoTasa').value = DB.config.TasaBCV || 0;
             }
             
             guardarEnLocalStorage();
@@ -1876,6 +2038,7 @@ async function cargarDesdeSheets() {
             actualizarDashboard();
             actualizarListaProveedores();
             actualizarPanelSaldos();
+            actualizarContexto();
             
             cambiarEstadoGS('conectado');
             alert('✅ Datos cargados desde Google Sheets correctamente');
@@ -1918,4 +2081,98 @@ async function guardarEnSheets() {
         cambiarEstadoGS('error', err.message);
         alert('❌ Error al guardar: ' + err.message);
     }
+}
+
+// ============================================================
+// GUÍA GOOGLE SHEETS
+// ============================================================
+function generarGuiaGoogleSheets() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    let y = 20;
+    const addText = (texto, size = 10, bold = false) => {
+        if (y > 270) {
+            doc.addPage();
+            y = 20;
+        }
+        doc.setFontSize(size);
+        if (bold) doc.setFont('helvetica', 'bold');
+        else doc.setFont('helvetica', 'normal');
+        
+        const lines = doc.splitTextToSize(texto, 180);
+        doc.text(lines, 15, y);
+        y += lines.length * (size * 0.4);
+    };
+
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text('GUÍA DE CONFIGURACIÓN', 105, 40, {align: 'center'});
+    doc.text('GOOGLE SHEETS', 105, 55, {align: 'center'});
+    doc.setFontSize(14);
+    doc.text('FinanzasPro v3.6', 105, 75, {align: 'center'});
+    doc.setFontSize(10);
+    doc.text('Sigue estos pasos para conectar tu sistema con Google Sheets', 105, 95, {align: 'center'});
+
+    y = 130;
+
+    addText('PASO 1: Crear la hoja de Google Sheets', 14, true);
+    y += 3;
+    addText('1. Abre tu navegador y ve a: https://sheets.google.com');
+    addText('2. Haz clic en "+ Hoja de cálculo en blanco"');
+    addText('3. Ponle nombre: "FinanzasPro" (o el que quieras)');
+    y += 5;
+
+    addText('PASO 2: Abrir el editor de Apps Script', 14, true);
+    y += 3;
+    addText('1. En el menú superior, haz clic en "Extensiones"');
+    addText('2. Selecciona "Apps Script"');
+    addText('3. Se abrirá una nueva pestaña con el editor de código');
+    y += 5;
+
+    addText('PASO 3: Pegar el código (ver página siguiente)', 14, true);
+    y += 3;
+    addText('1. Borra TODO el código que aparece por defecto');
+    addText('2. Copia el código de la página siguiente');
+    addText('3. Pégalo en el editor');
+    addText('4. Haz clic en el ícono de disquete (Guardar) o Ctrl+S');
+    y += 5;
+
+    addText('PASO 4: Implementar como aplicación web', 14, true);
+    y += 3;
+    addText('1. Arriba a la derecha, haz clic en "Implementar"');
+    addText('2. Selecciona "Nueva implementación"');
+    addText('3. Haz clic en el engranaje y selecciona "Aplicación web"');
+    addText('4. Descripción: "FinanzasPro API"');
+    addText('5. Ejecutar como: "Yo"');
+    addText('6. Quién tiene acceso: "Cualquier persona"');
+    addText('7. Haz clic en "Implementar"');
+    y += 5;
+
+    addText('PASO 5: Autorizar permisos', 14, true);
+    y += 3;
+    addText('1. Te pedirá autorización, haz clic en "Autorizar acceso"');
+    addText('2. Selecciona tu cuenta de Google');
+    addText('3. Aparecerá advertencia - haz clic en "Configuración avanzada"');
+    addText('4. Haz clic en "Ir al proyecto (no seguro)"');
+    addText('5. Haz clic en "Permitir"');
+    y += 5;
+
+    addText('PASO 6: Copiar la URL', 14, true);
+    y += 3;
+    addText('1. Te dará una URL que termina en /exec');
+    addText('2. COPIA ESA URL COMPLETA');
+    y += 5;
+
+    addText('PASO 7: Conectar con FinanzasPro', 14, true);
+    y += 3;
+    addText('1. Abre FinanzasPro');
+    addText('2. Pega la URL en el campo superior');
+    addText('3. Haz clic en "Conectar"');
+    addText('4. Verás: "✅ Cargado y Conectado"');
+    y += 5;
+
+    addText('✅ ¡LISTO! Ya puedes usar Google Sheets', 12, true);
+
+    doc.save('Guia_Google_Sheets_FinanzasPro.pdf');
+    alert('✅ Guía generada. Ábrela y sigue los pasos.');
 }
