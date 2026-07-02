@@ -1,5 +1,5 @@
 // ============================================================
-// FinanzasPro v3.5 - FASE 1 COMPLETADA
+// FinanzasPro v3.5 - FASE 2 COMPLETADA
 // ============================================================
 let DB = {
     config: {
@@ -10,7 +10,8 @@ let DB = {
         SaldoPersonal_USD: 0,
         SaldoEmpresa_Bs: 0,
         SaldoPersonal_Bs: 0,
-        NombreNegocio: 'Mi Negocio'
+        NombreNegocio: 'Mi Negocio',
+        AperturaInicialRealizada: false // ✅ NUEVO FASE 2
     },
     ingresos: [],
     recordatorios: [],
@@ -53,10 +54,15 @@ window.addEventListener('DOMContentLoaded', () => {
     const analisisMes = document.getElementById('analisisMes');
     if (analisisMes) analisisMes.value = mesActual;
 
-    // ✅ NUEVO: Restaurar pestaña activa
     restaurarPestanaActiva();
-
     cargarDesdeLocalStorage();
+
+    // ✅ NUEVO FASE 2: Verificar si es la primera vez
+    if (!DB.config.AperturaInicialRealizada) {
+        setTimeout(() => {
+            document.getElementById('modalApertura').style.display = 'flex';
+        }, 500);
+    }
 
     if (GS_URL) {
         const urlInput = document.getElementById('urlGoogleSheets');
@@ -66,7 +72,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ✅ NUEVO: Guardar y restaurar pestaña activa
 document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -74,7 +79,6 @@ document.querySelectorAll('.tab').forEach(tab => {
         tab.classList.add('active');
         document.getElementById(tab.dataset.tab).classList.add('active');
         
-        // Guardar en localStorage
         localStorage.setItem('FinanzasPro_PestanaActiva', tab.dataset.tab);
         
         if (tab.dataset.tab === 'tabAnalisis') {
@@ -88,17 +92,100 @@ function restaurarPestanaActiva() {
     if (pestanaGuardada) {
         document.querySelectorAll('.tab').forEach(t => {
             t.classList.remove('active');
-            if (t.dataset.tab === pestanaGuardada) {
-                t.classList.add('active');
-            }
+            if (t.dataset.tab === pestanaGuardada) t.classList.add('active');
         });
         document.querySelectorAll('.tab-content').forEach(c => {
             c.classList.remove('active');
-            if (c.id === pestanaGuardada) {
-                c.classList.add('active');
-            }
+            if (c.id === pestanaGuardada) c.classList.add('active');
         });
     }
+}
+
+// ============================================================
+// ✅ NUEVO FASE 2: INDICADOR VISUAL DE GUARDADO
+// ============================================================
+function mostrarIndicadorGuardado() {
+    const indicador = document.getElementById('saveIndicator');
+    if (!indicador) return;
+    
+    indicador.style.display = 'block';
+    setTimeout(() => {
+        indicador.style.display = 'none';
+    }, 2000); // Se oculta después de 2 segundos
+}
+
+// ============================================================
+// ✅ NUEVO FASE 2: APERTURA INICIAL
+// ============================================================
+function guardarAperturaInicial() {
+    DB.config.SaldoBinance_USD = parseFloat(document.getElementById('aperturaBinance').value) || 0;
+    DB.config.SaldoZelle_USD = parseFloat(document.getElementById('aperturaZelle').value) || 0;
+    DB.config.SaldoEmpresa_USD = parseFloat(document.getElementById('aperturaEmpresa').value) || 0;
+    DB.config.SaldoPersonal_USD = parseFloat(document.getElementById('aperturaPersonal').value) || 0;
+    DB.config.AperturaInicialRealizada = true;
+
+    guardarEnLocalStorage();
+    document.getElementById('modalApertura').style.display = 'none';
+    
+    actualizarBloqueCierre();
+    actualizarDashboard();
+    mostrarIndicadorGuardado();
+    
+    alert('✅ ¡Apertura inicial registrada! Ya puedes comenzar a usar el sistema.');
+}
+
+// ============================================================
+// ✅ NUEVO FASE 2: CERRAR DÍA
+// ============================================================
+function cerrarDia() {
+    const hoy = new Date().toISOString().split('T')[0];
+    const ingresosHoy = DB.ingresos.filter(i => i.Fecha === hoy);
+    
+    let totalIngresosUSD = 0;
+    let totalIngresosBS = 0;
+    ingresosHoy.forEach(i => {
+        totalIngresosUSD += i.Total_USD || 0;
+        totalIngresosBS += i.Total_Bs || 0;
+    });
+
+    let gastosHoy = 0;
+    DB.deudas.forEach(d => {
+        if (d.HistorialPagos) {
+            d.HistorialPagos.forEach(p => {
+                if (p.Fecha === hoy) gastosHoy += p.MontoUSD || 0;
+            });
+        }
+    });
+    DB.nominaPagos.forEach(p => {
+        if (p.FechaPago === hoy) gastosHoy += p.Neto || 0;
+    });
+
+    const neto = totalIngresosUSD - gastosHoy;
+
+    const contenido = `
+        <div class="alert alert-info" style="display:block;">
+            <h3>📊 Resumen del Día: ${hoy}</h3>
+            <p>💵 <strong>Total Ingresos:</strong> $${totalIngresosUSD.toFixed(2)} / Bs. ${totalIngresosBS.toFixed(2)}</p>
+            <p>💸 <strong>Total Gastos (Pagos + Nómina):</strong> $${gastosHoy.toFixed(2)}</p>
+            <p>💰 <strong>Neto del Día:</strong> $${neto.toFixed(2)}</p>
+            <p style="margin-top:10px;"><strong>ℹ️ Al confirmar, se guardará todo el progreso del día y se actualizarán los saldos finales.</strong></p>
+        </div>
+    `;
+
+    document.getElementById('contenidoCierreDia').innerHTML = contenido;
+    document.getElementById('modalCierreDia').style.display = 'flex';
+}
+
+function confirmarCierreDia() {
+    guardarEnLocalStorage();
+    recalcularResumenDiario();
+    actualizarBloqueCierre();
+    actualizarDashboard();
+    
+    document.getElementById('modalCierreDia').style.display = 'none';
+    mostrarIndicadorGuardado();
+    
+    alert('✅ ¡Día cerrado correctamente! Todos los datos han sido guardados.');
 }
 
 // ============================================================
@@ -551,7 +638,7 @@ function mostrarAnalisisInteligente() {
 
     let html = '<div style="padding:10px;">';
 
-    html += '<h3 style="color:#667eea;margin-bottom:10px;">📊 Análisis del Día</h3>';
+    html += '<h3 style="color:#667eea;margin-bottom:10px;"> Análisis del Día</h3>';
     if (hoyData.IngresosUSD > 0) {
         html += `<div class="insight ${hoyData.NetoUSD > 0 ? 'positivo' : 'negativo'}">
             💰 Hoy llevas <strong>$${hoyData.NetoUSD.toFixed(2)}</strong> de ganancia neta.
@@ -745,7 +832,6 @@ function renderizarIngresos() {
         tr.innerHTML = `<td>${ing.Fecha}</td><td>${ing.TasaBCV}</td><td>${ing.SaldoIni_USD.toFixed(2)}</td><td>${ing.SaldoIni_Bs.toFixed(2)}</td><td>${ing.Efectivo_USD.toFixed(2)}</td><td>${ing.Efectivo_Bs.toFixed(2)}</td><td>${ing.PagoMovil_Bs.toFixed(2)}</td><td>${ing.TarjetaDebito.toFixed(2)}</td><td>${ing.TarjetaCredito.toFixed(2)}</td><td>${ing.Transferencia_Bs.toFixed(2)}</td><td>${ing.Zelle_USD.toFixed(2)}</td><td>${ing.Binance_USD.toFixed(2)}</td><td><strong>${ing.Total_USD.toFixed(2)}</strong></td><td><strong>${ing.Total_Bs.toFixed(2)}</strong></td><td>${ing.SaldoFin_USD.toFixed(2)}</td><td>${ing.SaldoFin_Bs.toFixed(2)}</td><td><button class="btn btn-danger" onclick="eliminarIngreso(${ing.ID})">🗑️</button></td>`;
         tbody.appendChild(tr);
     });
-    document.getElementById('totalTransacciones').textContent = DB.ingresos.length;
 }
 
 function eliminarIngreso(id) {
@@ -802,7 +888,7 @@ function renderizarRecordatorios() {
     DB.recordatorios.forEach(rec => {
         const tr = document.createElement('tr');
         const badgeClass = rec.Prioridad === 'Alta' ? 'badge-high' : rec.Prioridad === 'Media' ? 'badge-medium' : 'badge-low';
-        tr.innerHTML = `<td>${rec.FechaRecordatorio}</td><td>${rec.Descripcion}</td><td>$${rec.MontoUSD.toFixed(2)}</td><td>Bs. ${rec.MontoBs.toFixed(2)}</td><td><span class="badge ${badgeClass}">${rec.Prioridad}</span></td><td>${rec.Detalle}</td><td>${rec.Completado ? '✅ Completado' : '⏳ Pendiente'}</td><td><button class="btn btn-${rec.Completado ? 'warning' : 'success'}" onclick="toggleRecordatorio(${rec.ID})"> ${rec.Completado ? '↩️' : '✅'} </button><button class="btn btn-danger" onclick="eliminarRecordatorio(${rec.ID})">🗑️</button></td>`;
+        tr.innerHTML = `<td>${rec.FechaRecordatorio}</td><td>${rec.Descripcion}</td><td>$${rec.MontoUSD.toFixed(2)}</td><td>Bs. ${rec.MontoBs.toFixed(2)}</td><td><span class="badge ${badgeClass}">${rec.Prioridad}</span></td><td>${rec.Detalle}</td><td>${rec.Completado ? '✅ Completado' : ' Pendiente'}</td><td><button class="btn btn-${rec.Completado ? 'warning' : 'success'}" onclick="toggleRecordatorio(${rec.ID})"> ${rec.Completado ? '️' : '✅'} </button><button class="btn btn-danger" onclick="eliminarRecordatorio(${rec.ID})">🗑️</button></td>`;
         tbody.appendChild(tr);
     });
 }
@@ -835,7 +921,7 @@ function limpiarRecordatorio() {
 }
 
 // ============================================================
-// DEUDAS / PAGAR - ✅ MODIFICADO CON DESCUENTO DE CUENTAS
+// DEUDAS / PAGAR
 // ============================================================
 function seleccionarProveedorExistente() {
     const proveedorSelect = document.getElementById('deudaProveedorExistente');
@@ -875,7 +961,6 @@ function actualizarListaProveedores() {
     });
 }
 
-// ✅ NUEVA: Renderizar lista de proveedores con opciones de editar/eliminar
 function renderizarGestionProveedores() {
     const contenedor = document.getElementById('listaProveedores');
     if (!contenedor) return;
@@ -918,7 +1003,6 @@ function renderizarGestionProveedores() {
     contenedor.innerHTML = html;
 }
 
-// ✅ NUEVA: Editar proveedor (cambia nombre en todas sus deudas)
 function editarProveedor(nombreAntiguo) {
     const nuevoNombre = prompt(`Editar proveedor "${nombreAntiguo}":\n\nIngresa el nuevo nombre:`, nombreAntiguo);
     if (!nuevoNombre || nuevoNombre.trim() === '') return;
@@ -936,7 +1020,6 @@ function editarProveedor(nombreAntiguo) {
     alert('✅ Proveedor actualizado correctamente');
 }
 
-// ✅ NUEVA: Eliminar proveedor (elimina todas sus deudas)
 function eliminarProveedor(nombre) {
     if (!confirm(`⚠️ ¿Estás seguro de eliminar TODAS las deudas del proveedor "${nombre}"?\n\nEsta acción no se puede deshacer.`)) {
         return;
@@ -979,7 +1062,7 @@ function guardarDeuda() {
     guardarEnLocalStorage();
     renderizarDeudas();
     actualizarListaProveedores();
-    renderizarGestionProveedores(); // ✅ NUEVO
+    renderizarGestionProveedores();
     limpiarDeuda();
     actualizarDashboard();
     alert('✅ Factura guardada correctamente');
@@ -1015,7 +1098,7 @@ function renderizarDeudas() {
                 <td>${deuda.CuentaOrigen || '-'}</td>
                 <td>
                     <button class="btn btn-success" onclick="abrirModalPago(${deuda.ID})">💵</button>
-                    <button class="btn btn-primary" onclick="verHistorialPagos(${deuda.ID})">📜</button>
+                    <button class="btn btn-primary" onclick="verHistorialPagos(${deuda.ID})"></button>
                     <button class="btn btn-danger" onclick="eliminarDeuda(${deuda.ID})">🗑️</button>
                 </td>
             `;
@@ -1045,7 +1128,6 @@ function abrirModalPago(id) {
     document.getElementById('modalPagoDeuda').style.display = 'flex';
 }
 
-// ✅ MODIFICADO: Ahora DESCUENTA de la cuenta seleccionada
 function confirmarPagoDeuda() {
     const id = parseInt(document.getElementById('pagoDeudaID').value);
     const deuda = DB.deudas.find(d => d.ID === id);
@@ -1065,7 +1147,6 @@ function confirmarPagoDeuda() {
     if (!fechaPago) { alert('⚠️ Debes seleccionar la fecha de pago'); return; }
     if (!referencia) { alert('⚠️ Debes ingresar la referencia de pago'); return; }
 
-    // ✅ DESCONTAR de la cuenta seleccionada
     if (cuentaOrigen === 'Binance') {
         DB.config.SaldoBinance_USD -= montoPago;
     } else if (cuentaOrigen === 'Zelle') {
@@ -1100,7 +1181,7 @@ function confirmarPagoDeuda() {
     guardarEnLocalStorage();
     renderizarDeudas();
     actualizarListaProveedores();
-    renderizarGestionProveedores(); // ✅ NUEVO
+    renderizarGestionProveedores();
     recalcularResumenDiario();
     actualizarBloqueCierre();
     actualizarDashboard();
@@ -1146,7 +1227,7 @@ function eliminarDeuda(id) {
         guardarEnLocalStorage();
         renderizarDeudas();
         actualizarListaProveedores();
-        renderizarGestionProveedores(); // ✅ NUEVO
+        renderizarGestionProveedores();
         recalcularResumenDiario();
         actualizarBloqueCierre();
         actualizarDashboard();
@@ -1172,7 +1253,7 @@ function guardarEmpleado() {
     const cedula = document.getElementById('empleadoCedula').value.trim();
     const sueldo = parseFloat(document.getElementById('empleadoSueldo').value) || 0;
     if (!nombre) { alert('⚠️ Debes ingresar el nombre del empleado'); return; }
-    if (!cedula) { alert('⚠️ Debes ingresar la cédula'); return; }
+    if (!cedula) { alert('️ Debes ingresar la cédula'); return; }
     if (sueldo <= 0) { alert('⚠️ Debes ingresar un sueldo mayor a 0'); return; }
     
     const empleado = {
@@ -1228,7 +1309,7 @@ function guardarEdicionEmpleado() {
 
     if (!nombre) { alert('⚠️ Debes ingresar el nombre'); return; }
     if (!cedula) { alert('⚠️ Debes ingresar la cédula'); return; }
-    if (sueldo <= 0) { alert('⚠️ Debes ingresar un sueldo mayor a 0'); return; }
+    if (sueldo <= 0) { alert('️ Debes ingresar un sueldo mayor a 0'); return; }
 
     emp.FechaIngreso = document.getElementById('editEmpleadoFecha').value;
     emp.Nombre = nombre;
@@ -1327,7 +1408,6 @@ function guardarNominaPagos() {
         return;
     }
 
-    // ✅ DESCONTAR de la cuenta seleccionada
     const totalNomina = pagosRealizados.reduce((sum, emp) => sum + emp.Neto, 0);
     if (cuentaOrigen === 'Binance') {
         DB.config.SaldoBinance_USD -= totalNomina;
@@ -1575,7 +1655,8 @@ function confirmarReset() {
             SaldoPersonal_USD: 0,
             SaldoEmpresa_Bs: 0,
             SaldoPersonal_Bs: 0,
-            NombreNegocio: 'Mi Negocio'
+            NombreNegocio: 'Mi Negocio',
+            AperturaInicialRealizada: false
         },
         ingresos: [],
         recordatorios: [],
@@ -1610,6 +1691,11 @@ function confirmarReset() {
 
     document.getElementById('modalReset').style.display = 'none';
 
+    // Mostrar modal de apertura inicial después del reset
+    setTimeout(() => {
+        document.getElementById('modalApertura').style.display = 'flex';
+    }, 500);
+
     alert('✅ Sistema reseteado completamente.\n\nTodos los datos han sido eliminados.\nEl sistema está como nuevo.');
 }
 
@@ -1618,6 +1704,7 @@ function confirmarReset() {
 // ============================================================
 function guardarEnLocalStorage() {
     localStorage.setItem('FinanzasProDB', JSON.stringify(DB));
+    mostrarIndicadorGuardado(); // ✅ NUEVO FASE 2
 }
 
 function cargarDesdeLocalStorage() {
@@ -1626,6 +1713,7 @@ function cargarDesdeLocalStorage() {
         DB = JSON.parse(saved);
         if (!DB.resumenDiario) DB.resumenDiario = [];
         if (!DB.config.SaldoZelle_USD) DB.config.SaldoZelle_USD = 0;
+        if (DB.config.AperturaInicialRealizada === undefined) DB.config.AperturaInicialRealizada = false;
         
         document.getElementById('tasaBCV').value = DB.config.TasaBCV;
         const tasaInput = document.getElementById('recordatorioTasa');
@@ -1646,7 +1734,7 @@ function cargarDesdeLocalStorage() {
         actualizarBloqueCierre();
         actualizarDashboard();
         actualizarListaProveedores();
-        renderizarGestionProveedores(); // ✅ NUEVO
+        renderizarGestionProveedores();
     }
 }
 
@@ -1674,6 +1762,7 @@ function cargarExcel(event) {
         DB.resumenDiario = [];
         
         if (!DB.config.SaldoZelle_USD) DB.config.SaldoZelle_USD = 0;
+        if (DB.config.AperturaInicialRealizada === undefined) DB.config.AperturaInicialRealizada = true;
 
         document.getElementById('tasaBCV').value = DB.config.TasaBCV;
         const tasaInput = document.getElementById('recordatorioTasa');
@@ -1694,7 +1783,7 @@ function cargarExcel(event) {
         actualizarBloqueCierre();
         actualizarDashboard();
         actualizarListaProveedores();
-        renderizarGestionProveedores(); // ✅ NUEVO
+        renderizarGestionProveedores();
         
         alert('✅ Excel cargado: ' + file.name);
 
@@ -1789,7 +1878,7 @@ function cambiarEstadoGS(estado, texto) {
         txt.textContent = 'Desconectado - Pega tu URL para conectar';
         GS_CONECTADO = false;
     } else if (estado === 'cargando') {
-        dot.textContent = '🟡';
+        dot.textContent = '';
         txt.textContent = texto || 'Conectando...';
         dot.classList.add('estado-cargando');
     } else if (estado === 'error') {
@@ -1841,6 +1930,7 @@ async function cargarDesdeSheets() {
             DB = data.data;
             if (!DB.resumenDiario) DB.resumenDiario = [];
             if (!DB.config.SaldoZelle_USD) DB.config.SaldoZelle_USD = 0;
+            if (DB.config.AperturaInicialRealizada === undefined) DB.config.AperturaInicialRealizada = true;
             
             if (DB.config) {
                 document.getElementById('tasaBCV').value = DB.config.TasaBCV || 0;
@@ -1861,7 +1951,7 @@ async function cargarDesdeSheets() {
             actualizarBloqueCierre();
             actualizarDashboard();
             actualizarListaProveedores();
-            renderizarGestionProveedores(); // ✅ NUEVO
+            renderizarGestionProveedores();
             
             cambiarEstadoGS('conectado');
             alert('✅ Datos cargados desde Google Sheets correctamente');
@@ -1902,6 +1992,6 @@ async function guardarEnSheets() {
         alert('✅ Datos guardados en Google Sheets correctamente');
     } catch (err) {
         cambiarEstadoGS('error', err.message);
-        alert('❌ Error al guardar: ' + err.message);
+        alert(' Error al guardar: ' + err.message);
     }
 }
