@@ -1,5 +1,5 @@
 // ============================================================
-// FinanzasPro v3.6 - Lógica Principal COMPLETA
+// FinanzasPro v3.7 - Lógica Principal COMPLETA
 // ============================================================
 let DB = {
     config: {
@@ -24,7 +24,6 @@ let GS_URL = localStorage.getItem('FinanzasPro_GS_URL') || '';
 let GS_CONECTADO = false;
 let nominaTemporal = [];
 let graficoAnalisis = null;
-let monedaFacturaActual = 'USD'; // ✅ NUEVO: Moneda de factura seleccionada
 const CLAVE_ADMIN = 'Adri2712*';
 
 // ============================================================
@@ -33,12 +32,6 @@ const CLAVE_ADMIN = 'Adri2712*';
 window.addEventListener('DOMContentLoaded', () => {
     const hoy = new Date().toISOString().split('T')[0];
     const mesActual = hoy.substring(0, 7);
-    
-    // Establecer fecha máxima (hoy) en todos los inputs de fecha excepto búsqueda
-    const inputsFecha = document.querySelectorAll('input[type="date"]:not(#busqDesde):not(#busqHasta):not(#analisisFecha)');
-    inputsFecha.forEach(input => {
-        input.setAttribute('max', hoy);
-    });
     
     const ingresoFecha = document.getElementById('ingresoFecha');
     if (ingresoFecha) ingresoFecha.value = hoy;
@@ -55,12 +48,17 @@ window.addEventListener('DOMContentLoaded', () => {
     const nominaFecha = document.getElementById('nominaFechaPago');
     if (nominaFecha) nominaFecha.value = hoy;
 
+    const busqDesde = document.getElementById('busqDesde');
+    const busqHasta = document.getElementById('busqHasta');
+    if (busqDesde) busqDesde.value = hoy;
+    if (busqHasta) busqHasta.value = hoy;
+
     const analisisMes = document.getElementById('analisisMes');
     if (analisisMes) analisisMes.value = mesActual;
 
     cargarDesdeLocalStorage();
     
-    // Actualizar panel de saldos y contexto
+    // ✅ NUEVO: Actualizar panel de saldos y contexto
     actualizarPanelSaldos();
     actualizarContexto();
 
@@ -89,7 +87,7 @@ document.querySelectorAll('.tab').forEach(tab => {
 });
 
 // ============================================================
-// ACTUALIZAR PANEL DE SALDOS EN TODAS LAS PESTAÑAS
+// ✅ NUEVO: ACTUALIZAR PANEL DE SALDOS
 // ============================================================
 function actualizarPanelSaldos() {
     const saldoBinance = document.getElementById('saldoBinanceDisplay');
@@ -108,21 +106,37 @@ function actualizarPanelSaldos() {
 }
 
 // ============================================================
-// ACTUALIZAR BARRA DE CONTEXTO (Fecha + Tasa)
+// ✅ NUEVO: ACTUALIZAR BARRA DE CONTEXTO
 // ============================================================
 function actualizarContexto() {
     const hoy = new Date().toLocaleDateString('es-VE');
     const contextoFecha = document.getElementById('contextoFecha');
     const contextoTasa = document.getElementById('contextoTasa');
     const contextoNegocio = document.getElementById('contextoNegocio');
+    const nombreEmpresaDisplay = document.getElementById('nombreEmpresaDisplay');
     
     if (contextoFecha) contextoFecha.textContent = hoy;
     if (contextoTasa) contextoTasa.textContent = 'Bs. ' + (DB.config.TasaBCV || 0).toFixed(2);
     if (contextoNegocio) contextoNegocio.textContent = DB.config.NombreNegocio || 'Mi Negocio';
+    if (nombreEmpresaDisplay) nombreEmpresaDisplay.textContent = DB.config.NombreNegocio || 'Mi Negocio';
 }
 
 // ============================================================
-// REFRESCAR TODO
+// ✅ NUEVO: EDITAR NOMBRE DE EMPRESA
+// ============================================================
+function editarNombreEmpresa() {
+    const nuevoNombre = prompt('Ingresa el nombre de tu empresa:', DB.config.NombreNegocio);
+    if (nuevoNombre && nuevoNombre.trim() !== '') {
+        DB.config.NombreNegocio = nuevoNombre.trim();
+        guardarEnLocalStorage();
+        actualizarContexto();
+        mostrarIndicadorGuardado();
+        alert('✅ Nombre de empresa actualizado a: ' + nuevoNombre);
+    }
+}
+
+// ============================================================
+// ✅ NUEVO: REFRESCAR TODO
 // ============================================================
 function refrescarTodo() {
     if (confirm('¿Refrescar la página? Se perderán los datos no guardados.')) {
@@ -131,10 +145,57 @@ function refrescarTodo() {
 }
 
 // ============================================================
-// ABRIR MANUAL DE USUARIO
+// ✅ NUEVO: GUARDAR SALDOS INICIALES
 // ============================================================
-function abrirManualUsuario() {
-    document.getElementById('modalManualUsuario').style.display = 'flex';
+function guardarSaldosIniciales() {
+    const saldoIniUSD = parseFloat(document.getElementById('saldoIniUSD').value) || 0;
+    const saldoIniBS = parseFloat(document.getElementById('saldoIniBS').value) || 0;
+    const saldoIniPersonalUSD = parseFloat(document.getElementById('saldoIniPersonalUSD').value) || 0;
+    const saldoIniPersonalBS = parseFloat(document.getElementById('saldoIniPersonalBS').value) || 0;
+    
+    if (saldoIniUSD === 0 && saldoIniBS === 0) {
+        alert('⚠️ Debes ingresar al menos un saldo inicial (USD o Bs)');
+        return;
+    }
+    
+    // Actualizar saldos de cuentas
+    DB.config.SaldoEmpresa_USD = saldoIniUSD;
+    DB.config.SaldoEmpresa_Bs = saldoIniBS;
+    DB.config.SaldoPersonal_USD = saldoIniPersonalUSD;
+    DB.config.SaldoPersonal_Bs = saldoIniPersonalBS;
+    
+    guardarEnLocalStorage();
+    actualizarPanelSaldos();
+    mostrarIndicadorGuardado();
+    alert('✅ Saldos iniciales guardados correctamente. Ahora puedes registrar ventas.');
+}
+
+// ============================================================
+// ✅ NUEVO: VERIFICAR DISCREPANCIA
+// ============================================================
+function verificarDiscrepancia() {
+    if (DB.ingresos.length === 0) return;
+    
+    const ingresosOrdenados = [...DB.ingresos].sort((a, b) => 
+        (b.Fecha || '').localeCompare(a.Fecha || '')
+    );
+    const ultimo = ingresosOrdenados[0];
+    
+    const saldoIniUSD = parseFloat(document.getElementById('saldoIniUSD').value) || 0;
+    const saldoIniBS = parseFloat(document.getElementById('saldoIniBS').value) || 0;
+    
+    const saldoEsperadoUSD = ultimo.SaldoFin_USD || 0;
+    const saldoEsperadoBS = ultimo.SaldoFin_Bs || 0;
+    
+    const diferenciaUSD = Math.abs(saldoIniUSD - saldoEsperadoUSD);
+    const diferenciaBS = Math.abs(saldoIniBS - saldoEsperadoBS);
+    
+    const alerta = document.getElementById('alertaDiscrepancia');
+    if (diferenciaUSD > 0.01 || diferenciaBS > 0.01) {
+        alerta.style.display = 'block';
+    } else {
+        alerta.style.display = 'none';
+    }
 }
 
 // ============================================================
@@ -167,34 +228,6 @@ function validarSaldoInicial() {
 }
 
 // ============================================================
-// VERIFICAR DISCREPANCIA
-// ============================================================
-function verificarDiscrepancia() {
-    if (DB.ingresos.length === 0) return;
-    
-    const ingresosOrdenados = [...DB.ingresos].sort((a, b) => 
-        (b.Fecha || '').localeCompare(a.Fecha || '')
-    );
-    const ultimo = ingresosOrdenados[0];
-    
-    const saldoIniUSD = parseFloat(document.getElementById('saldoIniUSD').value) || 0;
-    const saldoIniBS = parseFloat(document.getElementById('saldoIniBS').value) || 0;
-    
-    const saldoEsperadoUSD = ultimo.SaldoFin_USD || 0;
-    const saldoEsperadoBS = ultimo.SaldoFin_Bs || 0;
-    
-    const diferenciaUSD = Math.abs(saldoIniUSD - saldoEsperadoUSD);
-    const diferenciaBS = Math.abs(saldoIniBS - saldoEsperadoBS);
-    
-    const alerta = document.getElementById('alertaDiscrepancia');
-    if (diferenciaUSD > 0.01 || diferenciaBS > 0.01) {
-        alerta.style.display = 'block';
-    } else {
-        alerta.style.display = 'none';
-    }
-}
-
-// ============================================================
 // CÁLCULOS
 // ============================================================
 function calcularTotales() {
@@ -222,60 +255,14 @@ function calcularTotales() {
 
 function calcularMontoBSRecordatorio() {
     const tasa = parseFloat(document.getElementById('ingresoTasa').value) || 0;
-    const moneda = document.getElementById('recordatorioMoneda').value;
-    const monto = parseFloat(document.getElementById('recordatorioMontoUSD').value) || 0;
-    
-    if (moneda === 'USD') {
-        document.getElementById('recordatorioMontoBSCalculado').value = (monto * tasa).toFixed(2);
-    } else {
-        document.getElementById('recordatorioMontoBSCalculado').value = (monto / tasa).toFixed(2);
-    }
+    const montoUSD = parseFloat(document.getElementById('recordatorioMontoUSD').value) || 0;
+    document.getElementById('recordatorioMontoBSCalculado').value = (montoUSD * tasa).toFixed(2);
 }
 
-// ✅ NUEVO: Calcular monto de deuda según moneda seleccionada
-function calcularMontoDeuda() {
+function calcularMontoBSDeuda() {
     const tasa = parseFloat(document.getElementById('ingresoTasa').value) || 0;
-    
-    if (monedaFacturaActual === 'USD') {
-        const montoUSD = parseFloat(document.getElementById('deudaMontoUSD').value) || 0;
-        document.getElementById('deudaMontoBSCalculado').value = (montoUSD * tasa).toFixed(2);
-    } else {
-        const montoBS = parseFloat(document.getElementById('deudaMontoBS').value) || 0;
-        document.getElementById('deudaMontoBSCalculado').value = montoBS.toFixed(2);
-        if (tasa > 0) {
-            document.getElementById('deudaMontoUSD').value = (montoBS / tasa).toFixed(2);
-        }
-    }
-}
-
-function calcularMontoDeudaInverso() {
-    const tasa = parseFloat(document.getElementById('ingresoTasa').value) || 0;
-    const montoBS = parseFloat(document.getElementById('deudaMontoBS').value) || 0;
-    
-    if (tasa > 0) {
-        document.getElementById('deudaMontoUSD').value = (montoBS / tasa).toFixed(2);
-    }
-}
-
-// ✅ NUEVO: Seleccionar moneda de factura
-function seleccionarMonedaFactura(moneda) {
-    monedaFacturaActual = moneda;
-    
-    document.getElementById('currencyUSD').classList.remove('active');
-    document.getElementById('currencyBS').classList.remove('active');
-    document.getElementById('currency' + moneda).classList.add('active');
-    
-    const labelMonto = document.getElementById('labelMontoPrincipal');
-    if (moneda === 'USD') {
-        labelMonto.textContent = '💵 Monto ($)';
-    } else {
-        labelMonto.textContent = ' Monto (Bs)';
-    }
-    
-    // Limpiar campos
-    document.getElementById('deudaMontoUSD').value = '';
-    document.getElementById('deudaMontoBS').value = '';
-    document.getElementById('deudaMontoBSCalculado').value = '';
+    const montoUSD = parseFloat(document.getElementById('deudaMontoUSD').value) || 0;
+    document.getElementById('deudaMontoBSCalculado').value = (montoUSD * tasa).toFixed(2);
 }
 
 // ============================================================
@@ -699,7 +686,7 @@ function mostrarAnalisisInteligente() {
         const pctMes = mesPasadoData.NetoUSD !== 0 ? ((diffMes / Math.abs(mesPasadoData.NetoUSD)) * 100).toFixed(1) : 0;
         const clase = diffMes >= 0 ? 'positivo' : 'negativo';
         html += `<div class="insight ${clase}">
-            ${diffMes >= 0 ? '🚀' : '️'} Mes actual vs mes pasado: <strong>${diffMes >= 0 ? '+' : ''}$${diffMes.toFixed(2)} (${pctMes}%)</strong>
+            ${diffMes >= 0 ? '🚀' : '⚠️'} Mes actual vs mes pasado: <strong>${diffMes >= 0 ? '+' : ''}$${diffMes.toFixed(2)} (${pctMes}%)</strong>
          </div>`;
     }
 
@@ -713,7 +700,7 @@ function mostrarAnalisisInteligente() {
          </div>`;
     } else if (diasConsecutivosNegativos === 1) {
         html += `<div class="insight neutro">
-            ️ Ayer fue un día negativo, pero hoy puedes recuperarte.
+            ℹ️ Ayer fue un día negativo, pero hoy puedes recuperarte.
          </div>`;
     }
 
@@ -725,7 +712,7 @@ function mostrarAnalisisInteligente() {
          </div>`;
     } else if (mesActualData.NetoUSD < 0) {
         veredicto = `<div class="insight negativo" style="font-size:1.1em;font-weight:bold;">
-            ️ <strong>Hay que mejorar.</strong> Este mes va en negativo.
+            ⚠️ <strong>Hay que mejorar.</strong> Este mes va en negativo.
          </div>`;
     } else if (mesActualData.NetoUSD > 0 && mesActualData.NetoUSD < mesPasadoData.NetoUSD) {
         veredicto = `<div class="insight neutro" style="font-size:1.1em;font-weight:bold;">
@@ -847,7 +834,7 @@ function guardarIngreso() {
     ingreso.SaldoFin_USD = ingreso.SaldoIni_USD + ingreso.Total_USD;
     ingreso.SaldoFin_Bs = ingreso.SaldoIni_Bs + ingreso.Total_Bs;
 
-    // Sumar los ingresos a las cuentas correspondientes
+    // ✅ NUEVO: Sumar los ingresos a las cuentas correspondientes
     DB.config.SaldoBinance_USD += ingreso.Binance_USD;
     DB.config.SaldoZelle_USD += ingreso.Zelle_USD;
     DB.config.SaldoEmpresa_Bs += ingreso.Efectivo_Bs + ingreso.PagoMovil_Bs + ingreso.Transferencia_Bs +
@@ -875,9 +862,71 @@ function renderizarIngresos() {
     tbody.innerHTML = '';
     DB.ingresos.forEach(ing => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${ing.Fecha}</td><td>${ing.TasaBCV}</td><td>${ing.SaldoIni_USD.toFixed(2)}</td><td>${ing.SaldoIni_Bs.toFixed(2)}</td><td>${ing.Efectivo_USD.toFixed(2)}</td><td>${ing.Efectivo_Bs.toFixed(2)}</td><td>${ing.PagoMovil_Bs.toFixed(2)}</td><td>${ing.TarjetaDebito.toFixed(2)}</td><td>${ing.TarjetaCredito.toFixed(2)}</td><td>${ing.Transferencia_Bs.toFixed(2)}</td><td>${ing.Zelle_USD.toFixed(2)}</td><td>${ing.Binance_USD.toFixed(2)}</td><td><strong>${ing.Total_USD.toFixed(2)}</strong></td><td><strong>${ing.Total_Bs.toFixed(2)}</strong></td><td>${ing.SaldoFin_USD.toFixed(2)}</td><td>${ing.SaldoFin_Bs.toFixed(2)}</td><td><button class="btn btn-danger" onclick="eliminarIngreso(${ing.ID})">🗑️</button></td>`;
+        tr.innerHTML = `<td>${ing.Fecha}</td><td>${ing.TasaBCV}</td><td>${ing.SaldoIni_USD.toFixed(2)}</td><td>${ing.SaldoIni_Bs.toFixed(2)}</td><td>${ing.Efectivo_USD.toFixed(2)}</td><td>${ing.Efectivo_Bs.toFixed(2)}</td><td>${ing.PagoMovil_Bs.toFixed(2)}</td><td>${ing.TarjetaDebito.toFixed(2)}</td><td>${ing.TarjetaCredito.toFixed(2)}</td><td>${ing.Transferencia_Bs.toFixed(2)}</td><td>${ing.Zelle_USD.toFixed(2)}</td><td>${ing.Binance_USD.toFixed(2)}</td><td><strong>${ing.Total_USD.toFixed(2)}</strong></td><td><strong>${ing.Total_Bs.toFixed(2)}</strong></td><td>${ing.SaldoFin_USD.toFixed(2)}</td><td>${ing.SaldoFin_Bs.toFixed(2)}</td><td><button class="btn btn-primary btn-sm" onclick="editarIngreso(${ing.ID})" title="✏️ Editar">✏️</button> <button class="btn btn-danger btn-sm" onclick="eliminarIngreso(${ing.ID})" title="🗑️ Eliminar">🗑️</button></td>`;
         tbody.appendChild(tr);
     });
+}
+
+// ✅ NUEVO: EDITAR INGRESO
+function editarIngreso(id) {
+    const ing = DB.ingresos.find(i => i.ID === id);
+    if (!ing) return;
+    
+    document.getElementById('editIngresoID').value = ing.ID;
+    document.getElementById('editIngresoFecha').value = ing.Fecha;
+    document.getElementById('editIngresoTasa').value = ing.TasaBCV;
+    document.getElementById('editIngresoSaldoIniUSD').value = ing.SaldoIni_USD;
+    document.getElementById('editIngresoSaldoIniBS').value = ing.SaldoIni_Bs;
+    document.getElementById('editIngresoEfectivoUSD').value = ing.Efectivo_USD;
+    document.getElementById('editIngresoEfectivoBS').value = ing.Efectivo_Bs;
+    document.getElementById('editIngresoPagoMovil').value = ing.PagoMovil_Bs;
+    document.getElementById('editIngresoTarjetaDebito').value = ing.TarjetaDebito;
+    document.getElementById('editIngresoTarjetaCredito').value = ing.TarjetaCredito;
+    document.getElementById('editIngresoTransferencia').value = ing.Transferencia_Bs;
+    document.getElementById('editIngresoZelle').value = ing.Zelle_USD;
+    document.getElementById('editIngresoBinance').value = ing.Binance_USD;
+    document.getElementById('editIngresoObservacion').value = ing.Observacion || '';
+    
+    document.getElementById('modalEditarIngreso').style.display = 'flex';
+}
+
+function guardarEdicionIngreso() {
+    const id = parseInt(document.getElementById('editIngresoID').value);
+    const ing = DB.ingresos.find(i => i.ID === id);
+    if (!ing) { alert('❌ Ingreso no encontrado'); return; }
+    
+    ing.Fecha = document.getElementById('editIngresoFecha').value;
+    ing.TasaBCV = parseFloat(document.getElementById('editIngresoTasa').value) || 0;
+    ing.SaldoIni_USD = parseFloat(document.getElementById('editIngresoSaldoIniUSD').value) || 0;
+    ing.SaldoIni_Bs = parseFloat(document.getElementById('editIngresoSaldoIniBS').value) || 0;
+    ing.Efectivo_USD = parseFloat(document.getElementById('editIngresoEfectivoUSD').value) || 0;
+    ing.Efectivo_Bs = parseFloat(document.getElementById('editIngresoEfectivoBS').value) || 0;
+    ing.PagoMovil_Bs = parseFloat(document.getElementById('editIngresoPagoMovil').value) || 0;
+    ing.TarjetaDebito = parseFloat(document.getElementById('editIngresoTarjetaDebito').value) || 0;
+    ing.TarjetaCredito = parseFloat(document.getElementById('editIngresoTarjetaCredito').value) || 0;
+    ing.Transferencia_Bs = parseFloat(document.getElementById('editIngresoTransferencia').value) || 0;
+    ing.Zelle_USD = parseFloat(document.getElementById('editIngresoZelle').value) || 0;
+    ing.Binance_USD = parseFloat(document.getElementById('editIngresoBinance').value) || 0;
+    ing.Observacion = document.getElementById('editIngresoObservacion').value;
+    
+    ing.Total_USD = ing.Efectivo_USD + ing.Zelle_USD + ing.Binance_USD + ing.TarjetaDebito + ing.TarjetaCredito;
+    ing.Total_Bs = ing.Efectivo_Bs + ing.PagoMovil_Bs + ing.Transferencia_Bs;
+    ing.SaldoFin_USD = ing.SaldoIni_USD + ing.Total_USD;
+    ing.SaldoFin_Bs = ing.SaldoIni_Bs + ing.Total_Bs;
+
+    guardarEnLocalStorage();
+    renderizarIngresos();
+    recalcularResumenDiario();
+    actualizarBloqueCierre();
+    actualizarPanelSaldos();
+    actualizarDashboard();
+    cerrarModalEditarIngreso();
+    mostrarIndicadorGuardado();
+    alert('✅ Ingreso actualizado correctamente');
+}
+
+function cerrarModalEditarIngreso() {
+    document.getElementById('modalEditarIngreso').style.display = 'none';
 }
 
 function eliminarIngreso(id) {
@@ -914,7 +963,6 @@ function guardarRecordatorio() {
         FechaCreacion: new Date().toISOString(),
         FechaRecordatorio: document.getElementById('recordatorioFecha').value,
         Descripcion: document.getElementById('recordatorioDescripcion').value,
-        Moneda: document.getElementById('recordatorioMoneda').value,
         MontoUSD: parseFloat(document.getElementById('recordatorioMontoUSD').value) || 0,
         MontoBs: parseFloat(document.getElementById('recordatorioMontoBS').value) || 0,
         Detalle: document.getElementById('recordatorioDetalle').value,
@@ -937,9 +985,49 @@ function renderizarRecordatorios() {
     DB.recordatorios.forEach(rec => {
         const tr = document.createElement('tr');
         const badgeClass = rec.Prioridad === 'Alta' ? 'badge-high' : rec.Prioridad === 'Media' ? 'badge-medium' : 'badge-low';
-        tr.innerHTML = `<td>${rec.FechaRecordatorio}</td><td>${rec.Descripcion}</td><td>$${rec.MontoUSD.toFixed(2)}</td><td>Bs. ${rec.MontoBs.toFixed(2)}</td><td><span class="badge ${badgeClass}">${rec.Prioridad}</span></td><td>${rec.Detalle}</td><td>${rec.Completado ? '✅ Completado' : ' Pendiente'}</td><td><button class="btn btn-${rec.Completado ? 'warning' : 'success'}" onclick="toggleRecordatorio(${rec.ID})"> ${rec.Completado ? '↩️' : '✅'} </button><button class="btn btn-danger" onclick="eliminarRecordatorio(${rec.ID})">🗑️</button></td>`;
+        tr.innerHTML = `<td>${rec.FechaRecordatorio}</td><td>${rec.Descripcion}</td><td>$${rec.MontoUSD.toFixed(2)}</td><td>Bs. ${rec.MontoBs.toFixed(2)}</td><td><span class="badge ${badgeClass}">${rec.Prioridad}</span></td><td>${rec.Detalle}</td><td>${rec.Completado ? '✅ Completado' : '⏳ Pendiente'}</td><td><button class="btn btn-primary btn-sm" onclick="editarRecordatorio(${rec.ID})" title="✏️ Editar">✏️</button> <button class="btn btn-${rec.Completado ? 'warning' : 'success'} btn-sm" onclick="toggleRecordatorio(${rec.ID})"> ${rec.Completado ? '↩️' : '✅'} </button> <button class="btn btn-danger btn-sm" onclick="eliminarRecordatorio(${rec.ID})">🗑️</button></td>`;
         tbody.appendChild(tr);
     });
+}
+
+// ✅ NUEVO: EDITAR RECORDATORIO
+function editarRecordatorio(id) {
+    const rec = DB.recordatorios.find(r => r.ID === id);
+    if (!rec) return;
+    
+    document.getElementById('editRecordatorioID').value = rec.ID;
+    document.getElementById('editRecordatorioFecha').value = rec.FechaRecordatorio;
+    document.getElementById('editRecordatorioDescripcion').value = rec.Descripcion;
+    document.getElementById('editRecordatorioMontoUSD').value = rec.MontoUSD;
+    document.getElementById('editRecordatorioMontoBS').value = rec.MontoBs;
+    document.getElementById('editRecordatorioDetalle').value = rec.Detalle || '';
+    document.getElementById('editRecordatorioPrioridad').value = rec.Prioridad;
+    
+    document.getElementById('modalEditarRecordatorio').style.display = 'flex';
+}
+
+function guardarEdicionRecordatorio() {
+    const id = parseInt(document.getElementById('editRecordatorioID').value);
+    const rec = DB.recordatorios.find(r => r.ID === id);
+    if (!rec) { alert('❌ Recordatorio no encontrado'); return; }
+    
+    rec.FechaRecordatorio = document.getElementById('editRecordatorioFecha').value;
+    rec.Descripcion = document.getElementById('editRecordatorioDescripcion').value;
+    rec.MontoUSD = parseFloat(document.getElementById('editRecordatorioMontoUSD').value) || 0;
+    rec.MontoBs = parseFloat(document.getElementById('editRecordatorioMontoBS').value) || 0;
+    rec.Detalle = document.getElementById('editRecordatorioDetalle').value;
+    rec.Prioridad = document.getElementById('editRecordatorioPrioridad').value;
+
+    guardarEnLocalStorage();
+    renderizarRecordatorios();
+    actualizarDashboard();
+    cerrarModalEditarRecordatorio();
+    mostrarIndicadorGuardado();
+    alert('✅ Recordatorio actualizado correctamente');
+}
+
+function cerrarModalEditarRecordatorio() {
+    document.getElementById('modalEditarRecordatorio').style.display = 'none';
 }
 
 function toggleRecordatorio(id) {
@@ -1013,10 +1101,8 @@ function actualizarListaProveedores() {
 function guardarDeuda() {
     const nombre = document.getElementById('deudaNombre').value.trim();
     const montoUSD = parseFloat(document.getElementById('deudaMontoUSD').value) || 0;
-    const montoBS = parseFloat(document.getElementById('deudaMontoBS').value) || 0;
-    
     if (!nombre) { alert('⚠️ Debes ingresar el nombre del proveedor'); return; }
-    if (montoUSD <= 0 && montoBS <= 0) { alert('️ Debes ingresar un monto mayor a 0'); return; }
+    if (montoUSD <= 0) { alert('⚠️ Debes ingresar un monto mayor a 0'); return; }
     
     const deuda = {
         ID: Date.now(),
@@ -1026,14 +1112,14 @@ function guardarDeuda() {
         Nombre: nombre,
         Descripcion: document.getElementById('deudaDescripcion').value,
         NroFactura: document.getElementById('deudaFactura').value,
-        Moneda: monedaFacturaActual,
-        MontoUSD: monedaFacturaActual === 'USD' ? montoUSD : (montoBS / DB.config.TasaBCV) || 0,
-        MontoBs: monedaFacturaActual === 'BS' ? montoBS : (montoUSD * DB.config.TasaBCV) || 0,
+        MontoUSD: montoUSD,
+        MontoBs: parseFloat(document.getElementById('deudaMontoBS').value) || (montoUSD * DB.config.TasaBCV) || 0,
         Etiqueta: document.getElementById('deudaEtiqueta').value,
         Prioridad: document.getElementById('deudaPrioridad').value,
+        CuentaOrigen: document.getElementById('deudaCuentaOrigen').value,
         Pagado: false,
         TotalAbonado: 0,
-        SaldoPendiente: monedaFacturaActual === 'USD' ? montoUSD : (montoBS / DB.config.TasaBCV) || 0,
+        SaldoPendiente: montoUSD,
         HistorialPagos: []
     };
 
@@ -1069,15 +1155,17 @@ function renderizarDeudas() {
                 <td>${deuda.Descripcion}</td>
                 <td>${deuda.NroFactura}</td>
                 <td>$${deuda.MontoUSD.toFixed(2)}</td>
-                <td>Bs. ${deuda.MontoBs.toFixed(2)}</td>
                 <td>$${deuda.TotalAbonado.toFixed(2)}</td>
                 <td><strong>$${deuda.SaldoPendiente.toFixed(2)}</strong></td>
+                <td>Bs. ${deuda.MontoBs.toFixed(2)}</td>
                 <td>${deuda.Etiqueta}</td>
                 <td><span class="badge ${badgeClass}">${deuda.Prioridad}</span></td>
+                <td>${deuda.CuentaOrigen || '-'}</td>
                 <td>
-                    <button class="btn btn-success" onclick="abrirModalPago(${deuda.ID})" title="💵 Pagar">💵</button>
-                    <button class="btn btn-primary" onclick="verHistorialPagos(${deuda.ID})" title="📜 Historial">📜</button>
-                    <button class="btn btn-danger" onclick="eliminarDeuda(${deuda.ID})" title="🗑️ Eliminar">🗑️</button>
+                    <button class="btn btn-success btn-sm" onclick="abrirModalPago(${deuda.ID})" title="💵 Pagar">💵</button>
+                    <button class="btn btn-primary btn-sm" onclick="editarDeuda(${deuda.ID})" title="✏️ Editar">✏️</button>
+                    <button class="btn btn-info btn-sm" onclick="verHistorialPagos(${deuda.ID})" title="📜 Historial">📜</button>
+                    <button class="btn btn-danger btn-sm" onclick="eliminarDeuda(${deuda.ID})" title="🗑️ Eliminar">🗑️</button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -1092,7 +1180,52 @@ function renderizarDeudas() {
     if (elTotalDeudas) elTotalDeudas.textContent = deudasActivas;
 }
 
-// Mostrar saldos en el modal de pago
+// ✅ NUEVO: EDITAR DEUDA
+function editarDeuda(id) {
+    const deuda = DB.deudas.find(d => d.ID === id);
+    if (!deuda) return;
+    
+    document.getElementById('editDeudaID').value = deuda.ID;
+    document.getElementById('editDeudaFecha').value = deuda.Fecha;
+    document.getElementById('editDeudaRIF').value = deuda.RIF || '';
+    document.getElementById('editDeudaNombre').value = deuda.Nombre;
+    document.getElementById('editDeudaDescripcion').value = deuda.Descripcion || '';
+    document.getElementById('editDeudaFactura').value = deuda.NroFactura || '';
+    document.getElementById('editDeudaMontoUSD').value = deuda.MontoUSD;
+    document.getElementById('editDeudaMontoBS').value = deuda.MontoBs;
+    document.getElementById('editDeudaEtiqueta').value = deuda.Etiqueta;
+    document.getElementById('editDeudaPrioridad').value = deuda.Prioridad;
+    
+    document.getElementById('modalEditarDeuda').style.display = 'flex';
+}
+
+function guardarEdicionDeuda() {
+    const id = parseInt(document.getElementById('editDeudaID').value);
+    const deuda = DB.deudas.find(d => d.ID === id);
+    if (!deuda) { alert('❌ Deuda no encontrada'); return; }
+    
+    deuda.Fecha = document.getElementById('editDeudaFecha').value;
+    deuda.RIF = document.getElementById('editDeudaRIF').value;
+    deuda.Nombre = document.getElementById('editDeudaNombre').value;
+    deuda.Descripcion = document.getElementById('editDeudaDescripcion').value;
+    deuda.NroFactura = document.getElementById('editDeudaFactura').value;
+    deuda.MontoUSD = parseFloat(document.getElementById('editDeudaMontoUSD').value) || 0;
+    deuda.MontoBs = parseFloat(document.getElementById('editDeudaMontoBS').value) || 0;
+    deuda.Etiqueta = document.getElementById('editDeudaEtiqueta').value;
+    deuda.Prioridad = document.getElementById('editDeudaPrioridad').value;
+
+    guardarEnLocalStorage();
+    renderizarDeudas();
+    actualizarListaProveedores();
+    cerrarModalEditarDeuda();
+    mostrarIndicadorGuardado();
+    alert('✅ Factura actualizada correctamente');
+}
+
+function cerrarModalEditarDeuda() {
+    document.getElementById('modalEditarDeuda').style.display = 'none';
+}
+
 function abrirModalPago(id) {
     const deuda = DB.deudas.find(d => d.ID === id);
     if (!deuda) return;
@@ -1119,7 +1252,6 @@ function abrirModalPago(id) {
     document.getElementById('modalPagoDeuda').style.display = 'flex';
 }
 
-// Verificar si hay saldo suficiente
 function verificarSaldoDisponible() {
     const montoPago = parseFloat(document.getElementById('pagoDeudaMonto').value) || 0;
     const cuentaOrigen = document.getElementById('pagoDeudaCuenta').value;
@@ -1290,66 +1422,6 @@ function limpiarDeuda() {
     document.getElementById('deudaMontoBSCalculado').value = '';
 }
 
-// ✅ NUEVO: Modo Registro Rápido
-function registroRapido() {
-    const nombre = document.getElementById('quickNombre').value.trim();
-    const montoUSD = parseFloat(document.getElementById('quickMontoUSD').value) || 0;
-    const montoBS = parseFloat(document.getElementById('quickMontoBS').value) || 0;
-    
-    if (!nombre) { alert('⚠️ Debes ingresar el nombre'); return; }
-    if (montoUSD <= 0 && montoBS <= 0) { alert('️ Debes ingresar un monto'); return; }
-    
-    // Crear deuda y pagarla inmediatamente
-    const deuda = {
-        ID: Date.now(),
-        Fecha: new Date().toISOString().split('T')[0],
-        TasaBCV: DB.config.TasaBCV,
-        RIF: '',
-        Nombre: nombre,
-        Descripcion: 'Pago rápido',
-        NroFactura: 'R-' + Date.now(),
-        Moneda: montoUSD > 0 ? 'USD' : 'BS',
-        MontoUSD: montoUSD > 0 ? montoUSD : (montoBS / DB.config.TasaBCV) || 0,
-        MontoBs: montoBS > 0 ? montoBS : (montoUSD * DB.config.TasaBCV) || 0,
-        Etiqueta: 'Proveedor',
-        Prioridad: 'Media',
-        Pagado: true,
-        TotalAbonado: montoUSD > 0 ? montoUSD : (montoBS / DB.config.TasaBCV) || 0,
-        SaldoPendiente: 0,
-        HistorialPagos: [{
-            Fecha: new Date().toISOString().split('T')[0],
-            MontoUSD: montoUSD > 0 ? montoUSD : (montoBS / DB.config.TasaBCV) || 0,
-            MontoBs: montoBS > 0 ? montoBS : (montoUSD * DB.config.TasaBCV) || 0,
-            CuentaOrigen: 'Empresa',
-            ReferenciaPago: 'Pago rápido',
-            Observacion: 'Registro rápido'
-        }]
-    };
-
-    DB.deudas.push(deuda);
-    
-    // Descontar de cuenta empresa
-    if (montoUSD > 0) {
-        DB.config.SaldoEmpresa_USD -= montoUSD;
-    } else {
-        DB.config.SaldoEmpresa_Bs -= montoBS;
-    }
-
-    guardarEnLocalStorage();
-    renderizarDeudas();
-    actualizarListaProveedores();
-    actualizarPanelSaldos();
-    actualizarDashboard();
-    mostrarIndicadorGuardado();
-    
-    // Limpiar campos
-    document.getElementById('quickNombre').value = '';
-    document.getElementById('quickMontoUSD').value = '';
-    document.getElementById('quickMontoBS').value = '';
-    
-    alert('✅ Pago rápido registrado correctamente');
-}
-
 // ============================================================
 // EMPLEADOS
 // ============================================================
@@ -1386,7 +1458,7 @@ function renderizarEmpleados() {
     tbody.innerHTML = '';
     DB.empleados.forEach(emp => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${emp.FechaIngreso}</td><td>${emp.Nombre}</td><td>${emp.Cedula}</td><td>${emp.TipoSueldo}</td><td>$${emp.SueldoUSD.toFixed(2)}</td><td>${emp.Status}</td><td><button class="btn btn-primary" onclick="editarEmpleado(${emp.ID})">✏️</button><button class="btn btn-danger" onclick="eliminarEmpleado(${emp.ID})">🗑️</button></td>`;
+        tr.innerHTML = `<td>${emp.FechaIngreso}</td><td>${emp.Nombre}</td><td>${emp.Cedula}</td><td>${emp.TipoSueldo}</td><td>$${emp.SueldoUSD.toFixed(2)}</td><td>${emp.Status}</td><td><button class="btn btn-primary btn-sm" onclick="editarEmpleado(${emp.ID})">✏️</button> <button class="btn btn-danger btn-sm" onclick="eliminarEmpleado(${emp.ID})">🗑️</button></td>`;
         tbody.appendChild(tr);
     });
 }
@@ -1415,7 +1487,7 @@ function guardarEdicionEmpleado() {
 
     if (!nombre) { alert('⚠️ Debes ingresar el nombre'); return; }
     if (!cedula) { alert('⚠️ Debes ingresar la cédula'); return; }
-    if (sueldo <= 0) { alert('️ Debes ingresar un sueldo mayor a 0'); return; }
+    if (sueldo <= 0) { alert('⚠️ Debes ingresar un sueldo mayor a 0'); return; }
 
     emp.FechaIngreso = document.getElementById('editEmpleadoFecha').value;
     emp.Nombre = nombre;
@@ -1480,7 +1552,7 @@ function renderizarNominaPagos() {
     let totalPagar = 0;
     nominaTemporal.forEach((emp, index) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${emp.Nombre}</td><td>${emp.Cedula}</td><td>${emp.TipoSueldo}</td><td>$${emp.Sueldo.toFixed(2)}</td><td><input type="number" step="0.01" value="${emp.Bono}" onchange="actualizarNetoNomina(${index}, this.value, 'bono')" style="width:80px;padding:5px;"></td><td><input type="number" step="0.01" value="${emp.Deuda}" onchange="actualizarNetoNomina(${index}, this.value, 'deuda')" style="width:80px;padding:5px;"></td><td><strong>$${emp.Neto.toFixed(2)}</strong></td><td><input type="checkbox" ${emp.Pagado ? 'checked' : ''} onchange="togglePagoNomina(${index})"></td><td><button class="btn btn-danger" onclick="eliminarDeNomina(${index})">🗑️</button></td>`;
+        tr.innerHTML = `<td>${emp.Nombre}</td><td>${emp.Cedula}</td><td>${emp.TipoSueldo}</td><td>$${emp.Sueldo.toFixed(2)}</td><td><input type="number" step="0.01" value="${emp.Bono}" onchange="actualizarNetoNomina(${index}, this.value, 'bono')" style="width:80px;padding:5px;"></td><td><input type="number" step="0.01" value="${emp.Deuda}" onchange="actualizarNetoNomina(${index}, this.value, 'deuda')" style="width:80px;padding:5px;"></td><td><strong>$${emp.Neto.toFixed(2)}</strong></td><td><input type="checkbox" ${emp.Pagado ? 'checked' : ''} onchange="togglePagoNomina(${index})"></td><td><button class="btn btn-danger btn-sm" onclick="eliminarDeNomina(${index})">🗑️</button></td>`;
         tbody.appendChild(tr);
         totalPagar += emp.Neto;
     });
@@ -1534,7 +1606,7 @@ function guardarNominaPagos() {
     }
     
     if (totalNomina > saldoDisponible) {
-        alert('️ Saldo insuficiente en la cuenta seleccionada. Saldo disponible: $' + saldoDisponible.toFixed(2) + ' | Total a pagar: $' + totalNomina.toFixed(2));
+        alert('⚠️ Saldo insuficiente en la cuenta seleccionada. Saldo disponible: $' + saldoDisponible.toFixed(2) + ' | Total a pagar: $' + totalNomina.toFixed(2));
         return;
     }
 
@@ -1603,7 +1675,7 @@ function renderizarHistorialNomina() {
 }
 
 // ============================================================
-// BÚSQUEDA
+// BÚSQUEDA CON ACCIONES RÁPIDAS
 // ============================================================
 function realizarBusqueda() {
     const desde = document.getElementById('busqDesde').value;
@@ -1620,10 +1692,12 @@ function realizarBusqueda() {
             resultados.push({ 
                 tipo: 'Ingreso', 
                 fecha: ing.Fecha, 
-                icono: '',
+                icono: '📈',
                 titulo: `Ingreso del ${ing.Fecha}`,
                 texto: `Total: $${ing.Total_USD.toFixed(2)} / Bs.${ing.Total_Bs.toFixed(2)}`,
-                detalle: `Tasa: ${ing.TasaBCV} | Saldo Final: $${ing.SaldoFin_USD.toFixed(2)}`
+                detalle: `Tasa: ${ing.TasaBCV} | Saldo Final: $${ing.SaldoFin_USD.toFixed(2)}`,
+                id: ing.ID,
+                data: ing
             });
         });
     }
@@ -1639,7 +1713,9 @@ function realizarBusqueda() {
                 icono: '💳',
                 titulo: `${d.Nombre}`,
                 texto: `Factura: ${d.NroFactura} - $${d.MontoUSD.toFixed(2)}`,
-                detalle: `Abonado: $${d.TotalAbonado.toFixed(2)} | Pendiente: $${d.SaldoPendiente.toFixed(2)}`
+                detalle: `Abonado: $${d.TotalAbonado.toFixed(2)} | Pendiente: $${d.SaldoPendiente.toFixed(2)}`,
+                id: d.ID,
+                data: d
             });
         });
     }
@@ -1655,7 +1731,9 @@ function realizarBusqueda() {
                 icono: '🔔',
                 titulo: r.Descripcion,
                 texto: `$${r.MontoUSD.toFixed(2)} / Bs.${r.MontoBs.toFixed(2)}`,
-                detalle: r.Detalle || ''
+                detalle: r.Detalle || '',
+                id: r.ID,
+                data: r
             });
         });
     }
@@ -1671,7 +1749,9 @@ function realizarBusqueda() {
                 icono: '👥',
                 titulo: `${p.Nombre}`,
                 texto: `Neto: $${p.Neto.toFixed(2)}`,
-                detalle: `Cédula: ${p.Cedula} | Cuenta: ${p.CuentaOrigen}`
+                detalle: `Cédula: ${p.Cedula} | Cuenta: ${p.CuentaOrigen}`,
+                id: p.ID,
+                data: p
             });
         });
     }
@@ -1681,19 +1761,41 @@ function realizarBusqueda() {
         cont.innerHTML = '<p style="padding:20px;text-align:center;color:#666;">Sin resultados</p>';
     } else {
         cont.innerHTML = `<p style="padding:10px;font-weight:600;">${resultados.length} resultado(s) encontrado(s)</p>` +
-            resultados.map(r => `
-                <div style="padding:15px;background:white;margin:10px 0;border-radius:10px;border-left:5px solid #667eea;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-                        <span style="font-size:1.8em;">${r.icono}</span>
-                        <div>
-                            <strong style="font-size:1.1em;color:#333;">${r.titulo}</strong>
-                            <div style="color:#6b7280;font-size:0.9em;">${r.tipo} - ${r.fecha}</div>
+            resultados.map(r => {
+                let botonesAccion = '';
+                
+                // ✅ NUEVO: Botones de acción rápida según el tipo
+                if (r.tipo === 'Deuda' && !r.data.Pagado) {
+                    botonesAccion = `
+                        <button class="quick-action-btn pagar" onclick="abrirModalPago(${r.id})" title="💵 Pagar ahora">💵 Pagar</button>
+                        <button class="quick-action-btn editar" onclick="editarDeuda(${r.id})" title="✏️ Editar">✏️ Editar</button>
+                    `;
+                } else if (r.tipo === 'Recordatorio' && !r.data.Completado) {
+                    botonesAccion = `
+                        <button class="quick-action-btn completar" onclick="toggleRecordatorio(${r.id})" title="✅ Marcar completado">✅ Completar</button>
+                        <button class="quick-action-btn editar" onclick="editarRecordatorio(${r.id})" title="✏️ Editar">✏️ Editar</button>
+                    `;
+                } else if (r.tipo === 'Ingreso') {
+                    botonesAccion = `
+                        <button class="quick-action-btn editar" onclick="editarIngreso(${r.id})" title="✏️ Editar">✏️ Editar</button>
+                    `;
+                }
+                
+                return `
+                    <div style="padding:15px;background:white;margin:10px 0;border-radius:10px;border-left:5px solid #667eea;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                            <span style="font-size:1.8em;">${r.icono}</span>
+                            <div>
+                                <strong style="font-size:1.1em;color:#333;">${r.titulo}</strong>
+                                <div style="color:#6b7280;font-size:0.9em;">${r.tipo} - ${r.fecha}</div>
+                            </div>
                         </div>
+                        <div style="font-size:1.1em;color:#667eea;font-weight:600;margin:5px 0;">${r.texto}</div>
+                        ${r.detalle ? `<div style="color:#6b7280;font-size:0.9em;margin-top:5px;">${r.detalle}</div>` : ''}
+                        ${botonesAccion ? `<div style="margin-top:10px;">${botonesAccion}</div>` : ''}
                     </div>
-                    <div style="font-size:1.1em;color:#667eea;font-weight:600;margin:5px 0;">${r.texto}</div>
-                    ${r.detalle ? `<div style="color:#6b7280;font-size:0.9em;margin-top:5px;">${r.detalle}</div>` : ''}
-                </div>
-            `).join('');
+                `;
+            }).join('');
     }
 }
 
@@ -1754,7 +1856,7 @@ function confirmarReset() {
     }
 
     if (clave2 !== CLAVE_ADMIN) {
-        alert(' La segunda clave es INCORRECTA o no coincide.');
+        alert('❌ La segunda clave es INCORRECTA o no coincide.');
         document.getElementById('resetClave2').value = '';
         document.getElementById('resetClave2').focus();
         return;
@@ -1765,7 +1867,7 @@ function confirmarReset() {
         return;
     }
 
-    if (!confirm('⚠️ ÚLTIMA ADVERTENCIA ️\n\n¿Estás 100% seguro de que quieres BORRAR TODOS los datos?\n\nEsta acción NO se puede deshacer.')) {
+    if (!confirm('⚠️ ÚLTIMA ADVERTENCIA ⚠️\n\n¿Estás 100% seguro de que quieres BORRAR TODOS los datos?\n\nEsta acción NO se puede deshacer.')) {
         return;
     }
 
@@ -2109,7 +2211,7 @@ function generarGuiaGoogleSheets() {
     doc.text('GUÍA DE CONFIGURACIÓN', 105, 40, {align: 'center'});
     doc.text('GOOGLE SHEETS', 105, 55, {align: 'center'});
     doc.setFontSize(14);
-    doc.text('FinanzasPro v3.6', 105, 75, {align: 'center'});
+    doc.text('FinanzasPro v3.7', 105, 75, {align: 'center'});
     doc.setFontSize(10);
     doc.text('Sigue estos pasos para conectar tu sistema con Google Sheets', 105, 95, {align: 'center'});
 
@@ -2175,4 +2277,8 @@ function generarGuiaGoogleSheets() {
 
     doc.save('Guia_Google_Sheets_FinanzasPro.pdf');
     alert('✅ Guía generada. Ábrela y sigue los pasos.');
+}
+
+function abrirManualUsuario() {
+    document.getElementById('modalManualUsuario').style.display = 'flex';
 }
