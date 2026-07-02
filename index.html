@@ -38,6 +38,7 @@ body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height
 .alert { padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: none; }
 .alert-warning { background: #fff3cd; color: #856404; border-left: 4px solid #ffc107; }
 .alert-info { background: #d1ecf1; color: #0c5460; border-left: 4px solid #17a2b8; }
+.alert-danger { background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545; }
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
 .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; text-align: center; }
 .stat-card h3 { font-size: 2em; margin-bottom: 5px; color: white; }
@@ -70,7 +71,7 @@ tr:hover { background: #f8f9fa; }
 .insight.negativo { background: #f8d7da; border-color: #dc3545; color: #721c24; }
 .insight.neutro { background: #e2e3e5; border-color: #6c757d; color: #383d41; }
 
-/* ✅ NUEVO FASE 2: Indicador de Guardado */
+/* ✅ NUEVO: Indicador de Guardado */
 .save-indicator {
     position: fixed;
     top: 20px;
@@ -89,11 +90,54 @@ tr:hover { background: #f8f9fa; }
     from { transform: translateX(100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
 }
+
+/* ✅ NUEVO: Panel de Saldos en Cuentas */
+.account-balance-panel {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+.account-balance-panel h4 {
+    margin-bottom: 10px;
+    color: white;
+    font-size: 1.1em;
+}
+.balance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+}
+.balance-item {
+    background: rgba(255,255,255,0.2);
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+}
+.balance-item label {
+    display: block;
+    font-size: 0.85em;
+    margin-bottom: 5px;
+    opacity: 0.9;
+}
+.balance-item .amount {
+    font-size: 1.3em;
+    font-weight: bold;
+}
+.saldo-insuficiente {
+    background: #ff4444 !important;
+    animation: pulse 1s infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
 </style>
 </head>
 <body>
 
-<!-- ✅ NUEVO FASE 2: Indicador visual de guardado -->
+<!-- ✅ Indicador de Guardado -->
 <div id="saveIndicator" class="save-indicator">💾 Guardado correctamente ✓</div>
 
 <div class="container">
@@ -113,6 +157,37 @@ tr:hover { background: #f8f9fa; }
         </div>
     </div>
 
+    <!-- ✅ PANEL DE SALDOS - Visible en todas las pestañas -->
+    <div class="account-balance-panel" id="panelSaldosGenerales">
+        <h4>💰 Saldos Disponibles en Cuentas</h4>
+        <div class="balance-grid">
+            <div class="balance-item">
+                <label>🪙 Binance (USD)</label>
+                <div class="amount" id="saldoBinanceDisplay">$0.00</div>
+            </div>
+            <div class="balance-item">
+                <label>💳 Zelle (USD)</label>
+                <div class="amount" id="saldoZelleDisplay">$0.00</div>
+            </div>
+            <div class="balance-item">
+                <label>🏢 Empresa (USD)</label>
+                <div class="amount" id="saldoEmpresaDisplay">$0.00</div>
+            </div>
+            <div class="balance-item">
+                <label>👤 Personal (USD)</label>
+                <div class="amount" id="saldoPersonalDisplay">$0.00</div>
+            </div>
+            <div class="balance-item">
+                <label>🏢 Empresa (Bs)</label>
+                <div class="amount" id="saldoEmpresaBsDisplay">Bs. 0.00</div>
+            </div>
+            <div class="balance-item">
+                <label>👤 Personal (Bs)</label>
+                <div class="amount" id="saldoPersonalBsDisplay">Bs. 0.00</div>
+            </div>
+        </div>
+    </div>
+
     <!-- TABS -->
     <div class="tabs">
         <button class="tab active" data-tab="tabIngresos">📈 Ingresos</button>
@@ -121,7 +196,7 @@ tr:hover { background: #f8f9fa; }
         <button class="tab" data-tab="tabNomina">👥 Nómina</button>
         <button class="tab" data-tab="tabBusqueda">🔍 Búsqueda</button>
         <button class="tab" data-tab="tabAnalisis">📊 Análisis</button>
-        <button class="tab" data-tab="tabDashboard"> Dashboard</button>
+        <button class="tab" data-tab="tabDashboard">📊 Dashboard</button>
     </div>
 
     <!-- TAB INGRESOS -->
@@ -141,13 +216,13 @@ tr:hover { background: #f8f9fa; }
             </div>
 
             <div id="alertaSaldoInicial" class="alert alert-warning">
-                ️ ¡IMPORTANTE! Debes registrar el Saldo Inicial USD y/o Bs antes de guardar ingresos.
+                ⚠️ ¡IMPORTANTE! Debes registrar el Saldo Inicial USD y/o Bs antes de guardar ingresos.
             </div>
 
             <div class="grid-2">
                 <div class="form-group">
                     <label>📅 Fecha</label>
-                    <input type="date" id="ingresoFecha">
+                    <input type="date" id="ingresoFecha" max="">
                 </div>
                 <div class="form-group">
                     <label>💱 Tasa BCV del día</label>
@@ -159,9 +234,9 @@ tr:hover { background: #f8f9fa; }
                     <small>💡 Se precarga con el cierre anterior</small>
                 </div>
                 <div class="form-group">
-                    <label> Saldo inicial Bs <span style="color:#ff4444;">*OBLIGATORIO</span></label>
+                    <label>💴 Saldo inicial Bs <span style="color:#ff4444;">*OBLIGATORIO</span></label>
                     <input type="number" step="0.01" id="saldoIniBS" placeholder="0.00" oninput="validarSaldoInicial()">
-                    <small> Se precarga con el cierre anterior</small>
+                    <small>💡 Se precarga con el cierre anterior</small>
                 </div>
             </div>
 
@@ -203,9 +278,7 @@ tr:hover { background: #f8f9fa; }
 
             <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;">
                 <button class="btn btn-success" onclick="guardarIngreso()">💾 Guardar Ingreso</button>
-                <button class="btn btn-warning" onclick="limpiarIngreso()"> Limpiar</button>
-                <!-- ✅ NUEVO FASE 2: Botón Cerrar Día -->
-                <button class="btn btn-info" onclick="cerrarDia()" style="margin-left:auto;">✅ Cerrar Día y Finalizar</button>
+                <button class="btn btn-warning" onclick="limpiarIngreso()">🔄 Limpiar</button>
             </div>
         </div>
 
@@ -225,12 +298,12 @@ tr:hover { background: #f8f9fa; }
         <div class="card">
             <h2>🔔 Recordatorios</h2>
             <div class="grid-4">
-                <div class="form-group"><label>Fecha Actual</label><input type="date" id="recordatorioFechaActual" disabled></div>
+                <div class="form-group"><label>Fecha Actual</label><input type="date" id="recordatorioFechaActual" disabled max=""></div>
                 <div class="form-group"><label>💱 Tasa BCV</label><input type="text" id="recordatorioTasa" disabled></div>
-                <div class="form-group"><label>📅 Fecha del recordatorio</label><input type="date" id="recordatorioFecha"></div>
+                <div class="form-group"><label>📅 Fecha del recordatorio</label><input type="date" id="recordatorioFecha" max=""></div>
                 <div class="form-group"><label>Descripción</label><input type="text" id="recordatorioDescripcion"></div>
                 <div class="form-group"><label>Monto en $</label><input type="number" step="0.01" id="recordatorioMontoUSD" oninput="calcularMontoBSRecordatorio()"></div>
-                <div class="form-group"><label> Monto en Bs (calculado)</label><input type="text" id="recordatorioMontoBSCalculado" disabled></div>
+                <div class="form-group"><label>💴 Monto en Bs (calculado)</label><input type="text" id="recordatorioMontoBSCalculado" disabled></div>
                 <div class="form-group"><label>💴 Monto en Bs (manual)</label><input type="number" step="0.01" id="recordatorioMontoBS"></div>
                 <div class="form-group"><label>🔍 Detalle</label><input type="text" id="recordatorioDetalle"></div>
                 <div class="form-group">
@@ -246,7 +319,7 @@ tr:hover { background: #f8f9fa; }
         </div>
 
         <div class="card">
-            <h2> Lista de Recordatorios</h2>
+            <h2>📋 Lista de Recordatorios</h2>
             <table id="tablaRecordatorios">
                 <thead><tr><th>Fecha</th><th>Descripción</th><th>Monto $</th><th>Monto Bs</th><th>Prioridad</th><th>Detalle</th><th>Estado</th><th>Acciones</th></tr></thead>
                 <tbody></tbody>
@@ -271,9 +344,9 @@ tr:hover { background: #f8f9fa; }
                         <option value="">-- Nuevo Proveedor --</option>
                     </select>
                 </div>
-                <div class="form-group"><label>📅 Fecha</label><input type="date" id="deudaFecha"></div>
+                <div class="form-group"><label>📅 Fecha</label><input type="date" id="deudaFecha" max=""></div>
                 <div class="form-group"><label>🏷️ RIF / Cédula</label><input type="text" id="deudaRIF"></div>
-                <div class="form-group"><label> Nombre</label><input type="text" id="deudaNombre"></div>
+                <div class="form-group"><label>👤 Nombre</label><input type="text" id="deudaNombre"></div>
                 <div class="form-group"><label>📝 Descripción</label><input type="text" id="deudaDescripcion"></div>
                 <div class="form-group"><label>Nro. Factura</label><input type="text" id="deudaFactura"></div>
                 <div class="form-group"><label>💵 Monto ($)</label><input type="number" step="0.01" id="deudaMontoUSD" oninput="calcularMontoBSDeuda()"></div>
@@ -292,7 +365,7 @@ tr:hover { background: #f8f9fa; }
                 <div class="form-group">
                     <label>Prioridad</label>
                     <select id="deudaPrioridad">
-                        <option value="Alta"> Alta</option>
+                        <option value="Alta">🔴 Alta</option>
                         <option value="Media" selected>🟡 Media</option>
                         <option value="Baja">🟢 Baja</option>
                     </select>
@@ -303,7 +376,7 @@ tr:hover { background: #f8f9fa; }
                         <option value="">-- Sin especificar --</option>
                         <option value="Binance">🪙 Cuenta Binance</option>
                         <option value="Zelle">💳 Cuenta Zelle</option>
-                        <option value="Empresa"> Cuenta Empresa</option>
+                        <option value="Empresa">🏢 Cuenta Empresa</option>
                         <option value="Personal">👤 Cuenta Personal</option>
                     </select>
                 </div>
@@ -326,7 +399,7 @@ tr:hover { background: #f8f9fa; }
         </div>
 
         <div class="card">
-            <h2> Pendientes por Pagar</h2>
+            <h2>📋 Pendientes por Pagar</h2>
             <table id="tablaDeudas">
                 <thead><tr><th>Fecha</th><th>RIF</th><th>Nombre</th><th>Descripción</th><th>Factura</th><th>Monto $</th><th>Abonado $</th><th>Saldo $</th><th>Monto Bs</th><th>Etiqueta</th><th>Prioridad</th><th>Cuenta</th><th>Acciones</th></tr></thead>
                 <tbody></tbody>
@@ -340,7 +413,7 @@ tr:hover { background: #f8f9fa; }
             <h2>👥 Nómina</h2>
             <h3>📋 Registro Empleados</h3>
             <div class="grid-4">
-                <div class="form-group"><label> Fecha Ingreso</label><input type="date" id="empleadoFecha"></div>
+                <div class="form-group"><label>📅 Fecha Ingreso</label><input type="date" id="empleadoFecha" max=""></div>
                 <div class="form-group"><label>Nombre</label><input type="text" id="empleadoNombre"></div>
                 <div class="form-group"><label>Cédula</label><input type="text" id="empleadoCedula"></div>
                 <div class="form-group">
@@ -368,12 +441,12 @@ tr:hover { background: #f8f9fa; }
         <div class="card">
             <h3>Pagar Nómina</h3>
             <div class="grid-2">
-                <div class="form-group"><label>Fecha de Pago</label><input type="date" id="nominaFechaPago"></div>
+                <div class="form-group"><label>Fecha de Pago</label><input type="date" id="nominaFechaPago" max=""></div>
                 <div class="form-group">
                     <label>Cuenta de origen</label>
                     <select id="nominaCuentaOrigen">
                         <option value="Empresa">🏢 Cuenta Empresa</option>
-                        <option value="Binance"> Cuenta Binance</option>
+                        <option value="Binance">🪙 Cuenta Binance</option>
                         <option value="Zelle">💳 Cuenta Zelle</option>
                         <option value="Personal">👤 Cuenta Personal</option>
                     </select>
@@ -398,7 +471,7 @@ tr:hover { background: #f8f9fa; }
         </div>
 
         <div class="card">
-            <h3> Historial de Pagos de Nómina</h3>
+            <h3>📜 Historial de Pagos de Nómina</h3>
             <table id="tablaHistorialNomina">
                 <thead><tr><th>Fecha Pago</th><th>Empleado</th><th>Cédula</th><th>Sueldo</th><th>Bono</th><th>Deuda</th><th>Neto</th><th>Cuenta</th><th>Status</th></tr></thead>
                 <tbody></tbody>
@@ -420,7 +493,7 @@ tr:hover { background: #f8f9fa; }
                         <option value="ingresos">📈 Ingresos</option>
                         <option value="deudas">💳 Pagos</option>
                         <option value="nomina">👥 Nómina</option>
-                        <option value="recordatorios"> Recordatorios</option>
+                        <option value="recordatorios">🔔 Recordatorios</option>
                     </select>
                 </div>
                 <div class="form-group"><label>🔍 Texto</label><input type="text" id="busqTexto" placeholder="Buscar..."></div>
@@ -462,7 +535,7 @@ tr:hover { background: #f8f9fa; }
                 <div class="stat-card"><h3 id="analisisIngresosBS">Bs. 0.00</h3><p>💴 Ingresos (Bs)</p></div>
                 <div class="stat-card"><h3 id="analisisPagosUSD">$0.00</h3><p>💸 Pagos (USD)</p></div>
                 <div class="stat-card"><h3 id="analisisPagosBS">Bs. 0.00</h3><p>💸 Pagos (Bs)</p></div>
-                <div class="stat-card"><h3 id="analisisNominaUSD">$0.00</h3><p> Nómina (USD)</p></div>
+                <div class="stat-card"><h3 id="analisisNominaUSD">$0.00</h3><p>👥 Nómina (USD)</p></div>
                 <div class="stat-card"><h3 id="analisisNetoUSD">$0.00</h3><p>💰 NETO (USD)<br><small>Ingresos - Pagos - Nómina</small></p></div>
             </div>
 
@@ -472,14 +545,14 @@ tr:hover { background: #f8f9fa; }
 
             <h3>📋 Registro Detallado</h3>
             <table id="tablaAnalisis">
-                <thead><tr><th>📅 Fecha</th><th>💵 Ingresos USD</th><th>💴 Ingresos Bs</th><th>💸 Pagos USD</th><th>💸 Pagos Bs</th><th> Nómina USD</th><th>💰 NETO USD</th><th>💱 Tasa</th></tr></thead>
+                <thead><tr><th>📅 Fecha</th><th>💵 Ingresos USD</th><th>💴 Ingresos Bs</th><th>💸 Pagos USD</th><th>💸 Pagos Bs</th><th>👥 Nómina USD</th><th>💰 NETO USD</th><th>💱 Tasa</th></tr></thead>
                 <tbody></tbody>
                 <tfoot id="tablaAnalisisFoot"></tfoot>
             </table>
 
             <div style="display:flex;gap:10px;margin-top:20px;">
                 <button class="btn btn-success" onclick="exportarAnalisisExcel()">📥 Exportar Análisis Excel</button>
-                <button class="btn btn-primary" onclick="exportarAnalisisPDF()"> Exportar Análisis PDF</button>
+                <button class="btn btn-primary" onclick="exportarAnalisisPDF()">📄 Exportar Análisis PDF</button>
                 <button class="btn btn-info" onclick="mostrarAnalisisInteligente()">🧠 Análisis Inteligente</button>
             </div>
         </div>
@@ -493,7 +566,7 @@ tr:hover { background: #f8f9fa; }
                 <div class="stat-card"><h3 id="dashIngresos">$0.00 / Bs. 0.00</h3><p>INGRESOS DEL MES</p></div>
                 <div class="stat-card"><h3 id="dashDeudas">$0.00</h3><p>💸 TOTAL A DEBER<br><small id="dashNumDeudas">0 deudas</small></p></div>
                 <div class="stat-card"><h3 id="dashNomina">$0.00</h3><p>NÓMINA PENDIENTE<br><small id="dashNumEmpleados">0 empleados</small></p></div>
-                <div class="stat-card"><h3 id="dashRecordatorios">0</h3><p> RECORDATORIOS<br><small>Pendientes</small></p></div>
+                <div class="stat-card"><h3 id="dashRecordatorios">0</h3><p>🔔 RECORDATORIOS<br><small>Pendientes</small></p></div>
                 <div class="stat-card"><h3 id="dashBalance">$0.00</h3><p>💰 BALANCE NETO<br><small>Ingresos - Deudas - Nómina</small></p></div>
             </div>
         </div>
@@ -507,52 +580,45 @@ tr:hover { background: #f8f9fa; }
 
 </div>
 
-<!-- ✅ NUEVO FASE 2: MODAL APERTURA INICIAL -->
-<div id="modalApertura" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>🏦 Apertura de Caja Inicial</h3>
-        </div>
-        <div class="alert alert-info" style="display:block;">
-            <strong>¡Bienvenido a FinanzasPro!</strong><br>
-            Como es la primera vez que usas el sistema, necesitamos saber con cuánto dinero cuentas en cada cuenta para usarlo como base. Si no tienes saldo, puedes dejarlo en 0.
-        </div>
-        <div class="grid-2">
-            <div class="form-group"><label>🪙 Saldo en Binance ($)</label><input type="number" step="0.01" id="aperturaBinance" value="0"></div>
-            <div class="form-group"><label>💳 Saldo en Zelle ($)</label><input type="number" step="0.01" id="aperturaZelle" value="0"></div>
-            <div class="form-group"><label>🏢 Saldo en Cuenta Empresa ($)</label><input type="number" step="0.01" id="aperturaEmpresa" value="0"></div>
-            <div class="form-group"><label>👤 Saldo en Cuenta Personal ($)</label><input type="number" step="0.01" id="aperturaPersonal" value="0"></div>
-        </div>
-        <div style="display:flex;gap:10px;margin-top:15px;">
-            <button class="btn btn-success" onclick="guardarAperturaInicial()" style="flex:1;">✅ Confirmar y Empezar</button>
-        </div>
-    </div>
-</div>
-
 <!-- MODAL PAGO DEUDA -->
 <div id="modalPagoDeuda" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3> Registrar Pago/Abono</h3>
+            <h3>💵 Registrar Pago/Abono</h3>
             <button class="close-modal" onclick="cerrarModalPago()">❌</button>
         </div>
+        
+        <!-- ✅ NUEVO: Mostrar saldos disponibles -->
+        <div class="alert alert-info" style="display:block;margin-bottom:15px;">
+            <strong>💰 Saldos Disponibles:</strong>
+            <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div>🪙 Binance: <strong id="modalSaldoBinance">$0.00</strong></div>
+                <div>💳 Zelle: <strong id="modalSaldoZelle">$0.00</strong></div>
+                <div>🏢 Empresa: <strong id="modalSaldoEmpresa">$0.00</strong></div>
+                <div>👤 Personal: <strong id="modalSaldoPersonal">$0.00</strong></div>
+            </div>
+        </div>
+        
         <input type="hidden" id="pagoDeudaID">
         <div class="form-group"><label>Proveedor</label><input type="text" id="pagoDeudaNombre" disabled></div>
         <div class="form-group"><label>Factura</label><input type="text" id="pagoDeudaFactura" disabled></div>
         <div class="form-group"><label>Saldo Pendiente</label><input type="text" id="pagoDeudaSaldo" disabled></div>
-        <div class="form-group"><label>💵 Monto a Abonar ($)</label><input type="number" step="0.01" id="pagoDeudaMonto"></div>
-        <div class="form-group"><label>📅 Fecha de Pago</label><input type="date" id="pagoDeudaFecha"></div>
+        <div class="form-group"><label>💵 Monto a Abonar ($)</label><input type="number" step="0.01" id="pagoDeudaMonto" oninput="verificarSaldoDisponible()"></div>
+        <div id="alertaSaldoInsuficiente" class="alert alert-danger" style="display:none;">
+            ⚠️ <strong>Saldo insuficiente</strong> en la cuenta seleccionada.
+        </div>
+        <div class="form-group"><label>📅 Fecha de Pago</label><input type="date" id="pagoDeudaFecha" max=""></div>
         <div class="form-group">
             <label>🏦 Cuenta de Origen</label>
-            <select id="pagoDeudaCuenta">
+            <select id="pagoDeudaCuenta" onchange="verificarSaldoDisponible()">
                 <option value="Binance">🪙 Cuenta Binance</option>
                 <option value="Zelle">💳 Cuenta Zelle</option>
                 <option value="Empresa">🏢 Cuenta Empresa</option>
                 <option value="Personal">👤 Cuenta Personal</option>
             </select>
         </div>
-        <div class="form-group"><label> Referencia de Pago</label><input type="text" id="pagoDeudaReferencia"></div>
-        <div class="form-group"><label> Observación</label><textarea id="pagoDeudaObservacion"></textarea></div>
+        <div class="form-group"><label>🔖 Referencia de Pago</label><input type="text" id="pagoDeudaReferencia"></div>
+        <div class="form-group"><label>📝 Observación</label><textarea id="pagoDeudaObservacion"></textarea></div>
         <div style="display:flex;gap:10px;">
             <button class="btn btn-success" onclick="confirmarPagoDeuda()">💾 Confirmar Pago</button>
             <button class="btn btn-warning" onclick="cerrarModalPago()">❌ Cancelar</button>
@@ -583,7 +649,7 @@ tr:hover { background: #f8f9fa; }
             <button class="close-modal" onclick="cerrarModalEmpleado()">❌</button>
         </div>
         <input type="hidden" id="editEmpleadoID">
-        <div class="form-group"><label>📅 Fecha Ingreso</label><input type="date" id="editEmpleadoFecha"></div>
+        <div class="form-group"><label>📅 Fecha Ingreso</label><input type="date" id="editEmpleadoFecha" max=""></div>
         <div class="form-group"><label>Nombre</label><input type="text" id="editEmpleadoNombre"></div>
         <div class="form-group"><label>Cédula</label><input type="text" id="editEmpleadoCedula"></div>
         <div class="form-group">
@@ -610,27 +676,12 @@ tr:hover { background: #f8f9fa; }
     </div>
 </div>
 
-<!-- MODAL CIERRE DE DÍA -->
-<div id="modalCierreDia" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>✅ Cierre de Día</h3>
-            <button class="close-modal" onclick="document.getElementById('modalCierreDia').style.display='none'">❌</button>
-        </div>
-        <div id="contenidoCierreDia"></div>
-        <div style="display:flex;gap:10px;margin-top:20px;">
-            <button class="btn btn-success" onclick="confirmarCierreDia()" style="flex:1;">✅ Confirmar Cierre y Guardar Todo</button>
-            <button class="btn btn-warning" onclick="document.getElementById('modalCierreDia').style.display='none'">❌ Cancelar</button>
-        </div>
-    </div>
-</div>
-
 <!-- MODAL ANÁLISIS INTELIGENTE -->
 <div id="modalAnalisisInteligente" class="modal">
     <div class="modal-content" style="max-width:800px;">
         <div class="modal-header">
             <h3>🧠 Análisis Inteligente</h3>
-            <button class="close-modal" onclick="document.getElementById('modalAnalisisInteligente').style.display='none'"></button>
+            <button class="close-modal" onclick="document.getElementById('modalAnalisisInteligente').style.display='none'">❌</button>
         </div>
         <div id="contenidoAnalisisInteligente"></div>
     </div>
