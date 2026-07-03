@@ -11,602 +11,104 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
+    <!-- Estilos -->
+    <link rel="stylesheet" href="styles.css">
+    
     <style>
-        :root {
-            --primary: #667eea;
-            --primary-dark: #5a67d8;
-            --success: #10b981;
-            --success-dark: #059669;
-            --danger: #ef4444;
-            --danger-dark: #dc2626;
-            --warning: #f59e0b;
-            --warning-dark: #d97706;
-            --info: #3b82f6;
-            --bg-dark: #1e293b;
-            --bg-darker: #0f172a;
-            --bg-card: #334155;
-            --bg-input: #475569;
-            --text-primary: #f1f5f9;
-            --text-secondary: #cbd5e1;
-            --border-color: #475569;
-        }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 100%);
-            color: var(--text-primary);
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: auto;
-            background: var(--bg-card);
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            border: 1px solid var(--border-color);
-        }
-        
-        /* Header */
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--border-color);
-        }
-        
-        .empresa-nombre {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: var(--primary);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .empresa-nombre:hover {
-            color: var(--primary-dark);
-            transform: scale(1.05);
-            transition: 0.3s;
-        }
-        
-        .header-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .contexto-info {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            font-size: 0.9em;
-            color: var(--text-secondary);
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-        
-        .contexto-info span {
-            background: var(--bg-input);
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-        
-        /* Top Bar Config - GOOGLE SHEETS Y EXCEL */
-        .top-bar-config {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            background: var(--bg-input);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            border: 2px solid var(--primary);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
-        }
-        
-        .top-bar-config input {
-            flex: 1;
-            min-width: 250px;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            font-size: 0.9em;
-        }
-        
-        .top-bar-config input::placeholder {
-            color: var(--text-secondary);
-        }
-        
-        .top-bar-config .estado-text {
-            font-size: 0.9em;
-            font-weight: 600;
-            color: var(--text-secondary);
-            padding: 5px 10px;
-        }
-        
-        /* Tooltips */
-        .info-tip {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 18px;
-            height: 18px;
-            background-color: var(--info);
-            color: white;
-            border-radius: 50%;
-            text-align: center;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: help;
-            margin-left: 5px;
-            line-height: 18px;
-            position: relative;
-            transition: 0.3s;
-        }
-        
-        .info-tip:hover {
-            background-color: var(--primary);
-            transform: scale(1.1);
-        }
-        
-        .info-tip:hover::after {
-            content: attr(title);
-            position: absolute;
-            bottom: 130%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--bg-darker);
-            color: var(--text-primary);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            white-space: nowrap;
-            z-index: 100;
-            max-width: 300px;
-            white-space: normal;
-            text-align: left;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-        
-        /* Panel de Saldos */
-        .saldos-panel {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            background: var(--bg-dark);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            border: 2px solid var(--border-color);
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
-        }
-        
-        .saldo-item {
-            text-align: center;
-            padding: 15px;
-            background: linear-gradient(135deg, var(--bg-input) 0%, var(--bg-card) 100%);
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            border: 1px solid var(--border-color);
-            transition: 0.3s;
-        }
-        
-        .saldo-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
-            border-color: var(--primary);
-        }
-        
-        .saldo-item h4 {
-            margin: 0;
-            font-size: 0.85em;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-        }
-        
-        .saldo-item p {
-            margin: 0;
-            font-size: 1.4em;
-            font-weight: bold;
-            color: var(--primary);
-        }
-        
-        /* Tabs */
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 25px;
-            border-bottom: 3px solid var(--border-color);
-            flex-wrap: wrap;
-            background: var(--bg-dark);
-            padding: 10px;
-            border-radius: 12px 12px 0 0;
-        }
-        
-        .tab {
-            padding: 12px 20px;
-            cursor: pointer;
+        /* Estilos adicionales específicos */
+        .quick-action-btn {
+            padding: 6px 12px;
             border: none;
-            background: var(--bg-input);
-            font-size: 0.95em;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85em;
             font-weight: 600;
-            color: var(--text-secondary);
-            border-radius: 8px 8px 0 0;
-            transition: 0.3s;
-            border: 1px solid transparent;
-        }
-        
-        .tab:hover {
-            color: var(--text-primary);
-            background: var(--bg-card);
-            border-color: var(--primary);
-        }
-        
-        .tab.active {
             color: white;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            border-color: var(--primary);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.4s;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Bloque Último Cierre */
-        .bloque-cierre {
-            background: linear-gradient(135deg, #92400e 0%, #78350f 100%);
-            border: 2px solid #fcd34d;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 15px rgba(246, 173, 85, 0.3);
-        }
-        
-        .bloque-cierre h4 {
-            margin: 0 0 15px 0;
-            color: #fef3c7;
-            font-size: 1.2em;
-        }
-        
-        .bloque-cierre-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-        }
-        
-        .bloque-cierre-item {
-            background: rgba(255,255,255,0.1);
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            border: 1px solid rgba(252, 211, 77, 0.3);
-        }
-        
-        .bloque-cierre-item strong {
-            display: block;
-            font-size: 1.2em;
-            color: #fef3c7;
-            margin-top: 5px;
-        }
-        
-        /* Forms */
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 18px;
-            margin-bottom: 25px;
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        label {
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 0.9em;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-        }
-        
-        input, select, textarea {
-            padding: 12px;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 1em;
-            background: var(--bg-input);
-            color: var(--text-primary);
+            margin-right: 5px;
             transition: 0.3s;
         }
         
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
-            background: var(--bg-dark);
+        .quick-action-btn:hover {
+            transform: scale(1.05);
         }
         
-        /* Campos Bloqueados */
-        .locked-field {
-            background-color: var(--bg-darker) !important;
+        .quick-action-btn.pagar {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .quick-action-btn.cobrar {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        .quick-action-btn.editar {
+            background: linear-gradient(135deg, #667eea 0%, #5a67d8 100%);
+        }
+        
+        .quick-action-btn.completar {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        }
+        
+        .insight {
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        
+        .insight.positivo {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+            color: #10b981;
+        }
+        
+        .insight.negativo {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+        
+        .insight.neutro {
+            background: rgba(107, 114, 128, 0.1);
+            border-color: #6b7280;
+            color: #6b7280;
+        }
+        
+        .locked-section {
             opacity: 0.6;
             pointer-events: none;
-            color: var(--text-secondary);
-            border-color: var(--border-color) !important;
+            position: relative;
         }
         
-        /* Buttons */
-        .btn {
-            padding: 12px 20px;
+        .locked-section::after {
+            content: '🔒 BLOQUEADO (Se llena una vez por día)';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1em;
+            z-index: 10;
+        }
+        
+        .btn-editar-desbloquear {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 10px 20px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
-            color: white;
-            transition: 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.95em;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            margin-top: 10px;
+            display: none;
         }
         
-        .btn:hover {
+        .btn-editar-desbloquear:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-        }
-        
-        .btn-success {
-            background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
-        }
-        
-        .btn-danger {
-            background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%);
-        }
-        
-        .btn-warning {
-            background: linear-gradient(135deg, var(--warning) 0%, var(--warning-dark) 100%);
-            color: #000;
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-        }
-        
-        .btn-info {
-            background: linear-gradient(135deg, var(--info) 0%, #2563eb 100%);
-        }
-        
-        .btn-sm {
-            padding: 8px 15px;
-            font-size: 0.85em;
-        }
-        
-        /* Tables */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            font-size: 0.9em;
-            background: var(--bg-dark);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        
-        thead {
-            background: linear-gradient(135deg, var(--bg-input) 0%, var(--bg-card) 100%);
-        }
-        
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid var(--border-color);
-            text-align: left;
-        }
-        
-        th {
-            font-weight: 600;
-            color: var(--text-primary);
-            text-transform: uppercase;
-            font-size: 0.85em;
-            letter-spacing: 0.5px;
-        }
-        
-        td {
-            color: var(--text-secondary);
-        }
-        
-        tr:hover {
-            background: var(--bg-input);
-        }
-        
-        /* Badges */
-        .badge {
-            padding: 5px 10px;
-            border-radius: 12px;
-            font-size: 0.75em;
-            font-weight: 600;
-        }
-        
-        .badge-high {
-            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-            color: #991b1b;
-        }
-        
-        .badge-medium {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            color: #92400e;
-        }
-        
-        .badge-low {
-            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-            color: #065f46;
-        }
-        
-        /* Alerts */
-        .alert {
-            padding: 18px;
-            border-radius: 10px;
-            margin: 20px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            border: 2px solid;
-        }
-        
-        .alert-warning {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            color: #92400e;
-            border-color: #fcd34d;
-        }
-        
-        .alert-info {
-            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-            color: #1e40af;
-            border-color: #93c5fd;
-        }
-        
-        .alert-success {
-            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-            color: #065f46;
-            border-color: #6ee7b7;
-        }
-        
-        /* Modals */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            backdrop-filter: blur(5px);
-        }
-        
-        .modal-content {
-            background: var(--bg-card);
-            padding: 25px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 800px;
-            max-height: 90vh;
-            overflow-y: auto;
-            border: 2px solid var(--border-color);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--border-color);
-        }
-        
-        .modal-header h3 {
-            margin: 0;
-            color: var(--text-primary);
-            font-size: 1.4em;
-        }
-        
-        .close-btn {
-            cursor: pointer;
-            font-size: 1.8em;
-            color: var(--text-secondary);
-            transition: 0.3s;
-        }
-        
-        .close-btn:hover {
-            color: var(--danger);
-            transform: scale(1.2);
-        }
-        
-        /* Neto colors */
-        .neto-positivo {
-            color: var(--success);
-            font-weight: bold;
-        }
-        
-        .neto-negativo {
-            color: var(--danger);
-            font-weight: bold;
-        }
-        
-        .neto-cero {
-            color: var(--text-secondary);
-        }
-        
-        /* Save Indicator */
-        #saveIndicator {
-            display: none;
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            font-weight: bold;
-            z-index: 2000;
-            animation: slideIn 0.3s;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(400px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .form-grid { grid-template-columns: 1fr; }
-            .tabs { flex-direction: column; }
-            .tab { text-align: left; border-radius: 8px; }
-            .header-top { flex-direction: column; align-items: flex-start; }
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
         }
     </style>
 </head>
@@ -621,9 +123,10 @@
             <span class="empresa-nombre" onclick="editarNombreEmpresa()" title="Haz clic para cambiar el nombre">📊 <span id="nombreEmpresaDisplay">Mi Empresa</span></span>
         </div>
         <div class="header-buttons">
+            <button class="btn-modo" onclick="cambiarModo()" id="btnModo" title="Cambiar entre modo oscuro y claro">🌙 Modo Oscuro</button>
             <button class="btn btn-secondary btn-sm" onclick="refrescarTodo()" title="Refrescar página">🔄</button>
             <button class="btn btn-danger btn-sm" onclick="resetearSistema()" title="Reset Completo del Sistema">🗑️ Reset</button>
-            <button class="btn btn-info btn-sm" onclick="abrirManualUsuario()" title="Manual de Usuario">📖 Manual</button>
+            <button class="btn btn-info btn-sm" onclick="abrirManualUsuario()" title="Manual de Usuario"> Manual</button>
         </div>
     </div>
 
@@ -647,7 +150,7 @@
     </div>
 
     <!-- PANEL DE SALDOS -->
-    <h3 style="margin-bottom: 15px; color: var(--text-primary);">💰 Saldos Disponibles en Cuentas</h3>
+    <h3 style="margin-bottom: 15px; color: var(--text-primary);"> Saldos Disponibles en Cuentas</h3>
     <div class="saldos-panel">
         <div class="saldo-item"><h4>🪙 Binance (USD)</h4><p id="saldoBinanceDisplay">$0.00</p></div>
         <div class="saldo-item"><h4>💳 Zelle (USD)</h4><p id="saldoZelleDisplay">$0.00</p></div>
@@ -659,8 +162,8 @@
 
     <!-- TABS -->
     <div class="tabs">
-        <button class="tab active" data-tab="tabIngresos">📈 Ingresos</button>
-        <button class="tab" data-tab="tabRecordatorios">🔔 Recordatorios</button>
+        <button class="tab active" data-tab="tabIngresos"> Ingresos</button>
+        <button class="tab" data-tab="tabRecordatorios"> Recordatorios</button>
         <button class="tab" data-tab="tabPagar">💳 Pagar</button>
         <button class="tab" data-tab="tabCobrar">💰 Cobrar</button>
         <button class="tab" data-tab="tabNomina">👥 Nómina</button>
@@ -668,11 +171,11 @@
         <button class="tab" data-tab="tabAnalisis">📊 Análisis</button>
         <button class="tab" data-tab="tabDashboard">📉 Dashboard</button>
     </div>
-    <!-- ========================================== -->
-    <!-- TAB: INGRESOS / CUADRE DE CAJA             -->
+        <!-- ========================================== -->
+    <!-- TAB: INGRESOS / CIERRE DE CAJA             -->
     <!-- ========================================== -->
     <div id="tabIngresos" class="tab-content active">
-        <h3 style="color: var(--text-primary); margin-bottom: 20px;"> Saldo Actual en Cuentas</h3>
+        <h3 style="color: var(--text-primary); margin-bottom: 20px;">💰 Saldo Actual en Cuentas</h3>
         
         <!-- Bloque Último Cierre -->
         <div id="bloqueUltimoCierre" class="bloque-cierre" style="display:none;">
@@ -683,21 +186,21 @@
                 <div class="bloque-cierre-item">Quedó en caja Bs: <strong id="cierreBS">Bs. 0.00</strong></div>
                 <div class="bloque-cierre-item">💳 Zelle: <strong id="cierreZelle">$0.00</strong></div>
                 <div class="bloque-cierre-item">🪙 Binance: <strong id="cierreBinance">$0.00</strong></div>
-                <div class="bloque-cierre-item"> Se gastó el día anterior: <strong id="cierreGastado">$0.00</strong></div>
+                <div class="bloque-cierre-item">💸 Se gastó el día anterior: <strong id="cierreGastado">$0.00</strong></div>
             </div>
             <p style="margin-top:15px; font-size:0.9em; color:#fef3c7;">ℹ️ Estos son los saldos con los que deberías iniciar hoy. Compáralos con tu banco real.</p>
         </div>
 
         <div id="alertaSaldoInicial" class="alert alert-warning" style="display:none;">
-            ️ <strong>¡IMPORTANTE!</strong> Debes registrar el Saldo Inicial USD y/o Bs antes de guardar ingresos.
+            ⚠️ <strong>¡IMPORTANTE!</strong> Debes registrar el Saldo Inicial USD y/o Bs antes de guardar ingresos.
         </div>
 
         <div id="alertaDiscrepancia" class="alert alert-warning" style="display:none;">
             <div>
                 ⚠️ <strong>¡ALERTA DE DISCREPANCIA!</strong> El saldo que colocaste NO coincide con el cierre anterior.
-                <br><small>¿Olvidaste registrar una salida de dinero? Revisa tus cuentas.</small>
+                <br><small>¿Gastaste y no registraste? ¿O te pagaron y no lo registraste?</small>
             </div>
-            <button class="btn btn-warning btn-sm" onclick="evaluarAjustarSaldo()" title="Evaluar y ajustar al saldo real">🔍 Evaluar / Ajustar</button>
+            <button class="btn btn-warning btn-sm" onclick="evaluarAjustarSaldo()" title="Evaluar y ajustar al saldo real"> Evaluar / Ajustar</button>
         </div>
 
         <div class="form-grid">
@@ -743,42 +246,62 @@
 
         <hr style="margin: 30px 0; border-color: var(--border-color);">
 
-        <h3 style="color: var(--text-primary); margin-bottom: 20px;">💳 Ventas por Métodos de Pago</h3>
-        <div class="form-grid">
-            <div class="form-group"><label>💵 Efectivo $</label><input type="number" step="0.01" id="efectivoUSD" value="0" oninput="calcularTotales()"></div>
-            <div class="form-group"><label>💴 Efectivo Bs</label><input type="number" step="0.01" id="efectivoBS" value="0" oninput="calcularTotales()"></div>
-            <div class="form-group"><label>📱 Pago Móvil</label><input type="number" step="0.01" id="pagoMovil" value="0" oninput="calcularTotales()"></div>
-            <div class="form-group">
-                <label>💳 Tarjeta Débito</label>
-                <div style="display:flex; gap:8px;">
-                    <input type="number" step="0.01" id="tarjetaDebito" value="0" oninput="calcularTotales()" style="flex:1;">
-                    <select id="tarjetaDebitoMoneda" onchange="calcularTotales()" style="width:80px;">
-                        <option>USD</option>
-                        <option>BS</option>
-                    </select>
-                </div>
+        <!-- SECCIÓN CIERRE DE CAJA (ANTES "Ventas por Métodos de Pago") -->
+        <div id="seccionCierreCaja">
+            <div style="background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%); padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #60a5fa;">
+                <h3 style="color: white; margin: 0 0 8px 0;">📋 CIERRE DE CAJA</h3>
+                <p style="color: #dbeafe; margin: 0; font-size: 0.9em;">
+                    ⚠️ <strong>ADVERTENCIA:</strong> Este apartado se llena UNA SOLA VEZ por día, porque es el CIERRE DE CAJA.
+                    Al guardar, los campos se bloquearán automáticamente para evitar errores.
+                </p>
             </div>
-            <div class="form-group">
-                <label>💳 Tarjeta Crédito</label>
-                <div style="display:flex; gap:8px;">
-                    <input type="number" step="0.01" id="tarjetaCredito" value="0" oninput="calcularTotales()" style="flex:1;">
-                    <select id="tarjetaCreditoMoneda" onchange="calcularTotales()" style="width:80px;">
-                        <option>USD</option>
-                        <option>BS</option>
-                    </select>
+
+            <div id="alertaCierreBloqueado" class="alert alert-success" style="display:none;">
+                <div>
+                     <strong>BLOQUEADO</strong> - Este cierre ya fue registrado hoy.
+                    <br><small>Si cometiste algún error o se te pasó meter una cantidad, haz clic en "Editar" para desbloquear.</small>
                 </div>
+                <button class="btn btn-warning btn-sm" onclick="desbloquearCierreCaja()" title="Desbloquear para editar">✏️ Editar</button>
             </div>
-            <div class="form-group"><label>🏦 Transferencia</label><input type="number" step="0.01" id="transferencia" value="0" oninput="calcularTotales()"></div>
-            <div class="form-group"><label>💳 Zelle (solo USD)</label><input type="number" step="0.01" id="zelle" value="0" oninput="calcularTotales()"></div>
-            <div class="form-group"><label>🪙 Binance (solo USD)</label><input type="number" step="0.01" id="binance" value="0" oninput="calcularTotales()"></div>
+
+            <div id="contenedorCierreCaja">
+                <div class="form-grid">
+                    <div class="form-group"><label>💵 Efectivo $</label><input type="number" step="0.01" id="efectivoUSD" value="0" oninput="calcularTotales()"></div>
+                    <div class="form-group"><label>💴 Efectivo Bs</label><input type="number" step="0.01" id="efectivoBS" value="0" oninput="calcularTotales()"></div>
+                    <div class="form-group"><label>📱 Pago Móvil</label><input type="number" step="0.01" id="pagoMovil" value="0" oninput="calcularTotales()"></div>
+                    <div class="form-group">
+                        <label>💳 Tarjeta Débito</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="number" step="0.01" id="tarjetaDebito" value="0" oninput="calcularTotales()" style="flex:1;">
+                            <select id="tarjetaDebitoMoneda" onchange="calcularTotales()" style="width:80px;">
+                                <option>USD</option>
+                                <option>BS</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>💳 Tarjeta Crédito</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="number" step="0.01" id="tarjetaCredito" value="0" oninput="calcularTotales()" style="flex:1;">
+                            <select id="tarjetaCreditoMoneda" onchange="calcularTotales()" style="width:80px;">
+                                <option>USD</option>
+                                <option>BS</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group"><label>🏦 Transferencia</label><input type="number" step="0.01" id="transferencia" value="0" oninput="calcularTotales()"></div>
+                    <div class="form-group"><label> Zelle (solo USD)</label><input type="number" step="0.01" id="zelle" value="0" oninput="calcularTotales()"></div>
+                    <div class="form-group"><label>🪙 Binance (solo USD)</label><input type="number" step="0.01" id="binance" value="0" oninput="calcularTotales()"></div>
+                </div>
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label>📝 Observación</label>
+                    <textarea id="observacion" rows="2" placeholder="Notas adicionales..."></textarea>
+                </div>
+                <h4 style="color: var(--text-primary); margin: 20px 0;">Total: <span id="totalUSD" style="color:var(--primary);">$0.00</span> | <span id="totalBS" style="color:var(--success);">Bs. 0.00</span></h4>
+                <button class="btn btn-primary" onclick="guardarIngreso()" title="Guarda el cierre de caja y bloquea los campos">💾 Guardar Ingreso</button>
+                <button class="btn btn-secondary" onclick="limpiarIngreso()">🔄 Limpiar</button>
+            </div>
         </div>
-        <div class="form-group" style="margin-bottom:20px;">
-            <label>📝 Observación</label>
-            <textarea id="observacion" rows="2" placeholder="Notas adicionales..."></textarea>
-        </div>
-        <h4 style="color: var(--text-primary); margin: 20px 0;">Total: <span id="totalUSD" style="color:var(--primary);">$0.00</span> | <span id="totalBS" style="color:var(--success);">Bs. 0.00</span></h4>
-        <button class="btn btn-primary" onclick="guardarIngreso()">💾 Guardar Ingreso</button>
-        <button class="btn btn-secondary" onclick="limpiarIngreso()">🔄 Limpiar</button>
 
         <h3 style="color: var(--text-primary); margin: 30px 0 20px 0;">📜 Historial de Ingresos</h3>
         <table id="tablaIngresos">
@@ -948,7 +471,7 @@
             <div class="form-group"><label>🆔 Cédula</label><input type="text" id="cobrarCedula"></div>
             <div class="form-group"><label>👤 Nombre <span class="info-tip" title="Nombre de la persona que debe.">?</span></label><input type="text" id="cobrarNombre"></div>
             <div class="form-group"><label>📝 Descripción</label><input type="text" id="cobrarDescripcion"></div>
-            <div class="form-group"><label>💵 Monto USD <span class="info-tip" title="Monto total que te deben.">?</span></label><input type="number" step="0.01" id="cobrarMonto"></div>
+            <div class="form-group"><label> Monto USD <span class="info-tip" title="Monto total que te deben.">?</span></label><input type="number" step="0.01" id="cobrarMonto"></div>
             <div class="form-group">
                 <label>🏷️ Etiqueta <span class="info-tip" title="Tipo de deudor.">?</span></label>
                 <select id="cobrarEtiqueta">
@@ -960,8 +483,8 @@
         </div>
         <button class="btn btn-primary" onclick="guardarCuentaPorCobrar()">💾 Registrar Deuda a Favor</button>
 
-        <h3 style="color: var(--text-primary); margin: 30px 0 15px 0;">📋 Listado de Deudores</h3>
-        <p style="color:var(--text-secondary); margin-bottom: 20px;"> Total por Cobrar: <strong id="totalCobrar">$0.00</strong> |  Total Cuentas: <strong id="totalCuentasCobrar">0</strong></p>
+        <h3 style="color: var(--text-primary); margin: 30px 0 15px 0;"> Listado de Deudores</h3>
+        <p style="color:var(--text-secondary); margin-bottom: 20px;">💰 Total por Cobrar: <strong id="totalCobrar">$0.00</strong> | 📋 Total Cuentas: <strong id="totalCuentasCobrar">0</strong></p>
         <table id="tablaCobrar">
             <thead>
                 <tr>
@@ -990,9 +513,9 @@
         <div class="form-grid">
             <div class="form-group"><label>📅 Fecha Ingreso <span class="info-tip" title="Fecha de ingreso para calcular antigüedad.">?</span></label><input type="date" id="empleadoFecha"></div>
             <div class="form-group"><label>👤 Nombre</label><input type="text" id="empleadoNombre"></div>
-            <div class="form-group"><label>🆔 Cédula</label><input type="text" id="empleadoCedula"></div>
+            <div class="form-group"><label> Cédula</label><input type="text" id="empleadoCedula"></div>
             <div class="form-group">
-                <label>💼 Tipo Sueldo</label>
+                <label> Tipo Sueldo</label>
                 <select id="empleadoTipoSueldo">
                     <option>Quincenal</option>
                     <option>Semanal</option>
@@ -1023,16 +546,16 @@
         <hr style="margin:30px 0; border-color: var(--border-color);">
         <h4 style="color: var(--text-primary); margin: 25px 0 15px 0;">Pagar Nómina</h4>
         <div class="form-grid">
-            <div class="form-group"><label> Fecha de Pago</label><input type="date" id="nominaFechaPago"></div>
+            <div class="form-group"><label>📅 Fecha de Pago</label><input type="date" id="nominaFechaPago"></div>
             <div class="form-group">
-                <label> Cuenta de origen <span class="info-tip" title="De qué cuenta se descontará el pago.">?</span></label>
+                <label>🏦 Cuenta de origen <span class="info-tip" title="De qué cuenta se descontará el pago.">?</span></label>
                 <select id="nominaCuentaOrigen">
-                    <option value="Empresa">🏢 Cuenta Empresa (USD)</option>
-                    <option value="Empresa_Bs"> Cuenta Empresa (Bs)</option>
+                    <option value="Empresa"> Cuenta Empresa (USD)</option>
+                    <option value="Empresa_Bs">🏢 Cuenta Empresa (Bs)</option>
                     <option value="Binance">🪙 Cuenta Binance (USD)</option>
                     <option value="Zelle">💳 Cuenta Zelle (USD)</option>
                     <option value="Personal">👤 Cuenta Personal (USD)</option>
-                    <option value="Personal_Bs">👤 Cuenta Personal (Bs)</option>
+                    <option value="Personal_Bs"> Cuenta Personal (Bs)</option>
                 </select>
             </div>
         </div>
@@ -1086,17 +609,17 @@
     <div id="tabBusqueda" class="tab-content">
         <h3 style="color: var(--text-primary); margin-bottom: 20px;">🔍 Búsqueda General</h3>
         <div class="form-grid">
-            <div class="form-group"><label>📅 Desde</label><input type="date" id="busqDesde"></div>
+            <div class="form-group"><label> Desde</label><input type="date" id="busqDesde"></div>
             <div class="form-group"><label>📅 Hasta</label><input type="date" id="busqHasta"></div>
             <div class="form-group">
                 <label>🔍 Filtro Rápido <span class="info-tip" title="Filtra por tipo de movimiento.">?</span></label>
                 <select id="busqFiltro">
                     <option value="todos">📊 Todos</option>
-                    <option value="ingresos">📈 Ingresos</option>
+                    <option value="ingresos"> Ingresos</option>
                     <option value="deudas">💳 Pagos (Deudas)</option>
                     <option value="cobros">💰 Cobros</option>
                     <option value="recordatorios">🔔 Recordatorios</option>
-                    <option value="nomina"> Nómina</option>
+                    <option value="nomina">👥 Nómina</option>
                 </select>
             </div>
             <div class="form-group"><label>🔍 Texto</label><input type="text" id="busqTexto" placeholder="Buscar..."></div>
@@ -1109,12 +632,12 @@
     <!-- TAB: ANÁLISIS                              -->
     <!-- ========================================== -->
     <div id="tabAnalisis" class="tab-content">
-        <h3 style="color: var(--text-primary); margin-bottom: 15px;">📊 Análisis Financiero</h3>
+        <h3 style="color: var(--text-primary); margin-bottom: 15px;"> Análisis Financiero</h3>
         <p style="color:var(--text-secondary); margin-bottom: 20px;">ℹ️ Registro automático de ingresos, pagos y nómina por día. Compara meses y detecta tendencias.</p>
         
         <div class="form-grid">
             <div class="form-group">
-                <label> Filtrar por Mes</label>
+                <label>📅 Filtrar por Mes</label>
                 <input type="month" id="analisisMes">
             </div>
             <div class="form-group">
@@ -1133,10 +656,10 @@
 
         <div class="saldos-panel" style="margin: 25px 0;">
             <div class="saldo-item"><h4>💵 Ingresos (USD)</h4><p id="analisisIngresosUSD">$0.00</p></div>
-            <div class="saldo-item"><h4>💴 Ingresos (Bs)</h4><p id="analisisIngresosBS">Bs. 0.00</p></div>
+            <div class="saldo-item"><h4> Ingresos (Bs)</h4><p id="analisisIngresosBS">Bs. 0.00</p></div>
             <div class="saldo-item"><h4>💸 Pagos (USD)</h4><p id="analisisPagosUSD">$0.00</p></div>
             <div class="saldo-item"><h4>💸 Pagos (Bs)</h4><p id="analisisPagosBS">Bs. 0.00</p></div>
-            <div class="saldo-item"><h4> Nómina (USD)</h4><p id="analisisNominaUSD">$0.00</p></div>
+            <div class="saldo-item"><h4>👥 Nómina (USD)</h4><p id="analisisNominaUSD">$0.00</p></div>
             <div class="saldo-item"><h4>💰 NETO (USD)</h4><p id="analisisNetoUSD">$0.00</p></div>
         </div>
 
@@ -1163,7 +686,7 @@
         <div style="margin-top:25px; display:flex; gap:15px; flex-wrap:wrap;">
             <button class="btn btn-success" onclick="exportarAnalisisExcel()">📥 Exportar Análisis Excel</button>
             <button class="btn btn-danger" onclick="exportarAnalisisPDF()">📄 Exportar Análisis PDF</button>
-            <button class="btn btn-info" onclick="mostrarAnalisisInteligente()">🧠 Análisis Inteligente</button>
+            <button class="btn btn-info" onclick="mostrarAnalisisInteligente()"> Análisis Inteligente</button>
         </div>
     </div>
 
@@ -1171,7 +694,7 @@
     <!-- TAB: DASHBOARD (ACTUALIZADO)               -->
     <!-- ========================================== -->
     <div id="tabDashboard" class="tab-content">
-        <h3 style="color: var(--text-primary); margin-bottom: 20px;">📉 Dashboard General</h3>
+        <h3 style="color: var(--text-primary); margin-bottom: 20px;"> Dashboard General</h3>
         <div class="saldos-panel" style="margin-bottom: 30px;">
             <div class="saldo-item">
                 <h4>💵 INGRESOS DEL MES</h4>
@@ -1188,7 +711,7 @@
                 <small id="dashNumCobrar" style="color:var(--text-secondary);">0 cuentas</small>
             </div>
             <div class="saldo-item">
-                <h4>🔔 RECORDATORIOS</h4>
+                <h4> RECORDATORIOS</h4>
                 <p id="dashRecordatorios">0</p>
                 <small style="color:var(--text-secondary);">Pendientes</small>
             </div>
@@ -1200,14 +723,14 @@
         </div>
 
         <hr style="margin: 30px 0; border-color: var(--border-color);">
-        <h3 style="color: var(--text-primary); margin-bottom: 20px;">🔎 Ver Cierre de Caja por Fecha <span class="info-tip" title="Selecciona una fecha para ver exactamente cómo quedó la caja ese día.">?</span></h3>
+        <h3 style="color: var(--text-primary); margin-bottom: 20px;"> Ver Cierre de Caja por Fecha <span class="info-tip" title="Selecciona una fecha para ver exactamente cómo quedó la caja ese día.">?</span></h3>
         <div class="form-grid">
             <div class="form-group">
                 <label>📅 Seleccionar Fecha</label>
                 <input type="date" id="dashFechaCierre">
             </div>
             <div class="form-group" style="justify-content: flex-end;">
-                <button class="btn btn-primary" onclick="verCierrePorFecha()"> Ver Cierre de ese Día</button>
+                <button class="btn btn-primary" onclick="verCierrePorFecha()">🔍 Ver Cierre de ese Día</button>
             </div>
         </div>
         <div id="resultadoCierreFecha" class="alert alert-info" style="display:none;"></div>
@@ -1234,11 +757,11 @@
         <p>Proveedor: <strong id="pagoDeudaNombre"></strong> | Factura: <strong id="pagoDeudaFactura"></strong> | Saldo: <strong id="pagoDeudaSaldo"></strong></p>
         
         <div class="saldos-panel" style="margin:15px 0;">
-            <div class="saldo-item"><h4> Binance</h4><p id="modalSaldoBinance">$0.00</p></div>
+            <div class="saldo-item"><h4>🪙 Binance</h4><p id="modalSaldoBinance">$0.00</p></div>
             <div class="saldo-item"><h4>💳 Zelle</h4><p id="modalSaldoZelle">$0.00</p></div>
-            <div class="saldo-item"><h4>🏢 Empresa USD</h4><p id="modalSaldoEmpresa">$0.00</p></div>
+            <div class="saldo-item"><h4> Empresa USD</h4><p id="modalSaldoEmpresa">$0.00</p></div>
             <div class="saldo-item"><h4>🏢 Empresa Bs</h4><p id="modalSaldoEmpresaBs">Bs. 0.00</p></div>
-            <div class="saldo-item"><h4> Personal USD</h4><p id="modalSaldoPersonal">$0.00</p></div>
+            <div class="saldo-item"><h4>👤 Personal USD</h4><p id="modalSaldoPersonal">$0.00</p></div>
             <div class="saldo-item"><h4>👤 Personal Bs</h4><p id="modalSaldoPersonalBs">Bs. 0.00</p></div>
         </div>
 
@@ -1248,10 +771,10 @@
             <div class="form-group">
                 <label>🏦 Cuenta de Origen</label>
                 <select id="pagoDeudaCuenta" onchange="verificarSaldoDisponible()">
-                    <option value="Binance"> Cuenta Binance (USD)</option>
+                    <option value="Binance">🪙 Cuenta Binance (USD)</option>
                     <option value="Zelle">💳 Cuenta Zelle (USD)</option>
                     <option value="Empresa">🏢 Cuenta Empresa (USD)</option>
-                    <option value="Empresa_Bs"> Cuenta Empresa (Bs)</option>
+                    <option value="Empresa_Bs">🏢 Cuenta Empresa (Bs)</option>
                     <option value="Personal">👤 Cuenta Personal (USD)</option>
                     <option value="Personal_Bs">👤 Cuenta Personal (Bs)</option>
                 </select>
@@ -1264,7 +787,7 @@
         </div>
         <div id="alertaSaldoInsuficiente" class="alert alert-warning" style="display:none;">⚠️ <strong>Saldo insuficiente</strong> en la cuenta seleccionada.</div>
         <button class="btn btn-success" onclick="confirmarPagoDeuda()">💾 Confirmar Pago</button>
-        <button class="btn btn-secondary" onclick="cerrarModalPago()"> Cancelar</button>
+        <button class="btn btn-secondary" onclick="cerrarModalPago()">❌ Cancelar</button>
     </div>
 </div>
 
@@ -1285,8 +808,8 @@
                 <select id="pagoCobrarCuenta">
                     <option value="Empresa">🏢 Empresa USD</option>
                     <option value="Empresa_Bs">🏢 Empresa Bs</option>
-                    <option value="Binance">🪙 Binance</option>
-                    <option value="Zelle"> Zelle</option>
+                    <option value="Binance"> Binance</option>
+                    <option value="Zelle">💳 Zelle</option>
                 </select>
             </div>
             <div class="form-group"><label>🔖 Referencia</label><input type="text" id="pagoCobrarReferencia"></div>
@@ -1356,7 +879,7 @@
             <div class="form-group"><label>📱 Pago Móvil</label><input type="number" step="0.01" id="editIngresoPagoMovil"></div>
             <div class="form-group"><label>💳 Tarjeta Débito</label><input type="number" step="0.01" id="editIngresoTarjetaDebito"></div>
             <div class="form-group"><label>💳 Tarjeta Crédito</label><input type="number" step="0.01" id="editIngresoTarjetaCredito"></div>
-            <div class="form-group"><label>🏦 Transferencia</label><input type="number" step="0.01" id="editIngresoTransferencia"></div>
+            <div class="form-group"><label> Transferencia</label><input type="number" step="0.01" id="editIngresoTransferencia"></div>
             <div class="form-group"><label>💳 Zelle</label><input type="number" step="0.01" id="editIngresoZelle"></div>
             <div class="form-group"><label>🪙 Binance</label><input type="number" step="0.01" id="editIngresoBinance"></div>
         </div>
@@ -1378,7 +901,7 @@
         </div>
         <input type="hidden" id="editEmpleadoID">
         <div class="form-grid">
-            <div class="form-group"><label> Fecha Ingreso</label><input type="date" id="editEmpleadoFecha"></div>
+            <div class="form-group"><label>📅 Fecha Ingreso</label><input type="date" id="editEmpleadoFecha"></div>
             <div class="form-group"><label>👤 Nombre</label><input type="text" id="editEmpleadoNombre"></div>
             <div class="form-group"><label>🆔 Cédula</label><input type="text" id="editEmpleadoCedula"></div>
             <div class="form-group">
@@ -1416,12 +939,12 @@
             <div class="form-group"><label>📅 Fecha</label><input type="date" id="editDeudaFecha"></div>
             <div class="form-group"><label>🆔 RIF</label><input type="text" id="editDeudaRIF"></div>
             <div class="form-group"><label>👤 Nombre</label><input type="text" id="editDeudaNombre"></div>
-            <div class="form-group"><label> Descripción</label><input type="text" id="editDeudaDescripcion"></div>
-            <div class="form-group"><label>🧾 Nro. Factura</label><input type="text" id="editDeudaFactura"></div>
-            <div class="form-group"><label>💵 Monto USD</label><input type="number" step="0.01" id="editDeudaMontoUSD"></div>
+            <div class="form-group"><label>📝 Descripción</label><input type="text" id="editDeudaDescripcion"></div>
+            <div class="form-group"><label> Nro. Factura</label><input type="text" id="editDeudaFactura"></div>
+            <div class="form-group"><label> Monto USD</label><input type="number" step="0.01" id="editDeudaMontoUSD"></div>
             <div class="form-group"><label>💴 Monto Bs</label><input type="number" step="0.01" id="editDeudaMontoBS"></div>
             <div class="form-group">
-                <label>️ Etiqueta</label>
+                <label>🏷️ Etiqueta</label>
                 <select id="editDeudaEtiqueta">
                     <option>Proveedor</option>
                     <option>Persona</option>
@@ -1431,7 +954,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>⚠️ Prioridad</label>
+                <label>️ Prioridad</label>
                 <select id="editDeudaPrioridad">
                     <option>Media</option>
                     <option>Alta</option>
@@ -1440,7 +963,7 @@
             </div>
         </div>
         <button class="btn btn-primary" onclick="guardarEdicionDeuda()">💾 Guardar Cambios</button>
-        <button class="btn btn-secondary" onclick="cerrarModalEditarDeuda()"> Cancelar</button>
+        <button class="btn btn-secondary" onclick="cerrarModalEditarDeuda()">❌ Cancelar</button>
     </div>
 </div>
 
@@ -1555,7 +1078,7 @@
             </ul>
             <h3 style="color: var(--text-primary);">6. Respaldo de Datos</h3>
             <ul>
-                <li> Excel: Guarda todos los datos</li>
+                <li>💾 Excel: Guarda todos los datos</li>
                 <li>📥 Cargar: Restaura datos desde un Excel</li>
                 <li>🔌 Google Sheets: Sincroniza en la nube</li>
             </ul>
