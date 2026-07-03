@@ -89,8 +89,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const modoGuardado = localStorage.getItem('FinanzasPro_Modo');
     const btn = document.getElementById('btnModo');
     if (modoGuardado === 'claro') {
-        document.body.classList.add('modo-claro');
-        if (btn) btn.innerHTML = '☀️ Modo Claro';
+        document.body.classList.add('light-mode');
+        if (btn) btn.innerHTML = '☀️ Modo Oscuro';
     }
 });
 
@@ -115,13 +115,13 @@ function cambiarModo() {
     const body = document.body;
     const btn = document.getElementById('btnModo');
     
-    if (body.classList.contains('modo-claro')) {
-        body.classList.remove('modo-claro');
-        if (btn) btn.innerHTML = '🌙 Modo Oscuro';
+    if (body.classList.contains('light-mode')) {
+        body.classList.remove('light-mode');
+        if (btn) btn.innerHTML = ' Modo Claro';
         localStorage.setItem('FinanzasPro_Modo', 'oscuro');
     } else {
-        body.classList.add('modo-claro');
-        if (btn) btn.innerHTML = '☀️ Modo Claro';
+        body.classList.add('light-mode');
+        if (btn) btn.innerHTML = '☀️ Modo Oscuro';
         localStorage.setItem('FinanzasPro_Modo', 'claro');
     }
 }
@@ -194,7 +194,7 @@ function guardarSaldosIniciales() {
     const saldoIniPersonalBS = parseFloat(document.getElementById('saldoIniPersonalBS').value) || 0;
     
     if (saldoIniUSD === 0 && saldoIniBS === 0) {
-        alert('️ Debes ingresar al menos un saldo inicial (USD o Bs)');
+        alert('⚠️ Debes ingresar al menos un saldo inicial (USD o Bs)');
         return;
     }
     
@@ -755,6 +755,149 @@ function actualizarGrafico(datos) {
     });
 }
 
+function mostrarAnalisisInteligente() {
+    recalcularResumenDiario();
+    const modal = document.getElementById('modalAnalisisInteligente');
+    const contenido = document.getElementById('contenidoAnalisisInteligente');
+    
+    if (DB.resumenDiario.length === 0) {
+        contenido.innerHTML = '<p style="padding:20px;text-align:center;color:#666;">📊 Aún no hay datos para analizar.</p>';
+        modal.style.display = 'flex';
+        return;
+    }
+    
+    const hoy = new Date().toISOString().split('T')[0];
+    const mesActual = hoy.substring(0, 7);
+    const ayer = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const mesPasado = new Date(Date.now() - 30*86400000).toISOString().substring(0, 7);
+    
+    const hoyData = DB.resumenDiario.find(d => d.Fecha === hoy) || { NetoUSD: 0, IngresosUSD: 0 };
+    const ayerData = DB.resumenDiario.find(d => d.Fecha === ayer) || { NetoUSD: 0, IngresosUSD: 0 };
+    
+    const mesActualData = DB.resumenDiario
+        .filter(d => d.Fecha.startsWith(mesActual))
+        .reduce((acc, d) => ({ NetoUSD: acc.NetoUSD + d.NetoUSD, IngresosUSD: acc.IngresosUSD + d.IngresosUSD }), { NetoUSD: 0, IngresosUSD: 0 });
+    
+    const mesPasadoData = DB.resumenDiario
+        .filter(d => d.Fecha.startsWith(mesPasado))
+        .reduce((acc, d) => ({ NetoUSD: acc.NetoUSD + d.NetoUSD, IngresosUSD: acc.IngresosUSD + d.IngresosUSD }), { NetoUSD: 0, IngresosUSD: 0 });
+    
+    const diasConsecutivosNegativos = contarDiasNegativosConsecutivos();
+    const promedioMensual = mesActualData.NetoUSD / Math.max(1, new Date().getDate());
+    
+    let html = '<div style="padding:10px; color: var(--text-main);">';
+    html += '<h3 style="color:#667eea;margin-bottom:10px;">📊 Análisis del Día</h3>';
+    
+    if (hoyData.IngresosUSD > 0) {
+        html += `<div style="padding:10px; margin:5px 0; background:var(--bg-input); border-radius:8px;">💰 Hoy llevas <strong>$${hoyData.NetoUSD.toFixed(2)}</strong> de ganancia neta.</div>`;
+    } else {
+        html += `<div style="padding:10px; margin:5px 0; background:var(--bg-input); border-radius:8px;">ℹ️ Aún no hay registros para hoy.</div>`;
+    }
+    
+    if (ayerData.IngresosUSD > 0) {
+        const diff = hoyData.NetoUSD - ayerData.NetoUSD;
+        const pct = ayerData.NetoUSD !== 0 ? ((diff / Math.abs(ayerData.NetoUSD)) * 100).toFixed(1) : 0;
+        const clase = diff >= 0 ? 'neto-positivo' : 'neto-negativo';
+        const emoji = diff >= 0 ? '📈' : '📉';
+        html += `<div style="padding:10px; margin:5px 0; background:var(--bg-input); border-radius:8px;" class="${clase}">${emoji} vs ayer: <strong>${diff >= 0 ? '+' : ''}$${diff.toFixed(2)} (${pct}%)</strong></div>`;
+    }
+    
+    html += '<h3 style="color:#667eea;margin:20px 0 10px 0;"> Comparación Mensual</h3>';
+    if (mesPasadoData.IngresosUSD > 0) {
+        const diffMes = mesActualData.NetoUSD - mesPasadoData.NetoUSD;
+        const pctMes = mesPasadoData.NetoUSD !== 0 ? ((diffMes / Math.abs(mesPasadoData.NetoUSD)) * 100).toFixed(1) : 0;
+        const clase = diffMes >= 0 ? 'neto-positivo' : 'neto-negativo';
+        html += `<div style="padding:10px; margin:5px 0; background:var(--bg-input); border-radius:8px;" class="${clase}">${diffMes >= 0 ? '' : '⚠️'} Mes actual vs mes pasado: <strong>${diffMes >= 0 ? '+' : ''}$${diffMes.toFixed(2)} (${pctMes}%)</strong></div>`;
+    }
+    
+    html += `<div style="padding:10px; margin:5px 0; background:var(--bg-input); border-radius:8px;">📊 Promedio diario este mes: <strong>$${promedioMensual.toFixed(2)}</strong></div>`;
+    
+    if (diasConsecutivosNegativos >= 2) {
+        html += `<div style="padding:10px; margin:5px 0; background:var(--bg-input); border-radius:8px; color:var(--danger);">⚠️ <strong>${diasConsecutivosNegativos} días seguidos con pérdidas.</strong> Revisa gastos.</div>`;
+    } else if (diasConsecutivosNegativos === 1) {
+        html += `<div style="padding:10px; margin:5px 0; background:var(--bg-input); border-radius:8px;">ℹ️ Ayer fue un día negativo, pero hoy puedes recuperarte.</div>`;
+    }
+    
+    html += '<h3 style="color:#667eea;margin:20px 0 10px 0;">🎯 Veredicto</h3>';
+    let veredicto = '';
+    if (mesActualData.NetoUSD > mesPasadoData.NetoUSD && mesPasadoData.NetoUSD > 0) {
+        veredicto = `<div style="padding:10px; margin:5px 0; background:var(--bg-input); border-radius:8px; color:var(--success); font-weight:bold;">✅ <strong>¡Vamos bien!</strong> Estás mejorando vs el mes pasado.</div>`;
+    } else if (mesActualData.NetoUSD < 0) {
+        veredicto = `<div style="padding:10px; margin:5px 0; background:var(--bg-input); border-radius:8px; color:var(--danger); font-weight:bold;">⚠️ <strong>Hay que mejorar.</strong> Este mes va en negativo.</div>`;
+    } else if (mesActualData.NetoUSD > 0 && mesActualData.NetoUSD < mesPasadoData.NetoUSD) {
+        veredicto = `<div style="padding:10px; margin:5px 0; background:var(--bg-input); border-radius:8px; color:var(--warning); font-weight:bold;"> <strong>Vas bajando</strong> vs el mes pasado.</div>`;
+    } else {
+        veredicto = `<div style="padding:10px; margin:5px 0; background:var(--bg-input); border-radius:8px; font-weight:bold;">📊 <strong>Sigue registrando</strong> para tener más datos.</div>`;
+    }
+    html += veredicto + '</div>';
+    
+    contenido.innerHTML = html;
+    modal.style.display = 'flex';
+}
+
+function contarDiasNegativosConsecutivos() {
+    const ordenados = [...DB.resumenDiario].sort((a, b) => b.Fecha.localeCompare(a.Fecha));
+    let contador = 0;
+    for (const dia of ordenados) {
+        if (dia.NetoUSD < 0) contador++;
+        else break;
+    }
+    return contador;
+}
+
+function exportarAnalisisExcel() {
+    if (DB.resumenDiario.length === 0) {
+        alert('⚠️ No hay datos de análisis para exportar');
+        return;
+    }
+    const wb = XLSX.utils.book_new();
+    const data = DB.resumenDiario.map(d => ({
+        'Fecha': d.Fecha,
+        'Ingresos USD': d.IngresosUSD.toFixed(2),
+        'Ingresos Bs': d.IngresosBS.toFixed(2),
+        'Pagos USD': d.PagosUSD.toFixed(2),
+        'Pagos Bs': d.PagosBS.toFixed(2),
+        'Nómina USD': d.NominaUSD.toFixed(2),
+        'NETO USD': d.NetoUSD.toFixed(2),
+        'Tasa BCV': d.TasaBCV.toFixed(2)
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), 'Análisis Diario');
+    const nombre = (DB.config.NombreNegocio || 'FinanzasPro').replace(/\s+/g, '_');
+    XLSX.writeFile(wb, `${nombre}_Analisis_${new Date().toISOString().split('T')[0]}.xlsx`);
+    alert('✅ Análisis exportado a Excel');
+}
+
+function exportarAnalisisPDF() {
+    if (DB.resumenDiario.length === 0) {
+        alert('⚠️ No hay datos de análisis para exportar');
+        return;
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text('Análisis Financiero Diario', 14, 20);
+    doc.setFontSize(11);
+    doc.text(`Negocio: ${DB.config.NombreNegocio}`, 14, 30);
+    doc.text(`Generado: ${new Date().toLocaleDateString()}`, 14, 37);
+    
+    const tableData = DB.resumenDiario.map(d => [
+        d.Fecha,
+        '$' + d.IngresosUSD.toFixed(2),
+        'Bs.' + d.IngresosBS.toFixed(2),
+        '$' + d.PagosUSD.toFixed(2),
+        '$' + d.NominaUSD.toFixed(2),
+        '$' + d.NetoUSD.toFixed(2)
+    ]);
+    
+    doc.autoTable({
+        startY: 45,
+        head: [['Fecha', 'Ingresos USD', 'Ingresos Bs', 'Pagos USD', 'Nómina USD', 'NETO USD']],
+        body: tableData,
+        styles: { fontSize: 9 }
+    });
+    doc.save(`Analisis_${new Date().toISOString().split('T')[0]}.pdf`);
+    alert('✅ PDF generado');
+}
 
 // ============================================================
 // GUARDAR INGRESO (CIERRE DE CAJA) CON BLOQUEO
@@ -821,10 +964,10 @@ function guardarIngreso() {
 
 // NUEVO: Bloquear y Desbloquear Cierre de Caja
 function bloquearCierreCaja() {
-    const contenedor = document.getElementById('contenedorCierreCaja');
+    const contenedor = document.getElementById('camposCierreCaja');
     const alerta = document.getElementById('alertaCierreBloqueado');
     if (contenedor) {
-        contenedor.classList.add('locked-section');
+        contenedor.classList.add('seccion-bloqueada');
         const inputs = contenedor.querySelectorAll('input, textarea, select');
         inputs.forEach(input => input.disabled = true);
     }
@@ -833,10 +976,10 @@ function bloquearCierreCaja() {
 }
 
 function desbloquearCierreCaja() {
-    const contenedor = document.getElementById('contenedorCierreCaja');
+    const contenedor = document.getElementById('camposCierreCaja');
     const alerta = document.getElementById('alertaCierreBloqueado');
     if (contenedor) {
-        contenedor.classList.remove('locked-section');
+        contenedor.classList.remove('seccion-bloqueada');
         const inputs = contenedor.querySelectorAll('input, textarea, select');
         inputs.forEach(input => input.disabled = false);
     }
@@ -850,7 +993,7 @@ function renderizarIngresos() {
     tbody.innerHTML = '';
     DB.ingresos.forEach(ing => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${ing.Fecha}</td><td>${ing.TasaBCV}</td><td>${ing.SaldoIni_USD.toFixed(2)}</td><td>${ing.SaldoIni_Bs.toFixed(2)}</td><td>${ing.Efectivo_USD.toFixed(2)}</td><td>${ing.Efectivo_Bs.toFixed(2)}</td><td>${ing.PagoMovil_Bs.toFixed(2)}</td><td>${ing.TarjetaDebito.toFixed(2)}</td><td>${ing.TarjetaCredito.toFixed(2)}</td><td>${ing.Transferencia_Bs.toFixed(2)}</td><td>${ing.Zelle_USD.toFixed(2)}</td><td>${ing.Binance_USD.toFixed(2)}</td><td><strong>${ing.Total_USD.toFixed(2)}</strong></td><td><strong>${ing.Total_Bs.toFixed(2)}</strong></td><td>${ing.SaldoFin_USD.toFixed(2)}</td><td>${ing.SaldoFin_Bs.toFixed(2)}</td><td><button class="btn btn-primary btn-sm" onclick="editarIngreso(${ing.ID})">✏️</button> <button class="btn btn-danger btn-sm" onclick="eliminarIngreso(${ing.ID})">🗑️</button></td>`;
+        tr.innerHTML = `<td>${ing.Fecha}</td><td>${ing.TasaBCV}</td><td>${ing.SaldoIni_USD.toFixed(2)}</td><td>${ing.SaldoIni_Bs.toFixed(2)}</td><td>${ing.Efectivo_USD.toFixed(2)}</td><td>${ing.Efectivo_Bs.toFixed(2)}</td><td>${ing.PagoMovil_Bs.toFixed(2)}</td><td>${ing.TarjetaDebito.toFixed(2)}</td><td>${ing.TarjetaCredito.toFixed(2)}</td><td>${ing.Transferencia_Bs.toFixed(2)}</td><td>${ing.Zelle_USD.toFixed(2)}</td><td>${ing.Binance_USD.toFixed(2)}</td><td><strong>${ing.Total_USD.toFixed(2)}</strong></td><td><strong>${ing.Total_Bs.toFixed(2)}</strong></td><td>${ing.SaldoFin_USD.toFixed(2)}</td><td>${ing.SaldoFin_Bs.toFixed(2)}</td><td><button class="btn btn-primary btn-sm" onclick="editarIngreso(${ing.ID})">✏️</button> <button class="btn btn-danger btn-sm" onclick="eliminarIngreso(${ing.ID})">️</button></td>`;
         tbody.appendChild(tr);
     });
 }
@@ -970,7 +1113,7 @@ function renderizarRecordatorios() {
     DB.recordatorios.forEach(rec => {
         const tr = document.createElement('tr');
         const badgeClass = rec.Prioridad === 'Alta' ? 'badge-high' : rec.Prioridad === 'Media' ? 'badge-medium' : 'badge-low';
-        tr.innerHTML = `<td>${rec.FechaRecordatorio}</td><td>${rec.Descripcion}</td><td>${rec.Detalle || '-'}</td><td><span class="badge ${badgeClass}">${rec.Prioridad}</span></td><td>${rec.Completado ? '✅ Completado' : '⏳ Pendiente'}</td><td><button class="btn btn-primary btn-sm" onclick="editarRecordatorio(${rec.ID})">✏️</button> <button class="btn btn-${rec.Completado ? 'warning' : 'success'} btn-sm" onclick="toggleRecordatorio(${rec.ID})">${rec.Completado ? '️' : '✅'}</button> <button class="btn btn-danger btn-sm" onclick="eliminarRecordatorio(${rec.ID})">🗑️</button></td>`;
+        tr.innerHTML = `<td>${rec.FechaRecordatorio}</td><td>${rec.Descripcion}</td><td>${rec.Detalle || '-'}</td><td><span class="badge ${badgeClass}">${rec.Prioridad}</span></td><td>${rec.Completado ? '✅ Completado' : '⏳ Pendiente'}</td><td><button class="btn btn-primary btn-sm" onclick="editarRecordatorio(${rec.ID})">✏️</button> <button class="btn btn-${rec.Completado ? 'warning' : 'success'} btn-sm" onclick="toggleRecordatorio(${rec.ID})">${rec.Completado ? '↩️' : '✅'}</button> <button class="btn btn-danger btn-sm" onclick="eliminarRecordatorio(${rec.ID})">️</button></td>`;
         tbody.appendChild(tr);
     });
 }
@@ -989,7 +1132,7 @@ function editarRecordatorio(id) {
 function guardarEdicionRecordatorio() {
     const id = parseInt(document.getElementById('editRecordatorioID').value);
     const rec = DB.recordatorios.find(r => r.ID === id);
-    if (!rec) { alert('❌ Recordatorio no encontrado'); return; }
+    if (!rec) { alert(' Recordatorio no encontrado'); return; }
     rec.FechaRecordatorio = document.getElementById('editRecordatorioFecha').value;
     rec.Descripcion = document.getElementById('editRecordatorioDescripcion').value;
     rec.Detalle = document.getElementById('editRecordatorioDetalle').value;
@@ -1034,7 +1177,7 @@ function limpiarRecordatorio() {
 function guardarCuentaPorCobrar() {
     const nombre = document.getElementById('cobrarNombre').value.trim();
     const monto = parseFloat(document.getElementById('cobrarMonto').value) || 0;
-    if (!nombre) { alert('⚠️ Debes ingresar el nombre del deudor'); return; }
+    if (!nombre) { alert('️ Debes ingresar el nombre del deudor'); return; }
     if (monto <= 0) { alert('⚠️ Debes ingresar un monto mayor a 0'); return; }
     
     const cuenta = {
@@ -1117,7 +1260,7 @@ function confirmarPagoCobro() {
     const cuentaDestino = document.getElementById('pagoCobrarCuenta').value;
     const referencia = document.getElementById('pagoCobrarReferencia').value.trim();
     
-    if (montoCobro <= 0) { alert('⚠️ Debes ingresar un monto mayor a 0'); return; }
+    if (montoCobro <= 0) { alert('️ Debes ingresar un monto mayor a 0'); return; }
     if (montoCobro > cuenta.SaldoPendiente) { alert('⚠️ El monto no puede ser mayor al saldo pendiente'); return; }
     
     // Acreditar el dinero a la cuenta destino
@@ -1332,9 +1475,9 @@ function confirmarPagoDeuda() {
     const referencia = document.getElementById('pagoDeudaReferencia').value.trim();
     const observacion = document.getElementById('pagoDeudaObservacion').value;
     
-    if (montoPago <= 0) { alert('⚠️ Debes ingresar un monto mayor a 0'); return; }
+    if (montoPago <= 0) { alert('️ Debes ingresar un monto mayor a 0'); return; }
     if (montoPago > deuda.SaldoPendiente) { alert('⚠️ El monto no puede ser mayor al saldo pendiente'); return; }
-    if (!fechaPago) { alert('⚠️ Debes seleccionar la fecha de pago'); return; }
+    if (!fechaPago) { alert('️ Debes seleccionar la fecha de pago'); return; }
     if (!referencia) { alert('⚠️ Debes ingresar la referencia de pago'); return; }
     
     let saldoDisponible = 0;
@@ -1421,9 +1564,9 @@ function guardarEmpleado() {
     const nombre = document.getElementById('empleadoNombre').value.trim();
     const cedula = document.getElementById('empleadoCedula').value.trim();
     const sueldo = parseFloat(document.getElementById('empleadoSueldo').value) || 0;
-    if (!nombre) { alert('⚠️ Debes ingresar el nombre'); return; }
-    if (!cedula) { alert('⚠️ Debes ingresar la cédula'); return; }
-    if (sueldo <= 0) { alert('️ Debes ingresar un sueldo mayor a 0'); return; }
+    if (!nombre) { alert('️ Debes ingresar el nombre'); return; }
+    if (!cedula) { alert('️ Debes ingresar la cédula'); return; }
+    if (sueldo <= 0) { alert('⚠️ Debes ingresar un sueldo mayor a 0'); return; }
     
     const empleado = { ID: Date.now(), FechaIngreso: document.getElementById('empleadoFecha').value, Nombre: nombre, Cedula: cedula, TipoSueldo: document.getElementById('empleadoTipoSueldo').value, SueldoUSD: sueldo, Status: 'Activo' };
     DB.empleados.push(empleado);
@@ -1543,7 +1686,7 @@ function guardarNominaPagos() {
     else if (cuentaOrigen === 'Personal') saldoDisponible = DB.config.SaldoPersonal_USD || 0;
     else if (cuentaOrigen === 'Personal_Bs') saldoDisponible = DB.config.SaldoPersonal_Bs || 0;
     
-    if (totalNomina > saldoDisponible) { alert('️ Saldo insuficiente. Disponible: $' + saldoDisponible.toFixed(2)); return; }
+    if (totalNomina > saldoDisponible) { alert('⚠️ Saldo insuficiente. Disponible: $' + saldoDisponible.toFixed(2)); return; }
     
     if (cuentaOrigen === 'Binance') DB.config.SaldoBinance_USD -= totalNomina;
     else if (cuentaOrigen === 'Zelle') DB.config.SaldoZelle_USD -= totalNomina;
@@ -1597,7 +1740,7 @@ function realizarBusqueda() {
         DB.ingresos.forEach(ing => {
             if (desde && ing.Fecha < desde) return; if (hasta && ing.Fecha > hasta) return;
             if (texto && !JSON.stringify(ing).toLowerCase().includes(texto)) return;
-            resultados.push({ tipo: 'Ingreso', fecha: ing.Fecha, icono: '📈', titulo: `Ingreso del ${ing.Fecha}`, texto: `Total: $${ing.Total_USD.toFixed(2)} / Bs.${ing.Total_Bs.toFixed(2)}`, detalle: `Tasa: ${ing.TasaBCV} | Saldo Final: $${ing.SaldoFin_USD.toFixed(2)}`, id: ing.ID, data: ing });
+            resultados.push({ tipo: 'Ingreso', fecha: ing.Fecha, icono: '', titulo: `Ingreso del ${ing.Fecha}`, texto: `Total: $${ing.Total_USD.toFixed(2)} / Bs.${ing.Total_Bs.toFixed(2)}`, detalle: `Tasa: ${ing.TasaBCV} | Saldo Final: $${ing.SaldoFin_USD.toFixed(2)}`, id: ing.ID, data: ing });
         });
     }
     if (filtro === 'todos' || filtro === 'deudas') {
@@ -1625,23 +1768,23 @@ function realizarBusqueda() {
         DB.nominaPagos.forEach(p => {
             if (desde && p.FechaPago < desde) return; if (hasta && p.FechaPago > hasta) return;
             if (texto && !JSON.stringify(p).toLowerCase().includes(texto)) return;
-            resultados.push({ tipo: 'Nómina', fecha: p.FechaPago, icono: '', titulo: `${p.Nombre}`, texto: `Neto: $${p.Neto.toFixed(2)}`, detalle: `Cédula: ${p.Cedula} | Cuenta: ${p.CuentaOrigen}`, id: p.ID, data: p });
+            resultados.push({ tipo: 'Nómina', fecha: p.FechaPago, icono: '👥', titulo: `${p.Nombre}`, texto: `Neto: $${p.Neto.toFixed(2)}`, detalle: `Cédula: ${p.Cedula} | Cuenta: ${p.CuentaOrigen}`, id: p.ID, data: p });
         });
     }
     
     resultados.sort((a, b) => b.fecha.localeCompare(a.fecha));
     const cont = document.getElementById('resultadosBusqueda');
     if (resultados.length === 0) {
-        cont.innerHTML = '<p style="padding:20px;text-align:center;color:var(--text-secondary);">Sin resultados</p>';
+        cont.innerHTML = '<p style="padding:20px;text-align:center;color:var(--text-muted);">Sin resultados</p>';
     } else {
-        cont.innerHTML = `<p style="padding:10px;font-weight:600; color:var(--text-primary);">${resultados.length} resultado(s)</p>` +
+        cont.innerHTML = `<p style="padding:10px;font-weight:600; color:var(--text-main);">${resultados.length} resultado(s)</p>` +
             resultados.map(r => {
                 let botonesAccion = '';
-                if (r.tipo === 'Deuda' && !r.data.Pagado) botonesAccion = `<button class="quick-action-btn pagar" onclick="abrirModalPago(${r.id})">💵 Pagar</button> <button class="quick-action-btn editar" onclick="editarDeuda(${r.id})">✏️ Editar</button>`;
-                else if (r.tipo === 'Cobro' && !r.data.Pagado) botonesAccion = `<button class="quick-action-btn cobrar" onclick="abrirModalCobro(${r.id})">💰 Cobrar</button>`;
-                else if (r.tipo === 'Recordatorio' && !r.data.Completado) botonesAccion = `<button class="quick-action-btn completar" onclick="toggleRecordatorio(${r.id})">✅ Completar</button> <button class="quick-action-btn editar" onclick="editarRecordatorio(${r.id})">✏️ Editar</button>`;
-                else if (r.tipo === 'Ingreso') botonesAccion = `<button class="quick-action-btn editar" onclick="editarIngreso(${r.id})">✏️ Editar</button>`;
-                return `<div style="padding:15px;background:var(--bg-input);margin:10px 0;border-radius:10px;border-left:5px solid var(--primary);box-shadow:0 2px 8px rgba(0,0,0,0.2); color:var(--text-primary);"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><span style="font-size:1.8em;">${r.icono}</span><div><strong style="font-size:1.1em;color:var(--text-primary);">${r.titulo}</strong><div style="color:var(--text-secondary);font-size:0.9em;">${r.tipo} - ${r.fecha}</div></div></div><div style="font-size:1.1em;color:var(--primary);font-weight:600;margin:5px 0;">${r.texto}</div>${r.detalle ? `<div style="color:var(--text-secondary);font-size:0.9em;margin-top:5px;">${r.detalle}</div>` : ''}${botonesAccion ? `<div style="margin-top:10px;">${botonesAccion}</div>` : ''}</div>`;
+                if (r.tipo === 'Deuda' && !r.data.Pagado) botonesAccion = `<button class="btn btn-success btn-sm" onclick="abrirModalPago(${r.id})">💵 Pagar</button> <button class="btn btn-primary btn-sm" onclick="editarDeuda(${r.id})">✏️ Editar</button>`;
+                else if (r.tipo === 'Cobro' && !r.data.Pagado) botonesAccion = `<button class="btn btn-success btn-sm" onclick="abrirModalCobro(${r.id})">💰 Cobrar</button>`;
+                else if (r.tipo === 'Recordatorio' && !r.data.Completado) botonesAccion = `<button class="btn btn-success btn-sm" onclick="toggleRecordatorio(${r.id})">✅ Completar</button> <button class="btn btn-primary btn-sm" onclick="editarRecordatorio(${r.id})">✏️ Editar</button>`;
+                else if (r.tipo === 'Ingreso') botonesAccion = `<button class="btn btn-primary btn-sm" onclick="editarIngreso(${r.id})">✏️ Editar</button>`;
+                return `<div style="padding:15px;background:var(--bg-card);margin:10px 0;border-radius:10px;border-left:5px solid var(--primary);box-shadow:0 2px 8px rgba(0,0,0,0.2); color:var(--text-main);"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><span style="font-size:1.8em;">${r.icono}</span><div><strong style="font-size:1.1em;color:var(--text-main);">${r.titulo}</strong><div style="color:var(--text-muted);font-size:0.9em;">${r.tipo} - ${r.fecha}</div></div></div><div style="font-size:1.1em;color:var(--primary);font-weight:600;margin:5px 0;">${r.texto}</div>${r.detalle ? `<div style="color:var(--text-muted);font-size:0.9em;margin-top:5px;">${r.detalle}</div>` : ''}${botonesAccion ? `<div style="margin-top:10px;">${botonesAccion}</div>` : ''}</div>`;
             }).join('');
     }
 }
@@ -1689,10 +1832,10 @@ function verCierrePorFecha() {
     html += `💴 Saldo Inicial Bs: <strong>Bs. ${ingresoDelDia.SaldoIni_Bs.toFixed(2)}</strong><br>`;
     html += `📈 Ingresos del día: <strong>$${ingresoDelDia.Total_USD.toFixed(2)}</strong> / Bs. ${ingresoDelDia.Total_Bs.toFixed(2)}<br>`;
     html += `💳 Pagos (deudas): <strong>-$${pagosDia.toFixed(2)}</strong><br>`;
-    html += `💰 Cobros recibidos: <strong>+$${cobrosDia.toFixed(2)}</strong><br>`;
+    html += ` Cobros recibidos: <strong>+$${cobrosDia.toFixed(2)}</strong><br>`;
     html += `👥 Nómina pagada: <strong>-$${nominaDia.toFixed(2)}</strong><br>`;
     html += `💰 Saldo Final: <strong>$${ingresoDelDia.SaldoFin_USD.toFixed(2)}</strong> / Bs. ${ingresoDelDia.SaldoFin_Bs.toFixed(2)}<br>`;
-    html += `<br><strong> NETO DEL DÍA: $${netoDia.toFixed(2)}</strong>`;
+    html += `<br><strong>📊 NETO DEL DÍA: $${netoDia.toFixed(2)}</strong>`;
     if (detallesPagos.length > 0) html += `<br><br><strong>Detalle de pagos:</strong><br>` + detallesPagos.join('<br>');
     contenedor.style.display = 'block'; contenedor.innerHTML = html;
 }
@@ -1710,7 +1853,7 @@ function confirmarReset() {
     if (clave1 !== CLAVE_ADMIN) { alert('❌ Clave INCORRECTA'); return; }
     if (clave2 !== CLAVE_ADMIN) { alert('❌ Segunda clave INCORRECTA'); return; }
     if (clave1 !== clave2) { alert('❌ Las claves no coinciden'); return; }
-    if (!confirm('️ ¿BORRAR TODOS los datos?')) return;
+    if (!confirm('⚠️ ¿BORRAR TODOS los datos?')) return;
     
     DB = { config: { TasaBCV: 0, SaldoBinance_USD: 0, SaldoZelle_USD: 0, SaldoEmpresa_USD: 0, SaldoPersonal_USD: 0, SaldoEmpresa_Bs: 0, SaldoPersonal_Bs: 0, NombreNegocio: 'Mi Negocio' }, ingresos: [], recordatorios: [], deudas: [], cuentasPorCobrar: [], empleados: [], nominaPagos: [], resumenDiario: [], notas: '', saldosInicialesBloqueados: false, cierreCajaBloqueado: false };
     localStorage.removeItem('FinanzasProDB');
@@ -1801,10 +1944,10 @@ function cambiarEstadoGS(estado, texto) {
 }
 
 async function verificarConexion() { try { const res = await fetch(GS_URL + '?action=status'); const data = await res.json(); if (data.success) cambiarEstadoGS('conectado'); else cambiarEstadoGS('error', 'URL no válida'); } catch (err) { cambiarEstadoGS('error', 'No se puede conectar'); } }
-function conectarGoogleSheets() { const url = document.getElementById('urlGoogleSheets').value.trim(); if (!url) { alert('️ Pega la URL de tu Apps Script'); return; } if (!url.includes('/exec')) { alert('⚠️ La URL debe terminar en /exec'); return; } GS_URL = url; localStorage.setItem('FinanzasPro_GS_URL', url); cambiarEstadoGS('cargando', 'Conectando...'); verificarConexion(); }
+function conectarGoogleSheets() { const url = document.getElementById('urlGoogleSheets').value.trim(); if (!url) { alert('⚠️ Pega la URL de tu Apps Script'); return; } if (!url.includes('/exec')) { alert('⚠️ La URL debe terminar en /exec'); return; } GS_URL = url; localStorage.setItem('FinanzasPro_GS_URL', url); cambiarEstadoGS('cargando', 'Conectando...'); verificarConexion(); }
 function desconectarGoogleSheets() { if (confirm('¿Desconectar?')) { GS_URL = ''; GS_CONECTADO = false; localStorage.removeItem('FinanzasPro_GS_URL'); document.getElementById('urlGoogleSheets').value = ''; cambiarEstadoGS('desconectado'); } }
-async function cargarDesdeSheets() { if (!GS_URL) { alert('️ Primero conecta tu Google Sheet'); return; } cambiarEstadoGS('cargando', 'Cargando datos...'); try { const res = await fetch(GS_URL + '?action=load'); const data = await res.json(); if (data.success) { DB = data.data; if (!DB.resumenDiario) DB.resumenDiario = []; if (!DB.cuentasPorCobrar) DB.cuentasPorCobrar = []; if (!DB.config.SaldoZelle_USD) DB.config.SaldoZelle_USD = 0; if (DB.config) document.getElementById('ingresoTasa').value = DB.config.TasaBCV || 0; guardarEnLocalStorage(); renderizarIngresos(); renderizarRecordatorios(); renderizarDeudas(); renderizarCobrar(); renderizarEmpleados(); renderizarHistorialNomina(); recalcularResumenDiario(); actualizarBloqueCierre(); actualizarDashboard(); actualizarListaProveedores(); actualizarPanelSaldos(); actualizarContexto(); cambiarEstadoGS('conectado'); alert('✅ Datos cargados desde Google Sheets'); } else { cambiarEstadoGS('error', data.error || 'Error al cargar'); } } catch (err) { cambiarEstadoGS('error', err.message); alert('❌ Error: ' + err.message); } }
-async function guardarEnSheets() { if (!GS_URL) { alert('️ Primero conecta tu Google Sheet'); return; } recalcularResumenDiario(); cambiarEstadoGS('cargando', 'Guardando en la nube...'); try { await fetch(GS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'save', data: DB }) }); cambiarEstadoGS('conectado'); alert('✅ Datos guardados en Google Sheets'); } catch (err) { cambiarEstadoGS('error', err.message); alert(' Error: ' + err.message); } }
+async function cargarDesdeSheets() { if (!GS_URL) { alert('️ Primero conecta tu Google Sheet'); return; } cambiarEstadoGS('cargando', 'Cargando datos...'); try { const res = await fetch(GS_URL + '?action=load'); const data = await res.json(); if (data.success) { DB = data.data; if (!DB.resumenDiario) DB.resumenDiario = []; if (!DB.cuentasPorCobrar) DB.cuentasPorCobrar = []; if (!DB.config.SaldoZelle_USD) DB.config.SaldoZelle_USD = 0; if (DB.config) document.getElementById('ingresoTasa').value = DB.config.TasaBCV || 0; guardarEnLocalStorage(); renderizarIngresos(); renderizarRecordatorios(); renderizarDeudas(); renderizarCobrar(); renderizarEmpleados(); renderizarHistorialNomina(); recalcularResumenDiario(); actualizarBloqueCierre(); actualizarDashboard(); actualizarListaProveedores(); actualizarPanelSaldos(); actualizarContexto(); cambiarEstadoGS('conectado'); alert('✅ Datos cargados desde Google Sheets'); } else { cambiarEstadoGS('error', data.error || 'Error al cargar'); } } catch (err) { cambiarEstadoGS('error', err.message); alert(' Error: ' + err.message); } }
+async function guardarEnSheets() { if (!GS_URL) { alert('⚠️ Primero conecta tu Google Sheet'); return; } recalcularResumenDiario(); cambiarEstadoGS('cargando', 'Guardando en la nube...'); try { await fetch(GS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'save', data: DB }) }); cambiarEstadoGS('conectado'); alert('✅ Datos guardados en Google Sheets'); } catch (err) { cambiarEstadoGS('error', err.message); alert('❌ Error: ' + err.message); } }
 
 function generarGuiaGoogleSheets() {
     const { jsPDF } = window.jspdf; const doc = new jsPDF(); let y = 20;
@@ -1819,6 +1962,3 @@ function generarGuiaGoogleSheets() {
 }
 
 function abrirManualUsuario() { document.getElementById('modalManualUsuario').style.display = 'flex'; }
-
-
-
