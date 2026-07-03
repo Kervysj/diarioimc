@@ -1,731 +1,737 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FinanzasPro v3.7</title>
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-.container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
-.header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-.header h1 { font-size: 1.8em; }
-.header-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.header-actions .btn { margin-left: 4px; }
-
-/* ✅ NUEVO: Nombre de empresa editable */
-.empresa-editable {
-    background: rgba(255,255,255,0.2);
-    padding: 6px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    border: 2px dashed rgba(255,255,255,0.5);
-    transition: all 0.3s;
-    font-size: 0.9em;
-}
-.empresa-editable:hover {
-    background: rgba(255,255,255,0.3);
-    border-color: white;
-}
-.empresa-editable input {
-    background: transparent;
-    border: none;
-    color: white;
-    font-size: 1em;
-    font-weight: bold;
-    width: 200px;
-    outline: none;
-}
-
-.gs-status { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.2); padding: 10px 15px; border-radius: 10px; flex-wrap: wrap; }
-.status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff4444; }
-.status-dot.conectado { background: #00C851; }
-
-/* Barra de contexto */
-.context-bar {
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-    color: white;
-    padding: 12px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-    font-size: 0.95em;
-}
-.context-bar .context-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255,255,255,0.15);
-    padding: 6px 12px;
-    border-radius: 8px;
-}
-.context-bar .context-item strong { color: #ffd700; }
-
-/* Panel de saldos */
-.account-balance-panel {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 15px;
-    border-radius: 10px;
-    margin: 15px 20px;
-}
-.account-balance-panel h4 { margin-bottom: 10px; color: white; font-size: 1.1em; }
-.balance-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px;
-}
-.balance-item {
-    background: rgba(255,255,255,0.2);
-    padding: 10px;
-    border-radius: 8px;
-    text-align: center;
-}
-.balance-item label { display: block; font-size: 0.85em; margin-bottom: 5px; opacity: 0.9; }
-.balance-item .amount { font-size: 1.3em; font-weight: bold; }
-
-/* Botones */
-.btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; font-size: 0.9em; }
-.btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-.btn-primary { background: #667eea; color: white; }
-.btn-success { background: #00C851; color: white; }
-.btn-danger { background: #ff4444; color: white; }
-.btn-warning { background: #ffbb33; color: #000; }
-.btn-info { background: #33b5e5; color: white; }
-.btn-secondary { background: #6c757d; color: white; }
-.btn-sm { padding: 5px 10px; font-size: 0.8em; }
-
-/* Tabs */
-.tabs { display: flex; background: #f8f9fa; padding: 0; overflow-x: auto; border-bottom: 3px solid #667eea; }
-.tab { padding: 15px 25px; cursor: pointer; background: none; border: none; font-weight: 600; color: #666; transition: all 0.3s; white-space: nowrap; }
-.tab:hover { background: #e9ecef; color: #667eea; }
-.tab.active { background: #667eea; color: white; }
-.tab-content { display: none; padding: 30px; animation: fadeIn 0.3s; }
-.tab-content.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-/* Cards */
-.card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
-.card h2, .card h3 { color: #667eea; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-.grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-.form-group { margin-bottom: 15px; }
-.form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #555; font-size: 0.9em; }
-.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em; transition: border 0.3s; }
-.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #667eea; }
-.alert { padding: 12px 15px; border-radius: 8px; margin-bottom: 15px; display: none; }
-.alert-warning { background: #fff3cd; color: #856404; border-left: 4px solid #ffc107; }
-.alert-info { background: #d1ecf1; color: #0c5460; border-left: 4px solid #17a2b8; }
-.alert-danger { background: #f8d7da; color: #721c24; border-left: 4px solid #dc3545; }
-.alert-success { background: #d4edda; color: #155724; border-left: 4px solid #28a745; }
-
-/* Stats */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-.stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 12px; text-align: center; }
-.stat-card h3 { font-size: 2em; margin-bottom: 5px; color: white; }
-.stat-card p { font-size: 0.9em; opacity: 0.9; color: white; }
-
-/* Tables */
-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; border-radius: 10px; overflow: hidden; }
-th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e0e0e0; }
-th { background: #667eea; color: white; font-weight: 600; }
-tr:hover { background: #f8f9fa; }
-.badge { padding: 4px 12px; border-radius: 20px; font-size: 0.85em; font-weight: 600; }
-.badge-high { background: #ff4444; color: white; }
-.badge-medium { background: #ffbb33; color: #000; }
-.badge-low { background: #00C851; color: white; }
-
-/* Modal */
-.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-.modal-content { background: white; padding: 30px; border-radius: 15px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.modal-header h3 { color: #667eea; margin: 0; }
-.close-modal { background: none; border: none; font-size: 1.5em; cursor: pointer; color: #999; }
-.close-modal:hover { color: #ff4444; }
-
-/* Secciones */
-.section-info { background: #e3f2fd; padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #2196F3; }
-.section-info p { margin: 5px 0; color: #1976D2; }
-.total-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 10px; margin-top: 20px; text-align: center; }
-.total-section h3 { color: white; margin: 0; font-size: 1.3em; }
-.neto-positivo { color: #00C851; font-weight: bold; }
-.neto-negativo { color: #ff4444; font-weight: bold; }
-.neto-cero { color: #ffbb33; font-weight: bold; }
-.insight { padding: 12px; margin: 10px 0; border-radius: 8px; border-left: 4px solid; }
-.insight.positivo { background: #d4edda; border-color: #28a745; color: #155724; }
-.insight.negativo { background: #f8d7da; border-color: #dc3545; color: #721c24; }
-.insight.neutro { background: #e2e3e5; border-color: #6c757d; color: #383d41; }
-
-/* Indicador de guardado */
-.save-indicator {
-    position: fixed; top: 20px; right: 20px;
-    background: #00C851; color: white;
-    padding: 12px 20px; border-radius: 8px;
-    font-weight: 600; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    z-index: 9999; display: none;
-    animation: slideIn 0.3s ease-out;
-}
-@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-/* Tooltip de ayuda */
-.help-icon {
-    display: inline-block; width: 18px; height: 18px;
-    background: #667eea; color: white; border-radius: 50%;
-    text-align: center; line-height: 18px; font-size: 0.75em;
-    cursor: help; margin-left: 5px;
-}
-
-/* ✅ NUEVO: Botones de acción rápida en búsqueda */
-.quick-action-btn {
-    padding: 5px 10px;
-    margin: 2px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    font-size: 0.85em;
-    font-weight: 600;
-    transition: all 0.2s;
-}
-.quick-action-btn:hover { transform: scale(1.05); }
-.quick-action-btn.pagar { background: #00C851; color: white; }
-.quick-action-btn.completar { background: #33b5e5; color: white; }
-.quick-action-btn.editar { background: #ffbb33; color: #000; }
-.quick-action-btn.eliminar { background: #ff4444; color: white; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanzasPro v3.7</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --primary: #667eea; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --bg: #f3f4f6; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 1300px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        /* Header y Top Bar */
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .empresa-nombre { font-size: 1.5em; font-weight: bold; color: var(--primary); cursor: pointer; }
+        .empresa-nombre:hover { text-decoration: underline; }
+        .contexto-info { display: flex; gap: 15px; align-items: center; font-size: 0.9em; color: #666; flex-wrap: wrap; }
+        .contexto-info span { background: #f1f5f9; padding: 5px 10px; border-radius: 5px; }
+        
+        /* Top Bar Config - NUEVO VISIBLE */
+        .top-bar-config { display: flex; gap: 10px; align-items: center; background: #e0e7ff; padding: 12px; border-radius: 10px; margin-bottom: 20px; flex-wrap: wrap; border: 2px solid var(--primary); }
+        .top-bar-config input { flex: 1; min-width: 200px; padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
+        .top-bar-config .estado-text { font-size: 0.85em; font-weight: 600; color: #666; }
+        
+        /* Tooltips (i) */
+        .info-tip { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background-color: var(--primary); color: white; border-radius: 50%; text-align: center; font-size: 11px; font-weight: bold; cursor: help; margin-left: 5px; line-height: 18px; position: relative; }
+        .info-tip:hover::after { content: attr(title); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; white-space: nowrap; z-index: 100; max-width: 250px; white-space: normal; text-align: left; }
+        
+        /* Saldos Panel */
+        .saldos-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; background: #f8fafc; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .saldo-item { text-align: center; padding: 10px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .saldo-item h4 { margin: 0; font-size: 0.8em; color: #666; }
+        .saldo-item p { margin: 5px 0 0; font-size: 1.2em; font-weight: bold; color: var(--primary); }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 2px solid #ddd; flex-wrap: wrap; }
+        .tab { padding: 10px 15px; cursor: pointer; border: none; background: none; font-size: 1em; font-weight: 600; color: #666; border-bottom: 3px solid transparent; transition: 0.2s; }
+        .tab:hover { color: var(--primary); }
+        .tab.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Bloque Último Cierre */
+        .bloque-cierre { background: #fef3c7; border: 2px solid #fcd34d; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        .bloque-cierre h4 { margin: 0 0 10px 0; color: #92400e; }
+        .bloque-cierre-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        .bloque-cierre-item { background: white; padding: 8px; border-radius: 5px; text-align: center; }
+        .bloque-cierre-item strong { display: block; font-size: 1.1em; color: var(--primary); }
+        
+        /* Forms */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-weight: 600; margin-bottom: 5px; font-size: 0.9em; display: flex; align-items: center; }
+        input, select, textarea { padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 1em; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        
+        /* Campos Bloqueados */
+        .locked-field { background-color: #e9ecef !important; opacity: 0.6; pointer-events: none; color: #555; }
+        
+        /* Buttons */
+        .btn { padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: white; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px; font-size: 0.95em; }
+        .btn-primary { background: var(--primary); }
+        .btn-success { background: var(--success); }
+        .btn-danger { background: var(--danger); }
+        .btn-warning { background: var(--warning); }
+        .btn-secondary { background: #6b7280; }
+        .btn-info { background: #0ea5e9; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-sm { padding: 5px 10px; font-size: 0.8em; }
+        
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; overflow-x: auto; display: block; }
+        thead { display: table; width: 100%; table-layout: fixed; }
+        tbody { display: table; width: 100%; table-layout: fixed; }
+        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; word-wrap: break-word; }
+        th { background: #f9fafb; font-weight: 600; position: sticky; top: 0; }
+        
+        /* Badges */
+        .badge { padding: 3px 8px; border-radius: 12px; font-size: 0.75em; font-weight: 600; }
+        .badge-high { background: #fee2e2; color: #991b1b; }
+        .badge-medium { background: #fef3c7; color: #92400e; }
+        .badge-low { background: #d1fae5; color: #065f46; }
+        
+        /* Alerts */
+        .alert { padding: 15px; border-radius: 8px; margin: 15px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .alert-warning { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+        .alert-info { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+        
+        /* Modals */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 20px; border-radius: 15px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .close-btn { cursor: pointer; font-size: 1.5em; color: #999; }
+        
+        /* Search Cards */
+        .search-card { background: white; border-left: 5px solid var(--primary); padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .search-card.ingreso { border-left-color: var(--success); }
+        .search-card.deuda { border-left-color: var(--danger); }
+        .search-card.cobro { border-left-color: var(--warning); }
+        .search-card.recordatorio { border-left-color: #8b5cf6; }
+        .search-card.nomina { border-left-color: #0ea5e9; }
+        .search-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .search-card-icon { font-size: 1.8em; }
+        .search-card-title { font-size: 1.1em; font-weight: 600; color: #333; }
+        .search-card-subtitle { color: #6b7280; font-size: 0.9em; }
+        .search-card-amount { font-size: 1.1em; color: var(--primary); font-weight: 600; margin: 5px 0; }
+        .search-card-detail { color: #6b7280; font-size: 0.9em; margin-top: 5px; }
+        .search-card-actions { margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap; }
+        .quick-action-btn { padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85em; font-weight: 600; color: white; }
+        .quick-action-btn.pagar { background: var(--success); }
+        .quick-action-btn.cobrar { background: var(--warning); }
+        .quick-action-btn.editar { background: var(--primary); }
+        .quick-action-btn.completar { background: #8b5cf6; }
+        
+        /* Neto colors */
+        .neto-positivo { color: var(--success); font-weight: bold; }
+        .neto-negativo { color: var(--danger); font-weight: bold; }
+        .neto-cero { color: #6b7280; }
+        
+        /* Save Indicator */
+        #saveIndicator { display: none; position: fixed; top: 20px; right: 20px; background: var(--success); color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; z-index: 2000; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .tabs { flex-direction: column; }
+            .tab { text-align: left; }
+        }
+    </style>
 </head>
 <body>
 
-<!-- Indicador de Guardado -->
-<div id="saveIndicator" class="save-indicator">💾 Guardado correctamente ✓</div>
+<div id="saveIndicator">💾 Guardado correctamente ✓</div>
 
 <div class="container">
-    
     <!-- HEADER -->
-    <div class="header">
-        <h1>📊 FinanzasPro v3.7</h1>
-        <div class="header-actions">
-            <!-- ✅ NUEVO: Nombre de empresa editable -->
-            <div class="empresa-editable" onclick="editarNombreEmpresa()" title="✏️ Haz clic para cambiar el nombre de tu empresa">
-                <span id="nombreEmpresaDisplay">Mi Empresa</span>
-            </div>
-            <button class="btn btn-secondary btn-sm" onclick="refrescarTodo()" title="🔄 Refrescar página">🔄</button>
-            <button class="btn btn-info btn-sm" onclick="cargarExcelBtn()" title=" Cargar Excel">📥</button>
-            <button class="btn btn-warning btn-sm" onclick="guardarExcel()" title="💾 Guardar Excel">💾</button>
-            <button class="btn btn-primary btn-sm" onclick="generarPDF()" title="📄 Generar PDF">📄</button>
-            <button class="btn btn-success btn-sm" onclick="generarGuiaGoogleSheets()" title="📋 Guía Google Sheets">📋</button>
-            <button class="btn btn-danger btn-sm" onclick="resetearSistema()" title="🔄 Reset">🔄</button>
-            <button class="btn btn-info btn-sm" onclick="abrirManualUsuario()" title=" Manual">📖</button>
+    <div class="header-top">
+        <div>
+            <span class="empresa-nombre" onclick="editarNombreEmpresa()" title="Haz clic para cambiar el nombre">📊 <span id="nombreEmpresaDisplay">Mi Empresa</span></span>
+            <button class="btn btn-secondary btn-sm" onclick="refrescarTodo()" title="Refrescar página">🔄</button>
+        </div>
+        <div class="contexto-info">
+            <span>📅 Fecha: <strong id="contextoFecha">--</strong></span>
+            <span>💱 Tasa BCV: <strong id="contextoTasa">Bs. 0.00</strong></span>
+            <span>🏢 Empresa: <strong id="contextoNegocio">Mi Empresa</strong></span>
         </div>
     </div>
 
-    <!-- Barra de contexto -->
-    <div class="context-bar">
-        <div class="context-item">
-            <span>📅</span>
-            <span>Fecha: <strong id="contextoFecha">--</strong></span>
-        </div>
-        <div class="context-item">
-            <span>💱</span>
-            <span>Tasa BCV: <strong id="contextoTasa">Bs. 0.00</strong></span>
-        </div>
-        <div class="context-item">
-            <span>🏢</span>
-            <span>Empresa: <strong id="contextoNegocio">Mi Empresa</strong></span>
-        </div>
+    <!-- TOP BAR CONFIG - AHORA VISIBLE -->
+    <div class="top-bar-config">
+        <input type="text" id="urlGoogleSheets" placeholder="🔗 Pega aquí tu URL de Apps Script (termina en /exec)">
+        <button class="btn btn-primary btn-sm" onclick="conectarGoogleSheets()" title="Conectar con Google Sheets">🔌 Conectar</button>
+        <button class="btn btn-success btn-sm" onclick="cargarExcelBtn()" title="Restaura tus datos desde un respaldo anterior">📥 Cargar Excel</button>
+        <button class="btn btn-secondary btn-sm" onclick="guardarExcel()" title="Guarda todos los datos en Excel">💾 Guardar Excel</button>
+        <button class="btn btn-info btn-sm" onclick="generarPDF()" title="Genera reporte en PDF">📄 PDF</button>
+        <button class="btn btn-warning btn-sm" onclick="generarGuiaGoogleSheets()" title="Guía paso a paso para configurar Google Sheets">📋 Guía</button>
+        <input type="file" id="inputExcel" style="display:none" accept=".xlsx,.xls" onchange="cargarExcel(event)">
+        <span id="estadoGS" class="estado-text">🔴 Desconectado</span>
     </div>
 
     <!-- PANEL DE SALDOS -->
-    <div class="account-balance-panel">
-        <h4>💰 Saldos Disponibles en Cuentas</h4>
-        <div class="balance-grid">
-            <div class="balance-item">
-                <label>🪙 Binance (USD)</label>
-                <div class="amount" id="saldoBinanceDisplay">$0.00</div>
-            </div>
-            <div class="balance-item">
-                <label>💳 Zelle (USD)</label>
-                <div class="amount" id="saldoZelleDisplay">$0.00</div>
-            </div>
-            <div class="balance-item">
-                <label>🏢 Empresa (USD)</label>
-                <div class="amount" id="saldoEmpresaDisplay">$0.00</div>
-            </div>
-            <div class="balance-item">
-                <label>🏢 Empresa (Bs)</label>
-                <div class="amount" id="saldoEmpresaBsDisplay">Bs. 0.00</div>
-            </div>
-            <div class="balance-item">
-                <label> Personal (USD)</label>
-                <div class="amount" id="saldoPersonalDisplay">$0.00</div>
-            </div>
-            <div class="balance-item">
-                <label> Personal (Bs)</label>
-                <div class="amount" id="saldoPersonalBsDisplay">Bs. 0.00</div>
-            </div>
-        </div>
+    <h3>💰 Saldos Disponibles en Cuentas</h3>
+    <div class="saldos-panel">
+        <div class="saldo-item"><h4>🪙 Binance (USD)</h4><p id="saldoBinanceDisplay">$0.00</p></div>
+        <div class="saldo-item"><h4>💳 Zelle (USD)</h4><p id="saldoZelleDisplay">$0.00</p></div>
+        <div class="saldo-item"><h4>🏢 Empresa (USD)</h4><p id="saldoEmpresaDisplay">$0.00</p></div>
+        <div class="saldo-item"><h4>🏢 Empresa (Bs)</h4><p id="saldoEmpresaBsDisplay">Bs. 0.00</p></div>
+        <div class="saldo-item"><h4>👤 Personal (USD)</h4><p id="saldoPersonalDisplay">$0.00</p></div>
+        <div class="saldo-item"><h4>👤 Personal (Bs)</h4><p id="saldoPersonalBsDisplay">Bs. 0.00</p></div>
     </div>
 
     <!-- TABS -->
     <div class="tabs">
         <button class="tab active" data-tab="tabIngresos">📈 Ingresos</button>
         <button class="tab" data-tab="tabRecordatorios">🔔 Recordatorios</button>
-        <button class="tab" data-tab="tabDeudas">💳 Pagar</button>
+        <button class="tab" data-tab="tabPagar">💳 Pagar</button>
+        <button class="tab" data-tab="tabCobrar">💰 Cobrar</button>
         <button class="tab" data-tab="tabNomina">👥 Nómina</button>
         <button class="tab" data-tab="tabBusqueda">🔍 Búsqueda</button>
         <button class="tab" data-tab="tabAnalisis">📊 Análisis</button>
         <button class="tab" data-tab="tabDashboard">📉 Dashboard</button>
     </div>
 
-    <!-- TAB INGRESOS -->
+    <!-- ========================================== -->
+    <!-- TAB: INGRESOS / CUADRE DE CAJA             -->
+    <!-- ========================================== -->
     <div id="tabIngresos" class="tab-content active">
-        <div class="card">
-            <h2>📊 Cuadre de Caja</h2>
-            
-            <div id="bloqueUltimoCierre" class="section-info" style="display:none;">
-                <h3>📊 ÚLTIMO CIERRE DE CAJA</h3>
-                <p id="cierreFechaTexto">Fecha: --</p>
-                <p> Quedó en caja USD: <strong id="cierreUSD">$0.00</strong></p>
-                <p>💴 Quedó en caja Bs: <strong id="cierreBS">Bs. 0.00</strong></p>
-                <p>💳 Zelle: <strong id="cierreZelle">$0.00</strong></p>
-                <p>🪙 Binance: <strong id="cierreBinance">$0.00</strong></p>
-                <p>💸 Se gastó el día anterior: <strong id="cierreGastado">$0.00</strong></p>
-                <p style="margin-top:10px;"><strong>ℹ️ Estos son los saldos con los que deberías iniciar hoy. Compáralos con tu banco real.</strong></p>
+        <h3>📊 Cuadre de Caja (Saldos Iniciales)</h3>
+        
+        <!-- Bloque Último Cierre -->
+        <div id="bloqueUltimoCierre" class="bloque-cierre" style="display:none;">
+            <h4>📊 ÚLTIMO CIERRE DE CAJA</h4>
+            <div class="bloque-cierre-grid">
+                <div class="bloque-cierre-item">Fecha: <strong id="cierreFechaTexto">--</strong></div>
+                <div class="bloque-cierre-item">Quedó en caja USD: <strong id="cierreUSD">$0.00</strong></div>
+                <div class="bloque-cierre-item">Quedó en caja Bs: <strong id="cierreBS">Bs. 0.00</strong></div>
+                <div class="bloque-cierre-item">💳 Zelle: <strong id="cierreZelle">$0.00</strong></div>
+                <div class="bloque-cierre-item">🪙 Binance: <strong id="cierreBinance">$0.00</strong></div>
+                <div class="bloque-cierre-item">💸 Se gastó el día anterior: <strong id="cierreGastado">$0.00</strong></div>
             </div>
+            <p style="margin-top:10px; font-size:0.85em; color:#92400e;">ℹ️ Estos son los saldos con los que deberías iniciar hoy. Compáralos con tu banco real.</p>
+        </div>
 
-            <div id="alertaSaldoInicial" class="alert alert-warning">
-                ⚠️ ¡IMPORTANTE! Debes registrar el Saldo Inicial USD y/o Bs antes de guardar ingresos.
-            </div>
+        <div id="alertaSaldoInicial" class="alert alert-warning" style="display:none;">
+            ⚠️ <strong>¡IMPORTANTE!</strong> Debes registrar el Saldo Inicial USD y/o Bs antes de guardar ingresos.
+        </div>
 
-            <div id="alertaDiscrepancia" class="alert alert-danger" style="display:none;">
+        <div id="alertaDiscrepancia" class="alert alert-warning" style="display:none;">
+            <div>
                 ⚠️ <strong>¡ALERTA DE DISCREPANCIA!</strong> El saldo que colocaste NO coincide con el cierre anterior.
-                <br>¿Olvidaste registrar una salida de dinero? Revisa tus cuentas.
+                <br><small>¿Gastaste y no registraste? ¿O te pagaron y no lo registraste?</small>
             </div>
+            <button class="btn btn-warning btn-sm" onclick="evaluarAjustarSaldo()" title="Evaluar y ajustar al saldo real">🔍 Evaluar / Ajustar</button>
+        </div>
 
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>📅 Fecha</label>
-                    <input type="date" id="ingresoFecha">
-                </div>
-                <div class="form-group">
-                    <label> Tasa BCV del día</label>
-                    <input type="number" step="0.01" id="ingresoTasa" onchange="DB.config.TasaBCV=parseFloat(this.value); actualizarContexto(); guardarEnLocalStorage();">
-                </div>
-                <div class="form-group">
-                    <label>💵 Saldo inicial USD <span style="color:#ff4444;">*OBLIGATORIO</span> <span class="help-icon" title="Este es el monto REAL que tienes en caja hoy">?</span></label>
-                    <input type="number" step="0.01" id="saldoIniUSD" placeholder="0.00" oninput="validarSaldoInicial(); verificarDiscrepancia();">
-                    <small>💡 Se precarga con el cierre anterior</small>
-                </div>
-                <div class="form-group">
-                    <label>💴 Saldo inicial Bs <span style="color:#ff4444;">*OBLIGATORIO</span></label>
-                    <input type="number" step="0.01" id="saldoIniBS" placeholder="0.00" oninput="validarSaldoInicial(); verificarDiscrepancia();">
-                    <small>💡 Se precarga con el cierre anterior</small>
-                </div>
-                <div class="form-group">
-                    <label>👤 Saldo Personal USD <small style="color:#666;">(opcional)</small></label>
-                    <input type="number" step="0.01" id="saldoIniPersonalUSD" placeholder="0.00">
-                </div>
-                <div class="form-group">
-                    <label>👤 Saldo Personal Bs <small style="color:#666;">(opcional)</small></label>
-                    <input type="number" step="0.01" id="saldoIniPersonalBS" placeholder="0.00">
-                </div>
-            </div>
-
-            <!-- ✅ NUEVO: Botón Guardar Saldos Iniciales -->
-            <div style="background:#f0f4ff;padding:15px;border-radius:10px;margin:15px 0;border-left:4px solid #667eea;">
-                <h4 style="color:#667eea;margin-bottom:10px;">💾 Paso 1: Guardar Saldos Iniciales</h4>
-                <p style="margin-bottom:10px;color:#555;font-size:0.9em;">Guarda primero los saldos de tus cuentas antes de registrar ventas. Esto actualizará el panel de saldos.</p>
-                <button class="btn btn-primary" onclick="guardarSaldosIniciales()" title="💾 Guardar solo los saldos de las cuentas">💾 Guardar Saldos Iniciales</button>
-            </div>
-
-            <h3 style="margin:20px 0 15px 0;color:#667eea;">💳 Ventas por Métodos de Pago</h3>
-            <div class="grid-4">
-                <div class="form-group"><label>💵 Efectivo $</label><input type="number" step="0.01" id="efectivoUSD" value="0" oninput="calcularTotales()"></div>
-                <div class="form-group"><label>💴 Efectivo Bs</label><input type="number" step="0.01" id="efectivoBS" value="0" oninput="calcularTotales()"></div>
-                <div class="form-group"><label>📱 Pago Móvil</label><input type="number" step="0.01" id="pagoMovil" value="0" oninput="calcularTotales()"></div>
-                <div class="form-group">
-                    <label>💳 Tarjeta Débito</label>
-                    <select id="tarjetaDebitoMoneda" onchange="calcularTotales()">
-                        <option value="USD">USD</option>
-                        <option value="BS">Bs</option>
-                    </select>
-                    <input type="number" step="0.01" id="tarjetaDebito" value="0" oninput="calcularTotales()" style="margin-top:5px;">
-                </div>
-                <div class="form-group">
-                    <label>💳 Tarjeta Crédito</label>
-                    <select id="tarjetaCreditoMoneda" onchange="calcularTotales()">
-                        <option value="USD">USD</option>
-                        <option value="BS">Bs</option>
-                    </select>
-                    <input type="number" step="0.01" id="tarjetaCredito" value="0" oninput="calcularTotales()" style="margin-top:5px;">
-                </div>
-                <div class="form-group"><label> Transferencia</label><input type="number" step="0.01" id="transferencia" value="0" oninput="calcularTotales()"></div>
-                <div class="form-group"><label>💳 Zelle (solo USD)</label><input type="number" step="0.01" id="zelle" value="0" oninput="calcularTotales()"></div>
-                <div class="form-group"><label>🪙 Binance (solo USD)</label><input type="number" step="0.01" id="binance" value="0" oninput="calcularTotales()"></div>
-            </div>
-
+        <div class="form-grid">
             <div class="form-group">
-                <label>📝 Observación</label>
-                <textarea id="observacion" rows="2"></textarea>
+                <label>📅 Fecha <span class="info-tip" title="Fecha del cierre de caja.">?</span></label>
+                <input type="date" id="ingresoFecha">
             </div>
-
-            <div class="stats-grid">
-                <div class="stat-card"><h3 id="totalUSD">$0.00</h3><p>Total en Dólares</p></div>
-                <div class="stat-card"><h3 id="totalBS">Bs. 0.00</h3><p>Total en Bolívares</p></div>
-            </div>
-
-            <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;">
-                <button class="btn btn-success" onclick="guardarIngreso()" title="💾 Guardar ingreso completo">💾 Guardar Ingreso</button>
-                <button class="btn btn-warning" onclick="limpiarIngreso()" title="🔄 Limpiar campos de ventas">🔄 Limpiar</button>
+            <div class="form-group">
+                <label>💱 Tasa BCV del día <span class="info-tip" title="Tasa del BCV para cálculos en Bs.">?</span></label>
+                <input type="number" step="0.01" id="ingresoTasa" value="0">
             </div>
         </div>
 
-        <div class="card">
-            <h2>📜 Historial de Ingresos</h2>
-            <table id="tablaIngresos">
-                <thead>
-                    <tr><th>Fecha</th><th>Tasa BCV</th><th>Saldo Inicial $</th><th>Saldo Inicial Bs</th><th>Efectivo $</th><th>Efectivo Bs</th><th>Pago Móvil</th><th>Débito</th><th>Crédito</th><th>Transf.</th><th>Zelle</th><th>Cripto</th><th>Total $</th><th>Total Bs</th><th>Saldo Final $</th><th>Saldo Final Bs</th><th>Acciones</th></tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>💵 Saldo inicial USD <span class="info-tip" title="Efectivo en dólares con el que inicias. Se bloquea al guardar.">?</span> *OBLIGATORIO</label>
+                <input type="number" step="0.01" id="saldoIniUSD" class="locked-field" disabled value="0">
+                <small style="color:#666;">💡 Se precarga con el cierre anterior</small>
+            </div>
+            <div class="form-group">
+                <label>💴 Saldo inicial Bs <span class="info-tip" title="Efectivo en bolívares con el que inicias.">?</span> *OBLIGATORIO</label>
+                <input type="number" step="0.01" id="saldoIniBS" class="locked-field" disabled value="0">
+                <small style="color:#666;">💡 Se precarga con el cierre anterior</small>
+            </div>
+            <div class="form-group">
+                <label>👤 Saldo Personal USD <span class="info-tip" title="Caja chica personal (opcional).">?</span> (opcional)</label>
+                <input type="number" step="0.01" id="saldoIniPersonalUSD" class="locked-field" disabled value="0">
+            </div>
+            <div class="form-group">
+                <label>👤 Saldo Personal Bs <span class="info-tip" title="Caja chica personal en Bs (opcional).">?</span> (opcional)</label>
+                <input type="number" step="0.01" id="saldoIniPersonalBS" class="locked-field" disabled value="0">
+            </div>
         </div>
+
+        <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;">
+            <button class="btn btn-success" onclick="guardarSaldosIniciales()" title="Guarda los saldos y bloquea los campos">💾 Paso 1: Guardar Saldos Iniciales</button>
+            <button class="btn btn-warning" id="btnEditarSaldos" onclick="desbloquearSaldos()" style="display:none;" title="Desbloquea los campos para corregir">✏️ Editar Saldos</button>
+        </div>
+        <p style="background:#f1f5f9; padding:10px; border-radius:5px; font-size:0.9em;">
+            <strong>Paso 1:</strong> Guarda primero los saldos de tus cuentas antes de registrar ventas. Esto actualizará el panel de saldos.
+        </p>
+
+        <hr style="margin: 20px 0;">
+
+        <h3>💳 Ventas por Métodos de Pago</h3>
+        <div class="form-grid">
+            <div class="form-group"><label>💵 Efectivo $</label><input type="number" step="0.01" id="efectivoUSD" value="0" oninput="calcularTotales()"></div>
+            <div class="form-group"><label>💴 Efectivo Bs</label><input type="number" step="0.01" id="efectivoBS" value="0" oninput="calcularTotales()"></div>
+            <div class="form-group"><label>📱 Pago Móvil</label><input type="number" step="0.01" id="pagoMovil" value="0" oninput="calcularTotales()"></div>
+            <div class="form-group">
+                <label>💳 Tarjeta Débito</label>
+                <div style="display:flex; gap:5px;">
+                    <input type="number" step="0.01" id="tarjetaDebito" value="0" oninput="calcularTotales()" style="flex:1;">
+                    <select id="tarjetaDebitoMoneda" onchange="calcularTotales()" style="width:80px;"><option>USD</option><option>BS</option></select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>💳 Tarjeta Crédito</label>
+                <div style="display:flex; gap:5px;">
+                    <input type="number" step="0.01" id="tarjetaCredito" value="0" oninput="calcularTotales()" style="flex:1;">
+                    <select id="tarjetaCreditoMoneda" onchange="calcularTotales()" style="width:80px;"><option>USD</option><option>BS</option></select>
+                </div>
+            </div>
+            <div class="form-group"><label>🏦 Transferencia</label><input type="number" step="0.01" id="transferencia" value="0" oninput="calcularTotales()"></div>
+            <div class="form-group"><label>💳 Zelle (solo USD)</label><input type="number" step="0.01" id="zelle" value="0" oninput="calcularTotales()"></div>
+            <div class="form-group"><label>🪙 Binance (solo USD)</label><input type="number" step="0.01" id="binance" value="0" oninput="calcularTotales()"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:15px;">
+            <label>📝 Observación</label>
+            <textarea id="observacion" rows="2"></textarea>
+        </div>
+        <h4>Total: <span id="totalUSD" style="color:var(--primary);">$0.00</span> | <span id="totalBS" style="color:var(--success);">Bs. 0.00</span></h4>
+        <button class="btn btn-primary" onclick="guardarIngreso()">💾 Guardar Ingreso</button>
+        <button class="btn btn-secondary" onclick="limpiarIngreso()">🔄 Limpiar</button>
+
+        <h3>📜 Historial de Ingresos</h3>
+        <table id="tablaIngresos">
+            <thead><tr>
+                <th>Fecha</th><th>Tasa BCV</th><th>Saldo Inicial $</th><th>Saldo Inicial Bs</th>
+                <th>Efectivo $</th><th>Efectivo Bs</th><th>Pago Móvil</th><th>Débito</th><th>Crédito</th>
+                <th>Transf.</th><th>Zelle</th><th>Cripto</th><th>Total $</th><th>Total Bs</th>
+                <th>Saldo Final $</th><th>Saldo Final Bs</th><th>Acciones</th>
+            </tr></thead>
+            <tbody></tbody>
+        </table>
     </div>
 
-    <!-- TAB RECORDATORIOS -->
+    <!-- ========================================== -->
+    <!-- TAB: RECORDATORIOS (SIN MONTOS)            -->
+    <!-- ========================================== -->
     <div id="tabRecordatorios" class="tab-content">
-        <div class="card">
-            <h2>🔔 Recordatorios</h2>
-            <div class="grid-4">
-                <div class="form-group"><label>📅 Fecha del recordatorio</label><input type="date" id="recordatorioFecha"></div>
-                <div class="form-group"><label>Descripción</label><input type="text" id="recordatorioDescripcion"></div>
-                <div class="form-group"><label>Monto en $</label><input type="number" step="0.01" id="recordatorioMontoUSD" oninput="calcularMontoBSRecordatorio()"></div>
-                <div class="form-group"><label>💴 Monto en Bs (calculado)</label><input type="text" id="recordatorioMontoBSCalculado" disabled></div>
-                <div class="form-group"><label>💴 Monto en Bs (manual)</label><input type="number" step="0.01" id="recordatorioMontoBS"></div>
-                <div class="form-group"><label>🔍 Detalle</label><input type="text" id="recordatorioDetalle"></div>
-                <div class="form-group">
-                    <label> Prioridad</label>
-                    <select id="recordatorioPrioridad">
-                        <option value="Alta">🔴 Alta</option>
-                        <option value="Media" selected>🟡 Media</option>
-                        <option value="Baja">🟢 Baja</option>
-                    </select>
-                </div>
+        <h3>🔔 Recordatorios de Empresa</h3>
+        <p style="color:#666;"><i>Anota tareas, citas o pendientes. Si involucra dinero, ve a la pestaña Pagar o Cobrar.</i></p>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>📅 Fecha del recordatorio <span class="info-tip" title="Fecha en la que debes cumplir el recordatorio.">?</span></label>
+                <input type="date" id="recordatorioFecha">
             </div>
-            <button class="btn btn-success" onclick="guardarRecordatorio()" title="💾 Guardar recordatorio">💾 Guardar Recordatorio</button>
+            <div class="form-group">
+                <label>📝 Descripción <span class="info-tip" title="¿Qué debes hacer o recordar?">?</span></label>
+                <input type="text" id="recordatorioDescripcion" placeholder="Ej: Llamar al proveedor">
+            </div>
+            <div class="form-group">
+                <label>🔍 Detalle</label>
+                <input type="text" id="recordatorioDetalle" placeholder="Notas adicionales">
+            </div>
+            <div class="form-group">
+                <label>⚠️ Prioridad <span class="info-tip" title="Nivel de urgencia del recordatorio.">?</span></label>
+                <select id="recordatorioPrioridad">
+                    <option>Media</option><option>Alta</option><option>Baja</option>
+                </select>
+            </div>
         </div>
+        <button class="btn btn-primary" onclick="guardarRecordatorio()">💾 Guardar Recordatorio</button>
 
-        <div class="card">
-            <h2>📋 Lista de Recordatorios</h2>
-            <table id="tablaRecordatorios">
-                <thead><tr><th>Fecha</th><th>Descripción</th><th>Monto $</th><th>Monto Bs</th><th>Prioridad</th><th>Detalle</th><th>Estado</th><th>Acciones</th></tr></thead>
-                <tbody></tbody>
-            </table>
-        </div>
+        <h3>📋 Lista de Recordatorios</h3>
+        <table id="tablaRecordatorios">
+            <thead><tr>
+                <th>Fecha</th><th>Descripción</th><th>Detalle</th><th>Prioridad</th><th>Estado</th><th>Acciones</th>
+            </tr></thead>
+            <tbody></tbody>
+        </table>
     </div>
 
-    <!-- TAB DEUDAS/PAGAR -->
-    <div id="tabDeudas" class="tab-content">
-        <div class="card">
-            <h2>💳 Pagar - Proveedores / Deudas</h2>
-            
-            <div class="section-info">
-                <p>📊 <strong>Saldo que quedó la última vez:</strong> USD: $<span id="saldoUltimoUSD">0.00</span> | Bs: <span id="saldoUltimoBS">0.00</span></p>
+    <!-- ========================================== -->
+    <!-- TAB: PAGAR (DEUDAS / PROVEEDORES)          -->
+    <!-- ========================================== -->
+    <div id="tabPagar" class="tab-content">
+        <h3>💳 Pagar - Proveedores / Deudas</h3>
+        <p>📊 Saldo que quedó la última vez: USD: <strong id="saldoUltimoUSD">$0.00</strong> | Bs: <strong id="saldoUltimoBS">Bs. 0.00</strong></p>
+        
+        <h4>➕ Registrar Nueva Factura</h4>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Proveedor Existente</label>
+                <select id="deudaProveedorExistente" onchange="seleccionarProveedorExistente()">
+                    <option value="">-- Nuevo Proveedor --</option>
+                </select>
             </div>
-
-            <h3 style="color:#667eea;margin:20px 0 15px 0;">➕ Registrar Nueva Factura</h3>
-            <div class="grid-4">
-                <div class="form-group">
-                    <label>Proveedor Existente</label>
-                    <select id="deudaProveedorExistente" onchange="seleccionarProveedorExistente()">
-                        <option value="">-- Nuevo Proveedor --</option>
-                    </select>
-                </div>
-                <div class="form-group"><label>📅 Fecha</label><input type="date" id="deudaFecha"></div>
-                <div class="form-group"><label>️ RIF / Cédula</label><input type="text" id="deudaRIF"></div>
-                <div class="form-group"><label>👤 Nombre</label><input type="text" id="deudaNombre"></div>
-                <div class="form-group"><label>📝 Descripción</label><input type="text" id="deudaDescripcion"></div>
-                <div class="form-group"><label>Nro. Factura</label><input type="text" id="deudaFactura"></div>
-                <div class="form-group"><label> Monto ($)</label><input type="number" step="0.01" id="deudaMontoUSD" oninput="calcularMontoBSDeuda()"></div>
-                <div class="form-group"><label>💴 Monto en Bs (calculado)</label><input type="text" id="deudaMontoBSCalculado" disabled></div>
-                <div class="form-group"><label>💴 Monto en Bs (manual)</label><input type="number" step="0.01" id="deudaMontoBS"></div>
-                <div class="form-group">
-                    <label>️ Etiqueta</label>
-                    <select id="deudaEtiqueta">
-                        <option value="Proveedor">Proveedor</option>
-                        <option value="Persona">Persona</option>
-                        <option value="Servicio">Servicio</option>
-                        <option value="Deuda">Deuda</option>
-                        <option value="Extra">Extra</option>
-                        <option value="Personal">💳 Personal/Familiar</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Prioridad</label>
-                    <select id="deudaPrioridad">
-                        <option value="Alta">🔴 Alta</option>
-                        <option value="Media" selected>🟡 Media</option>
-                        <option value="Baja">🟢 Baja</option>
-                    </select>
-                </div>
+            <div class="form-group"><label>📅 Fecha</label><input type="date" id="deudaFecha"></div>
+            <div class="form-group"><label>🆔 RIF / Cédula</label><input type="text" id="deudaRIF"></div>
+            <div class="form-group"><label>👤 Nombre <span class="info-tip" title="Nombre del proveedor o a quién le debes.">?</span></label><input type="text" id="deudaNombre"></div>
+            <div class="form-group"><label>📝 Descripción</label><input type="text" id="deudaDescripcion"></div>
+            <div class="form-group"><label>🧾 Nro. Factura</label><input type="text" id="deudaFactura"></div>
+            <div class="form-group"><label>💵 Monto ($) <span class="info-tip" title="Monto total de la deuda en dólares.">?</span></label><input type="number" step="0.01" id="deudaMontoUSD" oninput="calcularMontoBSDeuda()"></div>
+            <div class="form-group"><label>💴 Monto en Bs (calculado)</label><input type="number" step="0.01" id="deudaMontoBSCalculado" readonly style="background:#f1f5f9;"></div>
+            <div class="form-group"><label>💴 Monto en Bs (manual)</label><input type="number" step="0.01" id="deudaMontoBS"></div>
+            <div class="form-group">
+                <label>🏷️ Etiqueta <span class="info-tip" title="Clasificación del gasto.">?</span></label>
+                <select id="deudaEtiqueta">
+                    <option>Proveedor</option><option>Persona</option><option>Servicio</option><option>Deuda Extra</option><option>Personal</option>
+                </select>
             </div>
-            <div style="display:flex;gap:10px;margin-top:15px;">
-                <button class="btn btn-success" onclick="guardarDeuda()" title="💾 Guardar factura"> Guardar Factura</button>
-                <button class="btn btn-warning" onclick="limpiarDeuda()" title="🔄 Limpiar formulario">🔄 Limpiar</button>
+            <div class="form-group">
+                <label>⚠️ Prioridad</label>
+                <select id="deudaPrioridad">
+                    <option>Media</option><option>Alta</option><option>Baja</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>🏦 Cuenta de Origen</label>
+                <select id="deudaCuentaOrigen">
+                    <option value="Empresa">Cuenta Empresa (USD)</option>
+                    <option value="Empresa_Bs">Cuenta Empresa (Bs)</option>
+                    <option value="Binance">Binance (USD)</option>
+                    <option value="Zelle">Zelle (USD)</option>
+                    <option value="Personal">Personal (USD)</option>
+                    <option value="Personal_Bs">Personal (Bs)</option>
+                </select>
             </div>
         </div>
+        <button class="btn btn-primary" onclick="guardarDeuda()">💾 Guardar Factura</button>
+        <button class="btn btn-secondary" onclick="limpiarDeuda()">🔄 Limpiar</button>
 
-        <div class="card">
-            <h2>📋 Gestión de Proveedores Registrados</h2>
-            <div id="listaProveedores">
-                <p style="color:#666;padding:20px;text-align:center;">No hay proveedores registrados aún.</p>
-            </div>
-        </div>
-
-        <div class="total-section">
-            <h3>💸 Total Pendiente: $<span id="totalPendiente">0.00</span> | 🔴 Prioridad Alta: $<span id="totalPrioridadAlta">0.00</span> | 📋 Total Deudas: <span id="totalDeudas">0</span></h3>
-        </div>
-
-        <div class="card">
-            <h2>📋 Pendientes por Pagar</h2>
-            <table id="tablaDeudas">
-                <thead><tr><th>Fecha</th><th>RIF</th><th>Nombre</th><th>Descripción</th><th>Factura</th><th>Monto $</th><th>Abonado $</th><th>Saldo $</th><th>Monto Bs</th><th>Etiqueta</th><th>Prioridad</th><th>Cuenta</th><th>Acciones</th></tr></thead>
-                <tbody></tbody>
-            </table>
-        </div>
+        <h3>📋 Gestión de Proveedores Registrados</h3>
+        <p id="totalPendienteLabel">💸 Total Pendiente: <strong id="totalPendiente">$0.00</strong> | 🔴 Prioridad Alta: <strong id="totalPrioridadAlta">$0.00</strong> | 📋 Total Deudas: <strong id="totalDeudas">0</strong></p>
+        
+        <h4>📋 Pendientes por Pagar</h4>
+        <table id="tablaDeudas">
+            <thead><tr>
+                <th>Fecha</th><th>RIF</th><th>Nombre</th><th>Descripción</th><th>Factura</th>
+                <th>Monto $</th><th>Abonado $</th><th>Saldo $</th><th>Monto Bs</th>
+                <th>Etiqueta</th><th>Prioridad</th><th>Cuenta</th><th>Acciones</th>
+            </tr></thead>
+            <tbody></tbody>
+        </table>
     </div>
 
-    <!-- TAB NÓMINA -->
+    <!-- ========================================== -->
+    <!-- TAB: COBRAR (CUENTAS POR COBRAR) - NUEVO   -->
+    <!-- ========================================== -->
+    <div id="tabCobrar" class="tab-content">
+        <h3>💰 Cuentas por Cobrar (Deudores)</h3>
+        <p style="color:#666;"><i>Registra a las personas que le deben dinero a la empresa. Al cobrar, el dinero se acreditará al saldo de la cuenta seleccionada.</i></p>
+        
+        <h4>➕ Registrar Nueva Cuenta por Cobrar</h4>
+        <div class="form-grid">
+            <div class="form-group"><label>📅 Fecha <span class="info-tip" title="Fecha en que se originó la deuda.">?</span></label><input type="date" id="cobrarFecha"></div>
+            <div class="form-group"><label>🆔 Cédula</label><input type="text" id="cobrarCedula"></div>
+            <div class="form-group"><label>👤 Nombre <span class="info-tip" title="Nombre de la persona que debe.">?</span></label><input type="text" id="cobrarNombre"></div>
+            <div class="form-group"><label>📝 Descripción</label><input type="text" id="cobrarDescripcion"></div>
+            <div class="form-group"><label>💵 Monto USD <span class="info-tip" title="Monto total que te deben.">?</span></label><input type="number" step="0.01" id="cobrarMonto"></div>
+            <div class="form-group">
+                <label>🏷️ Etiqueta <span class="info-tip" title="Tipo de deudor.">?</span></label>
+                <select id="cobrarEtiqueta">
+                    <option>Persona</option><option>Proveedor</option><option>Servicio</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="guardarCuentaPorCobrar()">💾 Registrar Deuda a Favor</button>
+
+        <h3>📋 Listado de Deudores</h3>
+        <p>💰 Total por Cobrar: <strong id="totalCobrar">$0.00</strong> | 📋 Total Cuentas: <strong id="totalCuentasCobrar">0</strong></p>
+        <table id="tablaCobrar">
+            <thead><tr>
+                <th>Fecha</th><th>Cédula</th><th>Nombre</th><th>Descripción</th>
+                <th>Monto $</th><th>Abonado</th><th>Saldo $</th><th>Días Mora</th>
+                <th>Etiqueta</th><th>Acciones</th>
+            </tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB: NÓMINA                                -->
+    <!-- ========================================== -->
     <div id="tabNomina" class="tab-content">
-        <div class="card">
-            <h2>👥 Nómina</h2>
-            <h3>📋 Registro Empleados</h3>
-            <div class="grid-4">
-                <div class="form-group"><label>📅 Fecha Ingreso</label><input type="date" id="empleadoFecha"></div>
-                <div class="form-group"><label>Nombre</label><input type="text" id="empleadoNombre"></div>
-                <div class="form-group"><label>Cédula</label><input type="text" id="empleadoCedula"></div>
-                <div class="form-group">
-                    <label>Tipo Sueldo</label>
-                    <select id="empleadoTipoSueldo">
-                        <option value="Quincenal">Quincenal</option>
-                        <option value="Semanal">Semanal</option>
-                        <option value="Diario">Diario</option>
-                        <option value="Mensual">Mensual</option>
-                    </select>
-                </div>
-                <div class="form-group"><label>Sueldo ($)</label><input type="number" step="0.01" id="empleadoSueldo"></div>
+        <h3>👥 Nómina</h3>
+        <h4>📋 Registro Empleados</h4>
+        <div class="form-grid">
+            <div class="form-group"><label>📅 Fecha Ingreso <span class="info-tip" title="Fecha de ingreso para calcular antigüedad.">?</span></label><input type="date" id="empleadoFecha"></div>
+            <div class="form-group"><label>👤 Nombre</label><input type="text" id="empleadoNombre"></div>
+            <div class="form-group"><label>🆔 Cédula</label><input type="text" id="empleadoCedula"></div>
+            <div class="form-group">
+                <label>💼 Tipo Sueldo</label>
+                <select id="empleadoTipoSueldo">
+                    <option>Quincenal</option><option>Semanal</option><option>Diario</option><option>Mensual</option>
+                </select>
             </div>
-            <button class="btn btn-success" onclick="guardarEmpleado()">Guardar Empleado</button>
+            <div class="form-group"><label>💵 Sueldo ($)</label><input type="number" step="0.01" id="empleadoSueldo"></div>
         </div>
-
-        <div class="card">
-            <h3>Lista de Empleados</h3>
-            <table id="tablaEmpleados">
-                <thead><tr><th>Fecha</th><th>Nombre</th><th>Cédula</th><th>Tipo</th><th>Sueldo</th><th>Status</th><th>Acciones</th></tr></thead>
+        <button class="btn btn-primary" onclick="guardarEmpleado()">💾 Guardar Empleado</button>
+        
+        <h4>Lista de Empleados</h4>
+        <table id="tablaEmpleados">
+            <thead><tr>
+                <th>Fecha</th><th>Nombre</th><th>Cédula</th><th>Tipo</th><th>Sueldo</th><th>Status</th><th>Acciones</th>
+            </tr></thead>
+            <tbody></tbody>
+        </table>
+        
+        <hr style="margin:20px 0;">
+        <h4>Pagar Nómina</h4>
+        <div class="form-grid">
+            <div class="form-group"><label>📅 Fecha de Pago</label><input type="date" id="nominaFechaPago"></div>
+            <div class="form-group">
+                <label>🏦 Cuenta de origen <span class="info-tip" title="De qué cuenta se descontará el pago.">?</span></label>
+                <select id="nominaCuentaOrigen">
+                    <option value="Empresa">🏢 Cuenta Empresa (USD)</option>
+                    <option value="Empresa_Bs">🏢 Cuenta Empresa (Bs)</option>
+                    <option value="Binance">🪙 Cuenta Binance (USD)</option>
+                    <option value="Zelle">💳 Cuenta Zelle (USD)</option>
+                    <option value="Personal">👤 Cuenta Personal (USD)</option>
+                    <option value="Personal_Bs">👤 Cuenta Personal (Bs)</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn btn-success" onclick="generarNomina()">🔄 Generar Nómina</button>
+        
+        <div id="tablaNominaContainer" style="display:none;">
+            <h4>📋 Detalle de Pago</h4>
+            <table id="tablaNominaPagos">
+                <thead><tr>
+                    <th>Nombre</th><th>Cédula</th><th>Tipo</th><th>Sueldo</th>
+                    <th>Bono ($)</th><th>Deuda ($)</th><th>Neto ($)</th><th>Pagado</th><th>Acción</th>
+                </tr></thead>
                 <tbody></tbody>
             </table>
+            <h4>💰 Total a Pagar: $<span id="totalNominaPagar">0.00</span></h4>
+            <button class="btn btn-primary" onclick="guardarNominaPagos()">💾 Guardar y Pagar Todo</button>
+            <button class="btn btn-danger" onclick="cancelarNomina()">❌ Cancelar</button>
         </div>
 
-        <div class="card">
-            <h3>Pagar Nómina</h3>
-            <div class="grid-2">
-                <div class="form-group"><label>Fecha de Pago</label><input type="date" id="nominaFechaPago"></div>
-                <div class="form-group">
-                    <label>🏦 Cuenta de origen</label>
-                    <select id="nominaCuentaOrigen">
-                        <option value="Empresa"> Cuenta Empresa (USD)</option>
-                        <option value="Empresa_Bs">🏢 Cuenta Empresa (Bs)</option>
-                        <option value="Binance">🪙 Cuenta Binance (USD)</option>
-                        <option value="Zelle">💳 Cuenta Zelle (USD)</option>
-                        <option value="Personal">👤 Cuenta Personal (USD)</option>
-                        <option value="Personal_Bs">👤 Cuenta Personal (Bs)</option>
-                    </select>
-                </div>
-            </div>
-            <button class="btn btn-primary" onclick="generarNomina()">🔄 Generar Nómina</button>
-            
-            <div id="tablaNominaContainer" style="display:none;margin-top:20px;">
-                <h3>📋 Detalle de Pago</h3>
-                <table id="tablaNominaPagos">
-                    <thead><tr><th>Nombre</th><th>Cédula</th><th>Tipo</th><th>Sueldo</th><th>Bono ($)</th><th>Deuda ($)</th><th>Neto ($)</th><th>Pagado</th><th>Acción</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-                <div class="total-section" style="margin-top:15px;">
-                    <h3>💰 Total a Pagar: $<span id="totalNominaPagar">0.00</span></h3>
-                </div>
-                <div style="display:flex;gap:10px;margin-top:15px;">
-                    <button class="btn btn-success" onclick="guardarNominaPagos()">💾 Guardar y Pagar Todo</button>
-                    <button class="btn btn-danger" onclick="cancelarNomina()">❌ Cancelar</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h3>📜 Historial de Pagos de Nómina</h3>
-            <table id="tablaHistorialNomina">
-                <thead><tr><th>Fecha Pago</th><th>Empleado</th><th>Cédula</th><th>Sueldo</th><th>Bono</th><th>Deuda</th><th>Neto</th><th>Cuenta</th><th>Status</th></tr></thead>
-                <tbody></tbody>
-            </table>
-        </div>
+        <h4>📜 Historial de Pagos de Nómina</h4>
+        <table id="tablaHistorialNomina">
+            <thead><tr>
+                <th>Fecha Pago</th><th>Empleado</th><th>Cédula</th><th>Sueldo</th>
+                <th>Bono</th><th>Deuda</th><th>Neto</th><th>Cuenta</th><th>Status</th>
+            </tr></thead>
+            <tbody></tbody>
+        </table>
     </div>
 
-    <!-- TAB BÚSQUEDA -->
+    <!-- ========================================== -->
+    <!-- TAB: BÚSQUEDA (FORMATO TARJETAS)           -->
+    <!-- ========================================== -->
     <div id="tabBusqueda" class="tab-content">
-        <div class="card">
-            <h2>🔍 Búsqueda General</h2>
-            <div class="grid-4">
-                <div class="form-group"><label> Desde</label><input type="date" id="busqDesde"></div>
-                <div class="form-group"><label>Hasta</label><input type="date" id="busqHasta"></div>
-                <div class="form-group">
-                    <label>Filtro Rápido</label>
-                    <select id="busqFiltro">
-                        <option value="todos">📊 Todos</option>
-                        <option value="ingresos">📈 Ingresos</option>
-                        <option value="deudas">💳 Pagos</option>
-                        <option value="nomina">👥 Nómina</option>
-                        <option value="recordatorios"> Recordatorios</option>
-                    </select>
-                </div>
-                <div class="form-group"><label>🔍 Texto</label><input type="text" id="busqTexto" placeholder="Buscar..."></div>
+        <h3>🔍 Búsqueda General</h3>
+        <div class="form-grid">
+            <div class="form-group"><label>📅 Desde</label><input type="date" id="busqDesde"></div>
+            <div class="form-group"><label>📅 Hasta</label><input type="date" id="busqHasta"></div>
+            <div class="form-group">
+                <label>🔍 Filtro Rápido <span class="info-tip" title="Filtra por tipo de movimiento.">?</span></label>
+                <select id="busqFiltro">
+                    <option value="todos">📊 Todos</option>
+                    <option value="ingresos">📈 Ingresos</option>
+                    <option value="deudas">💳 Pagos (Deudas)</option>
+                    <option value="cobros">💰 Cobros</option>
+                    <option value="recordatorios">🔔 Recordatorios</option>
+                    <option value="nomina">👥 Nómina</option>
+                </select>
             </div>
-            <button class="btn btn-primary" onclick="realizarBusqueda()">🔍 Buscar</button>
-            <div id="resultadosBusqueda" style="margin-top:20px;"></div>
+            <div class="form-group"><label>🔍 Texto</label><input type="text" id="busqTexto" placeholder="Buscar..."></div>
         </div>
+        <button class="btn btn-primary" onclick="realizarBusqueda()">🔍 Buscar</button>
+        <div id="resultadosBusqueda" style="margin-top:20px;"></div>
     </div>
 
-    <!-- TAB ANÁLISIS -->
+    <!-- ========================================== -->
+    <!-- TAB: ANÁLISIS                              -->
+    <!-- ========================================== -->
     <div id="tabAnalisis" class="tab-content">
-        <div class="card">
-            <h2>📊 Análisis Financiero</h2>
-            <div class="section-info">
-                <p>ℹ️ <strong>Registro automático de ingresos, pagos y nómina por día. Compara meses y detecta tendencias.</strong></p>
+        <h3>📊 Análisis Financiero</h3>
+        <p style="color:#666;">ℹ️ Registro automático de ingresos, pagos y nómina por día. Compara meses y detecta tendencias.</p>
+        
+        <div class="form-grid">
+            <div class="form-group">
+                <label>📅 Filtrar por Mes</label>
+                <input type="month" id="analisisMes">
             </div>
-            
-            <div class="grid-4">
-                <div class="form-group">
-                    <label>📅 Filtrar por Mes</label>
-                    <input type="month" id="analisisMes" onchange="renderizarResumenDiario()">
-                </div>
-                <div class="form-group">
-                    <label>🔍 Buscar fecha</label>
-                    <input type="date" id="analisisFecha" onchange="renderizarResumenDiario()">
-                </div>
-                <div class="form-group">
-                    <label>📊 Vista</label>
-                    <select id="analisisVista" onchange="renderizarResumenDiario()">
-                        <option value="dia">Por Día</option>
-                        <option value="mes">Por Mes</option>
-                        <option value="anio">Por Año</option>
-                    </select>
-                </div>
+            <div class="form-group">
+                <label>🔍 Buscar fecha</label>
+                <input type="date" id="analisisFecha">
             </div>
+            <div class="form-group">
+                <label>📊 Vista</label>
+                <select id="analisisVista" onchange="renderizarResumenDiario()">
+                    <option value="dia">Por Día</option>
+                    <option value="mes">Por Mes</option>
+                    <option value="anio">Por Año</option>
+                </select>
+            </div>
+        </div>
 
-            <div class="stats-grid">
-                <div class="stat-card"><h3 id="analisisIngresosUSD">$0.00</h3><p>💵 Ingresos (USD)</p></div>
-                <div class="stat-card"><h3 id="analisisIngresosBS">Bs. 0.00</h3><p>💴 Ingresos (Bs)</p></div>
-                <div class="stat-card"><h3 id="analisisPagosUSD">$0.00</h3><p>💸 Pagos (USD)</p></div>
-                <div class="stat-card"><h3 id="analisisPagosBS">Bs. 0.00</h3><p>💸 Pagos (Bs)</p></div>
-                <div class="stat-card"><h3 id="analisisNominaUSD">$0.00</h3><p>👥 Nómina (USD)</p></div>
-                <div class="stat-card"><h3 id="analisisNetoUSD">$0.00</h3><p>💰 NETO (USD)<br><small>Ingresos - Pagos - Nómina</small></p></div>
-            </div>
+        <div class="saldos-panel">
+            <div class="saldo-item"><h4>💵 Ingresos (USD)</h4><p id="analisisIngresosUSD">$0.00</p></div>
+            <div class="saldo-item"><h4>💴 Ingresos (Bs)</h4><p id="analisisIngresosBS">Bs. 0.00</p></div>
+            <div class="saldo-item"><h4>💸 Pagos (USD)</h4><p id="analisisPagosUSD">$0.00</p></div>
+            <div class="saldo-item"><h4>💸 Pagos (Bs)</h4><p id="analisisPagosBS">Bs. 0.00</p></div>
+            <div class="saldo-item"><h4>👥 Nómina (USD)</h4><p id="analisisNominaUSD">$0.00</p></div>
+            <div class="saldo-item"><h4>💰 NETO (USD)</h4><p id="analisisNetoUSD">$0.00</p></div>
+        </div>
 
-            <div style="margin:20px 0;">
-                <canvas id="graficoAnalisis"></canvas>
-            </div>
+        <canvas id="graficoAnalisis" height="100"></canvas>
 
-            <h3>📋 Registro Detallado</h3>
-            <table id="tablaAnalisis">
-                <thead><tr><th>📅 Fecha</th><th>💵 Ingresos USD</th><th> Ingresos Bs</th><th>💸 Pagos USD</th><th>💸 Pagos Bs</th><th>👥 Nómina USD</th><th>💰 NETO USD</th><th>💱 Tasa</th></tr></thead>
-                <tbody></tbody>
-                <tfoot id="tablaAnalisisFoot"></tfoot>
-            </table>
+        <h4>📋 Registro Detallado</h4>
+        <table id="tablaAnalisis">
+            <thead><tr>
+                <th>📅 Fecha</th><th>💵 Ingresos USD</th><th>💴 Ingresos Bs</th>
+                <th>💸 Pagos USD</th><th>💸 Pagos Bs</th><th>👥 Nómina USD</th>
+                <th>💰 NETO USD</th><th>💱 Tasa</th>
+            </tr></thead>
+            <tbody></tbody>
+            <tfoot id="tablaAnalisisFoot"></tfoot>
+        </table>
 
-            <div style="display:flex;gap:10px;margin-top:20px;">
-                <button class="btn btn-success" onclick="exportarAnalisisExcel()">📥 Exportar Análisis Excel</button>
-                <button class="btn btn-primary" onclick="exportarAnalisisPDF()">📄 Exportar Análisis PDF</button>
-                <button class="btn btn-info" onclick="mostrarAnalisisInteligente()">🧠 Análisis Inteligente</button>
-            </div>
+        <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn btn-success" onclick="exportarAnalisisExcel()">📥 Exportar Análisis Excel</button>
+            <button class="btn btn-danger" onclick="exportarAnalisisPDF()">📄 Exportar Análisis PDF</button>
+            <button class="btn btn-info" onclick="mostrarAnalisisInteligente()">🧠 Análisis Inteligente</button>
         </div>
     </div>
 
-    <!-- TAB DASHBOARD -->
+    <!-- ========================================== -->
+    <!-- TAB: DASHBOARD (ACTUALIZADO)               -->
+    <!-- ========================================== -->
     <div id="tabDashboard" class="tab-content">
-        <div class="card">
-            <h2> Dashboard General</h2>
-            <div class="stats-grid">
-                <div class="stat-card"><h3 id="dashIngresos">$0.00 / Bs. 0.00</h3><p>INGRESOS DEL MES</p></div>
-                <div class="stat-card"><h3 id="dashDeudas">$0.00</h3><p>💸 TOTAL A DEBER<br><small id="dashNumDeudas">0 deudas</small></p></div>
-                <div class="stat-card"><h3 id="dashNomina">$0.00</h3><p>NÓMINA PENDIENTE<br><small id="dashNumEmpleados">0 empleados</small></p></div>
-                <div class="stat-card"><h3 id="dashRecordatorios">0</h3><p>🔔 RECORDATORIOS<br><small>Pendientes</small></p></div>
-                <div class="stat-card"><h3 id="dashBalance">$0.00</h3><p>💰 BALANCE NETO<br><small>Ingresos - Deudas - Nómina</small></p></div>
+        <h3>📉 Dashboard General</h3>
+        <div class="saldos-panel">
+            <div class="saldo-item">
+                <h4>💵 INGRESOS DEL MES</h4>
+                <p id="dashIngresos">$0.00 / Bs. 0.00</p>
+            </div>
+            <div class="saldo-item">
+                <h4>💸 TOTAL A DEBER</h4>
+                <p id="dashDeudas">$0.00</p>
+                <small id="dashNumDeudas">0 deudas</small>
+            </div>
+            <div class="saldo-item">
+                <h4>💰 TOTAL POR COBRAR <span class="info-tip" title="Dinero que la empresa tiene pendiente por recibir.">?</span></h4>
+                <p id="dashCobrar">$0.00</p>
+                <small id="dashNumCobrar">0 cuentas</small>
+            </div>
+            <div class="saldo-item">
+                <h4>🔔 RECORDATORIOS</h4>
+                <p id="dashRecordatorios">0</p>
+                <small>Pendientes</small>
+            </div>
+            <div class="saldo-item">
+                <h4>💰 BALANCE NETO</h4>
+                <p id="dashBalance">$0.00</p>
+                <small>Ingresos - Deudas</small>
             </div>
         </div>
 
-        <div class="card">
-            <h3> Notas Rápidas</h3>
-            <textarea id="notasRapidas" rows="5" style="width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:8px;"></textarea>
-            <button class="btn btn-success" onclick="guardarNotas()" style="margin-top:10px;">💾 Guardar Nota</button>
+        <hr>
+        <h3>🔎 Ver Cierre de Caja por Fecha <span class="info-tip" title="Selecciona una fecha para ver exactamente cómo quedó la caja ese día.">?</span></h3>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>📅 Seleccionar Fecha</label>
+                <input type="date" id="dashFechaCierre">
+            </div>
+            <div class="form-group" style="justify-content: flex-end;">
+                <button class="btn btn-primary" onclick="verCierrePorFecha()">🔍 Ver Cierre de ese Día</button>
+            </div>
         </div>
+        <div id="resultadoCierreFecha" class="alert alert-info" style="display:none;"></div>
+
+        <hr>
+        <h3>📝 Notas Rápidas</h3>
+        <textarea id="notasRapidas" rows="4" placeholder="Escribe notas rápidas aquí..." style="width:100%;"></textarea>
+        <button class="btn btn-primary" onclick="guardarNotas()">💾 Guardar Nota</button>
     </div>
 
-</div>
+</div> <!-- Fin Container -->
 
-<!-- MODAL PAGO DEUDA -->
+<!-- ========================================== -->
+<!-- MODALES                                    -->
+<!-- ========================================== -->
+
+<!-- Modal Pagar Deuda -->
 <div id="modalPagoDeuda" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h3>💵 Registrar Pago/Abono</h3>
-            <button class="close-modal" onclick="cerrarModalPago()"></button>
-        </div>
+        <div class="modal-header"><h3>💵 Registrar Pago</h3><span class="close-btn" onclick="cerrarModalPago()">&times;</span></div>
+        <p>Proveedor: <strong id="pagoDeudaNombre"></strong> | Factura: <strong id="pagoDeudaFactura"></strong> | Saldo: <strong id="pagoDeudaSaldo"></strong></p>
         
-        <div class="alert alert-info" style="display:block;margin-bottom:15px;">
-            <strong>💰 Saldos Disponibles:</strong>
-            <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                <div> Binance: <strong id="modalSaldoBinance">$0.00</strong></div>
-                <div>💳 Zelle: <strong id="modalSaldoZelle">$0.00</strong></div>
-                <div>🏢 Empresa USD: <strong id="modalSaldoEmpresa">$0.00</strong></div>
-                <div>🏢 Empresa Bs: <strong id="modalSaldoEmpresaBs">Bs. 0.00</strong></div>
-                <div> Personal USD: <strong id="modalSaldoPersonal">$0.00</strong></div>
-                <div>👤 Personal Bs: <strong id="modalSaldoPersonalBs">Bs. 0.00</strong></div>
+        <div class="saldos-panel" style="margin:10px 0;">
+            <div class="saldo-item"><h4>🪙 Binance</h4><p id="modalSaldoBinance">$0.00</p></div>
+            <div class="saldo-item"><h4>💳 Zelle</h4><p id="modalSaldoZelle">$0.00</p></div>
+            <div class="saldo-item"><h4>🏢 Empresa USD</h4><p id="modalSaldoEmpresa">$0.00</p></div>
+            <div class="saldo-item"><h4>🏢 Empresa Bs</h4><p id="modalSaldoEmpresaBs">Bs. 0.00</p></div>
+            <div class="saldo-item"><h4>👤 Personal USD</h4><p id="modalSaldoPersonal">$0.00</p></div>
+            <div class="saldo-item"><h4>👤 Personal Bs</h4><p id="modalSaldoPersonalBs">Bs. 0.00</p></div>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group"><label>📅 Fecha de Pago</label><input type="date" id="pagoDeudaFecha"></div>
+            <div class="form-group"><label>💵 Monto a Abonar ($)</label><input type="number" step="0.01" id="pagoDeudaMonto" oninput="verificarSaldoDisponible()"></div>
+            <div class="form-group">
+                <label>🏦 Cuenta de Origen</label>
+                <select id="pagoDeudaCuenta" onchange="verificarSaldoDisponible()">
+                    <option value="Binance">🪙 Cuenta Binance (USD)</option>
+                    <option value="Zelle">💳 Cuenta Zelle (USD)</option>
+                    <option value="Empresa">🏢 Cuenta Empresa (USD)</option>
+                    <option value="Empresa_Bs">🏢 Cuenta Empresa (Bs)</option>
+                    <option value="Personal">👤 Cuenta Personal (USD)</option>
+                    <option value="Personal_Bs">👤 Cuenta Personal (Bs)</option>
+                </select>
             </div>
+            <div class="form-group"><label>🔖 Referencia de Pago <span class="info-tip" title="Número de transferencia o referencia.">?</span></label><input type="text" id="pagoDeudaReferencia"></div>
         </div>
-        
-        <input type="hidden" id="pagoDeudaID">
-        <div class="form-group"><label>Proveedor</label><input type="text" id="pagoDeudaNombre" disabled></div>
-        <div class="form-group"><label>Factura</label><input type="text" id="pagoDeudaFactura" disabled></div>
-        <div class="form-group"><label>Saldo Pendiente</label><input type="text" id="pagoDeudaSaldo" disabled></div>
-        <div class="form-group"><label>💵 Monto a Abonar ($)</label><input type="number" step="0.01" id="pagoDeudaMonto" oninput="verificarSaldoDisponible()"></div>
-        <div id="alertaSaldoInsuficiente" class="alert alert-danger" style="display:none;">
-            ⚠️ <strong>Saldo insuficiente</strong> en la cuenta seleccionada.
+        <div class="form-group" style="margin-bottom:15px;">
+            <label>📝 Observación</label>
+            <textarea id="pagoDeudaObservacion" rows="2"></textarea>
         </div>
-        <div class="form-group"><label>📅 Fecha de Pago</label><input type="date" id="pagoDeudaFecha"></div>
-        <div class="form-group">
-            <label>🏦 Cuenta de Origen</label>
-            <select id="pagoDeudaCuenta" onchange="verificarSaldoDisponible()">
-                <option value="Binance">🪙 Cuenta Binance (USD)</option>
-                <option value="Zelle">💳 Cuenta Zelle (USD)</option>
-                <option value="Empresa">🏢 Cuenta Empresa (USD)</option>
-                <option value="Empresa_Bs">🏢 Cuenta Empresa (Bs)</option>
-                <option value="Personal">👤 Cuenta Personal (USD)</option>
-                <option value="Personal_Bs"> Cuenta Personal (Bs)</option>
-            </select>
-        </div>
-        <div class="form-group"><label>🔖 Referencia de Pago</label><input type="text" id="pagoDeudaReferencia"></div>
-        <div class="form-group"><label>📝 Observación</label><textarea id="pagoDeudaObservacion"></textarea></div>
-        <div style="display:flex;gap:10px;">
-            <button class="btn btn-success" onclick="confirmarPagoDeuda()">💾 Confirmar Pago</button>
-            <button class="btn btn-warning" onclick="cerrarModalPago()">❌ Cancelar</button>
-        </div>
+        <div id="alertaSaldoInsuficiente" class="alert alert-warning" style="display:none;">⚠️ <strong>Saldo insuficiente</strong> en la cuenta seleccionada.</div>
+        <button class="btn btn-success" onclick="confirmarPagoDeuda()">💾 Confirmar Pago</button>
+        <button class="btn btn-secondary" onclick="cerrarModalPago()">❌ Cancelar</button>
     </div>
 </div>
 
-<!-- MODAL HISTORIAL PAGOS -->
+<!-- Modal Pagar Cobrar (Acredita dinero) -->
+<div id="modalPagarCobrar" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>💰 Registrar Cobro</h3><span class="close-btn" onclick="cerrarModalCobro()">&times;</span></div>
+        <p>Deudor: <strong id="pagoCobrarNombre"></strong> | Saldo: <strong id="pagoCobrarSaldo"></strong></p>
+        <div class="form-grid">
+            <div class="form-group"><label>📅 Fecha</label><input type="date" id="pagoCobrarFecha"></div>
+            <div class="form-group"><label>💵 Monto a Recibir ($)</label><input type="number" step="0.01" id="pagoCobrarMonto"></div>
+            <div class="form-group">
+                <label>🏦 Cuenta Destino <span class="info-tip" title="A qué cuenta se sumará el dinero.">?</span></label>
+                <select id="pagoCobrarCuenta">
+                    <option value="Empresa">🏢 Empresa USD</option>
+                    <option value="Empresa_Bs">🏢 Empresa Bs</option>
+                    <option value="Binance">🪙 Binance</option>
+                    <option value="Zelle">💳 Zelle</option>
+                </select>
+            </div>
+            <div class="form-group"><label>🔖 Referencia</label><input type="text" id="pagoCobrarReferencia"></div>
+        </div>
+        <button class="btn btn-success" onclick="confirmarPagoCobro()">💾 Confirmar Cobro</button>
+        <button class="btn btn-secondary" onclick="cerrarModalCobro()">❌ Cancelar</button>
+    </div>
+</div>
+
+<!-- Modal Evaluar / Ajustar Saldo -->
+<div id="modalAjustarSaldo" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>🔍 Evaluar Discrepancia</h3><span class="close-btn" onclick="document.getElementById('modalAjustarSaldo').style.display='none'">&times;</span></div>
+        <p>El sistema calculó un saldo basado en tus registros, pero el monto que escribiste es diferente.</p>
+        <div class="alert alert-warning">
+            <div>
+                <strong>¿Gastaste y no registraste?</strong> <br>¿O <strong>te pagaron y no lo registraste?</strong>
+            </div>
+        </div>
+        <p>Si estás seguro de que el monto que escribiste es el <strong>Saldo Real</strong> que tienes en la cuenta ahora mismo, el sistema lo aceptará y sobrescribirá el cálculo anterior.</p>
+        <button class="btn btn-warning" onclick="aceptarAjusteSaldo()">✅ Aceptar como Saldo Real y Continuar</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('modalAjustarSaldo').style.display='none'">❌ Cancelar y Revisar</button>
+    </div>
+</div>
+
+<!-- Modal Historial Pagos -->
 <div id="modalHistorialPagos" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h3>📜 Historial de Pagos</h3>
-            <button class="close-modal" onclick="cerrarModalHistorial()">❌</button>
-        </div>
+        <div class="modal-header"><h3>📜 Historial de Pagos</h3><span class="close-btn" onclick="cerrarModalHistorial()">&times;</span></div>
         <input type="hidden" id="histDeudaID">
         <table id="tablaHistorialPagosDeuda">
             <thead><tr><th>Fecha</th><th>Monto $</th><th>Cuenta</th><th>Referencia</th><th>Observación</th></tr></thead>
@@ -734,249 +740,192 @@ tr:hover { background: #f8f9fa; }
     </div>
 </div>
 
-<!-- MODAL EDITAR EMPLEADO -->
-<div id="modalEditarEmpleado" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>✏️ Editar Empleado</h3>
-            <button class="close-modal" onclick="cerrarModalEmpleado()">❌</button>
-        </div>
-        <input type="hidden" id="editEmpleadoID">
-        <div class="form-group"><label>📅 Fecha Ingreso</label><input type="date" id="editEmpleadoFecha"></div>
-        <div class="form-group"><label>Nombre</label><input type="text" id="editEmpleadoNombre"></div>
-        <div class="form-group"><label>Cédula</label><input type="text" id="editEmpleadoCedula"></div>
-        <div class="form-group">
-            <label>💼 Tipo Sueldo</label>
-            <select id="editEmpleadoTipoSueldo">
-                <option value="Quincenal">Quincenal</option>
-                <option value="Semanal">Semanal</option>
-                <option value="Diario">Diario</option>
-                <option value="Mensual">Mensual</option>
-            </select>
-        </div>
-        <div class="form-group"><label>Sueldo ($)</label><input type="number" step="0.01" id="editEmpleadoSueldo"></div>
-        <div class="form-group">
-            <label>Status</label>
-            <select id="editEmpleadoStatus">
-                <option value="Activo">Activo</option>
-                <option value="Inactivo">Inactivo</option>
-            </select>
-        </div>
-        <div style="display:flex;gap:10px;">
-            <button class="btn btn-success" onclick="guardarEdicionEmpleado()">💾 Guardar Cambios</button>
-            <button class="btn btn-warning" onclick="cerrarModalEmpleado()">❌ Cancelar</button>
-        </div>
-    </div>
-</div>
-
-<!-- ✅ NUEVO: MODAL EDITAR INGRESO -->
+<!-- Modal Editar Ingreso -->
 <div id="modalEditarIngreso" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h3>✏️ Editar Ingreso</h3>
-            <button class="close-modal" onclick="cerrarModalEditarIngreso()">❌</button>
-        </div>
+        <div class="modal-header"><h3>✏️ Editar Ingreso</h3><span class="close-btn" onclick="cerrarModalEditarIngreso()">&times;</span></div>
         <input type="hidden" id="editIngresoID">
-        <div class="form-group"><label>📅 Fecha</label><input type="date" id="editIngresoFecha"></div>
-        <div class="form-group"><label>💱 Tasa BCV</label><input type="number" step="0.01" id="editIngresoTasa"></div>
-        <div class="form-group"><label>💵 Saldo Inicial USD</label><input type="number" step="0.01" id="editIngresoSaldoIniUSD"></div>
-        <div class="form-group"><label>💴 Saldo Inicial Bs</label><input type="number" step="0.01" id="editIngresoSaldoIniBS"></div>
-        <div class="form-group"><label>💵 Efectivo USD</label><input type="number" step="0.01" id="editIngresoEfectivoUSD"></div>
-        <div class="form-group"><label>💴 Efectivo Bs</label><input type="number" step="0.01" id="editIngresoEfectivoBS"></div>
-        <div class="form-group"><label> Pago Móvil</label><input type="number" step="0.01" id="editIngresoPagoMovil"></div>
-        <div class="form-group"><label>💳 Tarjeta Débito</label><input type="number" step="0.01" id="editIngresoTarjetaDebito"></div>
-        <div class="form-group"><label>💳 Tarjeta Crédito</label><input type="number" step="0.01" id="editIngresoTarjetaCredito"></div>
-        <div class="form-group"><label>🏦 Transferencia</label><input type="number" step="0.01" id="editIngresoTransferencia"></div>
-        <div class="form-group"><label>💳 Zelle</label><input type="number" step="0.01" id="editIngresoZelle"></div>
-        <div class="form-group"><label>🪙 Binance</label><input type="number" step="0.01" id="editIngresoBinance"></div>
-        <div class="form-group"><label>📝 Observación</label><textarea id="editIngresoObservacion" rows="2"></textarea></div>
-        <div style="display:flex;gap:10px;">
-            <button class="btn btn-success" onclick="guardarEdicionIngreso()">💾 Guardar Cambios</button>
-            <button class="btn btn-warning" onclick="cerrarModalEditarIngreso()">❌ Cancelar</button>
+        <div class="form-grid">
+            <div class="form-group"><label>📅 Fecha</label><input type="date" id="editIngresoFecha"></div>
+            <div class="form-group"><label>💱 Tasa BCV</label><input type="number" step="0.01" id="editIngresoTasa"></div>
+            <div class="form-group"><label>💵 Saldo Inicial USD</label><input type="number" step="0.01" id="editIngresoSaldoIniUSD"></div>
+            <div class="form-group"><label>💴 Saldo Inicial Bs</label><input type="number" step="0.01" id="editIngresoSaldoIniBS"></div>
+            <div class="form-group"><label>💵 Efectivo USD</label><input type="number" step="0.01" id="editIngresoEfectivoUSD"></div>
+            <div class="form-group"><label>💴 Efectivo Bs</label><input type="number" step="0.01" id="editIngresoEfectivoBS"></div>
+            <div class="form-group"><label>📱 Pago Móvil</label><input type="number" step="0.01" id="editIngresoPagoMovil"></div>
+            <div class="form-group"><label>💳 Tarjeta Débito</label><input type="number" step="0.01" id="editIngresoTarjetaDebito"></div>
+            <div class="form-group"><label>💳 Tarjeta Crédito</label><input type="number" step="0.01" id="editIngresoTarjetaCredito"></div>
+            <div class="form-group"><label>🏦 Transferencia</label><input type="number" step="0.01" id="editIngresoTransferencia"></div>
+            <div class="form-group"><label>💳 Zelle</label><input type="number" step="0.01" id="editIngresoZelle"></div>
+            <div class="form-group"><label>🪙 Binance</label><input type="number" step="0.01" id="editIngresoBinance"></div>
         </div>
+        <div class="form-group" style="margin-bottom:15px;">
+            <label>📝 Observación</label>
+            <textarea id="editIngresoObservacion" rows="2"></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="guardarEdicionIngreso()">💾 Guardar Cambios</button>
+        <button class="btn btn-secondary" onclick="cerrarModalEditarIngreso()">❌ Cancelar</button>
     </div>
 </div>
 
-<!-- ✅ NUEVO: MODAL EDITAR RECORDATORIO -->
-<div id="modalEditarRecordatorio" class="modal">
+<!-- Modal Editar Empleado -->
+<div id="modalEditarEmpleado" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h3>✏️ Editar Recordatorio</h3>
-            <button class="close-modal" onclick="cerrarModalEditarRecordatorio()">❌</button>
+        <div class="modal-header"><h3>✏️ Editar Empleado</h3><span class="close-btn" onclick="cerrarModalEmpleado()">&times;</span></div>
+        <input type="hidden" id="editEmpleadoID">
+        <div class="form-grid">
+            <div class="form-group"><label>📅 Fecha Ingreso</label><input type="date" id="editEmpleadoFecha"></div>
+            <div class="form-group"><label>👤 Nombre</label><input type="text" id="editEmpleadoNombre"></div>
+            <div class="form-group"><label>🆔 Cédula</label><input type="text" id="editEmpleadoCedula"></div>
+            <div class="form-group">
+                <label>💼 Tipo Sueldo</label>
+                <select id="editEmpleadoTipoSueldo">
+                    <option>Quincenal</option><option>Semanal</option><option>Diario</option><option>Mensual</option>
+                </select>
+            </div>
+            <div class="form-group"><label>💵 Sueldo ($)</label><input type="number" step="0.01" id="editEmpleadoSueldo"></div>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="editEmpleadoStatus"><option>Activo</option><option>Inactivo</option></select>
+            </div>
         </div>
-        <input type="hidden" id="editRecordatorioID">
-        <div class="form-group"><label>📅 Fecha</label><input type="date" id="editRecordatorioFecha"></div>
-        <div class="form-group"><label>Descripción</label><input type="text" id="editRecordatorioDescripcion"></div>
-        <div class="form-group"><label>Monto $</label><input type="number" step="0.01" id="editRecordatorioMontoUSD"></div>
-        <div class="form-group"><label>Monto Bs</label><input type="number" step="0.01" id="editRecordatorioMontoBS"></div>
-        <div class="form-group"><label>Detalle</label><input type="text" id="editRecordatorioDetalle"></div>
-        <div class="form-group">
-            <label>Prioridad</label>
-            <select id="editRecordatorioPrioridad">
-                <option value="Alta">🔴 Alta</option>
-                <option value="Media">🟡 Media</option>
-                <option value="Baja">🟢 Baja</option>
-            </select>
-        </div>
-        <div style="display:flex;gap:10px;">
-            <button class="btn btn-success" onclick="guardarEdicionRecordatorio()">💾 Guardar Cambios</button>
-            <button class="btn btn-warning" onclick="cerrarModalEditarRecordatorio()">❌ Cancelar</button>
-        </div>
+        <button class="btn btn-primary" onclick="guardarEdicionEmpleado()">💾 Guardar Cambios</button>
+        <button class="btn btn-secondary" onclick="cerrarModalEmpleado()">❌ Cancelar</button>
     </div>
 </div>
 
-<!-- ✅ NUEVO: MODAL EDITAR DEUDA -->
+<!-- Modal Editar Deuda -->
 <div id="modalEditarDeuda" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h3>✏️ Editar Factura/Deuda</h3>
-            <button class="close-modal" onclick="cerrarModalEditarDeuda()">❌</button>
-        </div>
+        <div class="modal-header"><h3>✏️ Editar Factura/Deuda</h3><span class="close-btn" onclick="cerrarModalEditarDeuda()">&times;</span></div>
         <input type="hidden" id="editDeudaID">
-        <div class="form-group"><label>📅 Fecha</label><input type="date" id="editDeudaFecha"></div>
-        <div class="form-group"><label>RIF</label><input type="text" id="editDeudaRIF"></div>
-        <div class="form-group"><label>Nombre</label><input type="text" id="editDeudaNombre"></div>
-        <div class="form-group"><label>Descripción</label><input type="text" id="editDeudaDescripcion"></div>
-        <div class="form-group"><label>Nro. Factura</label><input type="text" id="editDeudaFactura"></div>
-        <div class="form-group"><label>Monto USD</label><input type="number" step="0.01" id="editDeudaMontoUSD"></div>
-        <div class="form-group"><label>Monto Bs</label><input type="number" step="0.01" id="editDeudaMontoBS"></div>
-        <div class="form-group">
-            <label>Etiqueta</label>
-            <select id="editDeudaEtiqueta">
-                <option value="Proveedor">Proveedor</option>
-                <option value="Persona">Persona</option>
-                <option value="Servicio">Servicio</option>
-                <option value="Deuda">Deuda</option>
-                <option value="Extra">Extra</option>
-                <option value="Personal">Personal</option>
-            </select>
+        <div class="form-grid">
+            <div class="form-group"><label>📅 Fecha</label><input type="date" id="editDeudaFecha"></div>
+            <div class="form-group"><label>🆔 RIF</label><input type="text" id="editDeudaRIF"></div>
+            <div class="form-group"><label>👤 Nombre</label><input type="text" id="editDeudaNombre"></div>
+            <div class="form-group"><label>📝 Descripción</label><input type="text" id="editDeudaDescripcion"></div>
+            <div class="form-group"><label>🧾 Nro. Factura</label><input type="text" id="editDeudaFactura"></div>
+            <div class="form-group"><label>💵 Monto USD</label><input type="number" step="0.01" id="editDeudaMontoUSD"></div>
+            <div class="form-group"><label>💴 Monto Bs</label><input type="number" step="0.01" id="editDeudaMontoBS"></div>
+            <div class="form-group">
+                <label>🏷️ Etiqueta</label>
+                <select id="editDeudaEtiqueta">
+                    <option>Proveedor</option><option>Persona</option><option>Servicio</option><option>Deuda Extra</option><option>Personal</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>⚠️ Prioridad</label>
+                <select id="editDeudaPrioridad"><option>Media</option><option>Alta</option><option>Baja</option></select>
+            </div>
         </div>
-        <div class="form-group">
-            <label>Prioridad</label>
-            <select id="editDeudaPrioridad">
-                <option value="Alta">🔴 Alta</option>
-                <option value="Media">🟡 Media</option>
-                <option value="Baja">🟢 Baja</option>
-            </select>
-        </div>
-        <div style="display:flex;gap:10px;">
-            <button class="btn btn-success" onclick="guardarEdicionDeuda()"> Guardar Cambios</button>
-            <button class="btn btn-warning" onclick="cerrarModalEditarDeuda()">❌ Cancelar</button>
-        </div>
+        <button class="btn btn-primary" onclick="guardarEdicionDeuda()">💾 Guardar Cambios</button>
+        <button class="btn btn-secondary" onclick="cerrarModalEditarDeuda()">❌ Cancelar</button>
     </div>
 </div>
 
-<!-- MODAL ANÁLISIS INTELIGENTE -->
-<div id="modalAnalisisInteligente" class="modal">
-    <div class="modal-content" style="max-width:800px;">
-        <div class="modal-header">
-            <h3>🧠 Análisis Inteligente</h3>
-            <button class="close-modal" onclick="document.getElementById('modalAnalisisInteligente').style.display='none'">❌</button>
+<!-- Modal Editar Recordatorio -->
+<div id="modalEditarRecordatorio" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>✏️ Editar Recordatorio</h3><span class="close-btn" onclick="cerrarModalEditarRecordatorio()">&times;</span></div>
+        <input type="hidden" id="editRecordatorioID">
+        <div class="form-grid">
+            <div class="form-group"><label>📅 Fecha</label><input type="date" id="editRecordatorioFecha"></div>
+            <div class="form-group"><label>📝 Descripción</label><input type="text" id="editRecordatorioDescripcion"></div>
+            <div class="form-group"><label>🔍 Detalle</label><input type="text" id="editRecordatorioDetalle"></div>
+            <div class="form-group">
+                <label>⚠️ Prioridad</label>
+                <select id="editRecordatorioPrioridad"><option>Media</option><option>Alta</option><option>Baja</option></select>
+            </div>
         </div>
+        <button class="btn btn-primary" onclick="guardarEdicionRecordatorio()">💾 Guardar Cambios</button>
+        <button class="btn btn-secondary" onclick="cerrarModalEditarRecordatorio()">❌ Cancelar</button>
+    </div>
+</div>
+
+<!-- Modal Análisis Inteligente -->
+<div id="modalAnalisisInteligente" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>🧠 Análisis Inteligente</h3><span class="close-btn" onclick="document.getElementById('modalAnalisisInteligente').style.display='none'">&times;</span></div>
         <div id="contenidoAnalisisInteligente"></div>
     </div>
 </div>
 
-<!-- MODAL MANUAL USUARIO -->
-<div id="modalManualUsuario" class="modal">
-    <div class="modal-content" style="max-width:900px;">
-        <div class="modal-header">
-            <h3>📖 Manual de Usuario - FinanzasPro v3.7</h3>
-            <button class="close-modal" onclick="document.getElementById('modalManualUsuario').style.display='none'">❌</button>
-        </div>
-        <div id="contenidoManualUsuario" style="max-height:70vh;overflow-y:auto;padding:10px;">
-            <h2> Manual de Usuario</h2>
-            <h3>1. Primeros Pasos</h3>
-            <p>• Haz clic en el nombre de la empresa (arriba) para cambiarlo</p>
-            <p>• Configura la tasa BCV del día</p>
-            <p>• Guarda los saldos iniciales de tus cuentas</p>
-            
-            <h3>2. Cuadre de Caja (Ingresos)</h3>
-            <p>• Paso 1: Coloca los saldos iniciales y haz clic en "💾 Guardar Saldos Iniciales"</p>
-            <p>• Paso 2: Registra las ventas por método de pago</p>
-            <p>• Paso 3: Guarda el ingreso completo</p>
-            <p>• Si el saldo inicial no coincide con el cierre anterior, aparecerá una alerta</p>
-            <p>• Puedes EDITAR cualquier ingreso haciendo clic en ✏️</p>
-            
-            <h3>3. Proveedores/Deudas</h3>
-            <p>• Registra facturas con todos los datos</p>
-            <p>• Si es en Bs, usa el campo "Monto en Bs (manual)"</p>
-            <p>• Para pagar, haz clic en 💵 y selecciona la cuenta de origen</p>
-            <p>• El sistema verifica si hay saldo suficiente</p>
-            <p>• Puedes EDITAR facturas con ✏️</p>
-            
-            <h3>4. Recordatorios</h3>
-            <p>• Registra pagos futuros con fecha y monto</p>
-            <p>• Marca como completado cuando lo pagues</p>
-            <p>• Puedes EDITAR recordatorios con ✏️</p>
-            
-            <h3>5. Nómina</h3>
-            <p>• Registra empleados con sus datos</p>
-            <p>• Genera la nómina y ajusta bonos/deudas</p>
-            <p>• Selecciona la cuenta de origen (USD o Bs)</p>
-            <p>• Marca los empleados a pagar y confirma</p>
-            
-            <h3>6. Búsqueda con Acciones Rápidas</h3>
-            <p>• Busca cualquier registro por fecha o texto</p>
-            <p>• Desde los resultados puedes:</p>
-            <p>  - 💵 Pagar una deuda directamente</p>
-            <p>  - ✅ Marcar recordatorio como completado</p>
-            <p>  - ✏️ Editar cualquier registro</p>
-            
-            <h3>7. Respaldo de Datos</h3>
-            <p>•  Excel: Guarda todos los datos en formato Excel</p>
-            <p>• 📄 PDF: Genera un reporte en PDF</p>
-            <p>• 📋 Guía: Genera PDF con pasos para Google Sheets</p>
-            <p>• 📥 Cargar: Restaura datos desde un Excel</p>
-            
-            <h3>8. Cuenta Personal</h3>
-            <p>• Es opcional y no afecta el balance empresarial</p>
-            <p>• Úsala para registrar pagos personales/familiares</p>
-            <p>• Se etiqueta automáticamente como "Personal"</p>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL RESET -->
+<!-- Modal Reset -->
 <div id="modalReset" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h3>🔄 RESET COMPLETO DEL SISTEMA</h3>
-            <button class="close-modal" onclick="document.getElementById('modalReset').style.display='none'">❌</button>
+        <div class="modal-header"><h3>🔄 RESET COMPLETO DEL SISTEMA</h3><span class="close-btn" onclick="document.getElementById('modalReset').style.display='none'">&times;</span></div>
+        <div class="alert alert-warning">
+            <div>
+                <strong>⚠️ ADVERTENCIA:</strong><br>
+                Esta acción BORRARÁ TODOS LOS DATOS del sistema de forma PERMANENTE:<br>
+                <ul>
+                    <li>Todos los ingresos</li>
+                    <li>Todas las deudas</li>
+                    <li>Todos los empleados</li>
+                    <li>Todos los pagos de nómina</li>
+                    <li>Todos los recordatorios</li>
+                    <li>Todo el análisis financiero</li>
+                    <li>Configuración completa</li>
+                </ul>
+                <strong>Esta acción NO se puede deshacer.</strong>
+            </div>
         </div>
-        <div class="alert alert-warning" style="display:block;">
-            <strong>️ ADVERTENCIA:</strong><br>
-            Esta acción BORRARÁ TODOS LOS DATOS del sistema de forma PERMANENTE:
-            <ul style="margin:10px 0;padding-left:20px;">
-                <li>Todos los ingresos</li>
-                <li>Todas las deudas</li>
-                <li>Todos los empleados</li>
-                <li>Todos los pagos de nómina</li>
-                <li>Todos los recordatorios</li>
-                <li>Todo el análisis financiero</li>
-                <li>Configuración completa</li>
+        <div class="form-grid">
+            <div class="form-group"><label>🔑 Ingresa la clave de administrador:</label><input type="password" id="resetClave1"></div>
+            <div class="form-group"><label>🔑 Confirma la clave:</label><input type="password" id="resetClave2"></div>
+        </div>
+        <label style="display:flex; align-items:center; gap:10px; margin:15px 0;">
+            <input type="checkbox" id="resetConfirmacion"> Entiendo que perderé TODOS los datos permanentemente
+        </label>
+        <button class="btn btn-danger" onclick="confirmarReset()">🗑️ SÍ, RESETEAR TODO</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('modalReset').style.display='none'">❌ Cancelar</button>
+    </div>
+</div>
+
+<!-- Modal Manual de Usuario -->
+<div id="modalManualUsuario" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>📖 Manual de Usuario - FinanzasPro v3.7</h3><span class="close-btn" onclick="document.getElementById('modalManualUsuario').style.display='none'">&times;</span></div>
+        <div style="max-height:70vh; overflow-y:auto;">
+            <h3>1. Primeros Pasos</h3>
+            <ul>
+                <li>Haz clic en el nombre de la empresa (arriba) para cambiarlo</li>
+                <li>Configura la tasa BCV del día</li>
+                <li>Guarda los saldos iniciales de tus cuentas</li>
             </ul>
-            <strong>Esta acción NO se puede deshacer.</strong>
-        </div>
-        <div class="form-group"><label>🔑 Ingresa la clave de administrador (1ra vez):</label><input type="password" id="resetClave1"></div>
-        <div class="form-group"><label> Confirma la clave (2da vez):</label><input type="password" id="resetClave2"></div>
-        <div class="form-group">
-            <label><input type="checkbox" id="resetConfirmacion"> Entiendo que perderé TODOS los datos permanentemente</label>
-        </div>
-        <div style="display:flex;gap:10px;">
-            <button class="btn btn-danger" onclick="confirmarReset()">🗑️ SÍ, RESETEAR TODO</button>
-            <button class="btn btn-warning" onclick="document.getElementById('modalReset').style.display='none'">❌ Cancelar</button>
+            <h3>2. Cuadre de Caja (Ingresos)</h3>
+            <ul>
+                <li>Paso 1: Coloca los saldos iniciales y haz clic en "💾 Guardar Saldos Iniciales"</li>
+                <li>Los campos se bloquearán. Si te equivocas, usa "✏️ Editar Saldos"</li>
+                <li>Paso 2: Registra las ventas por método de pago</li>
+                <li>Paso 3: Guarda el ingreso completo</li>
+            </ul>
+            <h3>3. Proveedores/Deudas</h3>
+            <ul>
+                <li>Registra facturas con todos los datos</li>
+                <li>Para pagar, haz clic en 💵 y selecciona la cuenta de origen</li>
+                <li>El sistema verifica si hay saldo suficiente</li>
+            </ul>
+            <h3>4. Cuentas por Cobrar</h3>
+            <ul>
+                <li>Registra a quienes te deben dinero</li>
+                <li>Al cobrar, el dinero se suma a la cuenta seleccionada</li>
+            </ul>
+            <h3>5. Recordatorios</h3>
+            <ul>
+                <li>Solo para tareas y citas (sin montos)</li>
+                <li>Marca como completado cuando lo cumplas</li>
+            </ul>
+            <h3>6. Respaldo de Datos</h3>
+            <ul>
+                <li>💾 Excel: Guarda todos los datos</li>
+                <li>📥 Cargar: Restaura datos desde un Excel</li>
+                <li>🔌 Google Sheets: Sincroniza en la nube</li>
+            </ul>
         </div>
     </div>
 </div>
 
-<!-- Input oculto para cargar Excel -->
-<input type="file" id="inputExcel" accept=".xlsx,.xls" style="display:none;" onchange="cargarExcel(event)">
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <script src="jsapp.js"></script>
 </body>
 </html>
