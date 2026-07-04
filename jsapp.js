@@ -1984,15 +1984,174 @@ async function cargarDesdeSheets() { if (!GS_URL) { alert('️ Primero conecta t
 async function guardarEnSheets() { if (!GS_URL) { alert('⚠️ Primero conecta tu Google Sheet'); return; } recalcularResumenDiario(); cambiarEstadoGS('cargando', 'Guardando en la nube...'); try { await fetch(GS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'save', data: DB }) }); cambiarEstadoGS('conectado'); alert('✅ Datos guardados en Google Sheets'); } catch (err) { cambiarEstadoGS('error', err.message); alert('❌ Error: ' + err.message); } }
 
 function generarGuiaGoogleSheets() {
-    const { jsPDF } = window.jspdf; const doc = new jsPDF(); let y = 20;
-    const addText = (texto, size = 10, bold = false) => { if (y > 270) { doc.addPage(); y = 20; } doc.setFontSize(size); if (bold) doc.setFont('helvetica', 'bold'); else doc.setFont('helvetica', 'normal'); const lines = doc.splitTextToSize(texto, 180); doc.text(lines, 15, y); y += lines.length * (size * 0.4); };
-    doc.setFontSize(24); doc.setFont('helvetica', 'bold'); doc.text('GUÍA DE CONFIGURACIÓN', 105, 40, {align: 'center'}); doc.text('GOOGLE SHEETS', 105, 55, {align: 'center'}); doc.setFontSize(14); doc.text('FinanzasPro v3.7', 105, 75, {align: 'center'});
-    y = 110; addText('PASO 1: Crear hoja de Google Sheets', 14, true); addText('1. Ve a https://sheets.google.com'); addText('2. Crea una nueva hoja en blanco'); addText('3. Ponle nombre: "FinanzasPro"'); y += 5;
-    addText('PASO 2: Abrir Apps Script', 14, true); addText('1. Menú "Extensiones" → "Apps Script"'); y += 5;
-    addText('PASO 3: Pegar código', 14, true); addText('1. Borra el código por defecto'); addText('2. Pega el código del Apps Script'); addText('3. Guarda con Ctrl+S'); y += 5;
-    addText('PASO 4: Implementar', 14, true); addText('1. Clic en "Implementar" → "Nueva implementación"'); addText('2. Tipo: "Aplicación web"'); addText('3. Ejecutar como: "Yo"'); addText('4. Acceso: "Cualquier persona"'); y += 5;
-    addText('PASO 5: Autorizar y copiar URL', 14, true); addText('1. Autoriza los permisos'); addText('2. Copia la URL que termina en /exec'); addText('3. Pégala en FinanzasPro y clic en "Conectar"'); y += 5;
-    addText('✅ ¡LISTO!', 14, true); doc.save('Guia_Google_Sheets_FinanzasPro.pdf'); alert('✅ Guía generada');
+    const codigoScript = `function doGet(e) {
+  return handleRequest(e);
+}
+
+function doPost(e) {
+  return handleRequest(e);
+}
+
+function handleRequest(e) {
+  const lock = LockService.getScriptLock();
+  lock.tryLock(10000);
+  
+  try {
+    const doc = SpreadsheetApp.getActiveSpreadsheet();
+    const action = e.parameter.action || (e.postData ? JSON.parse(e.postData.contents).action : null);
+    
+    if (action === 'status') {
+      return ContentService.createTextOutput(JSON.stringify({success: true, message: 'Conectado'}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (action === 'load') {
+      const data = {};
+      const sheets = doc.getSheets();
+      
+      sheets.forEach(sheet => {
+        const name = sheet.getName();
+        const range = sheet.getDataRange();
+        const values = range.getValues();
+        
+        if (values.length > 1) {
+          const headers = values[0];
+          const rows = values.slice(1);
+          data[name] = rows.map(row => {
+            const obj = {};
+            headers.forEach((header, i) => {
+              obj[header] = row[i];
+            });
+            return obj;
+          });
+        }
+      });
+      
+      return ContentService.createTextOutput(JSON.stringify({success: true, data: data}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (action === 'save') {
+      const payload = JSON.parse(e.postData.contents);
+      const db = payload.data;
+      
+      // Limpiar hojas existentes
+      const sheetNames = Object.keys(db);
+      sheetNames.forEach(name => {
+        let sheet = doc.getSheetByName(name);
+        if (!sheet) {
+          sheet = doc.insertSheet(name);
+        } else {
+          sheet.clear();
+        }
+        
+        const data = db[name];
+        if (Array.isArray(data) && data.length > 0) {
+          const headers = Object.keys(data[0]);
+          sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+          
+          const rows = data.map(item => headers.map(h => item[h] || ''));
+          sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+        }
+      });
+      
+      return ContentService.createTextOutput(JSON.stringify({success: true, message: 'Datos guardados'}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({success: false, error: 'Acción no válida'}))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({success: false, error: error.message}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
+  }
+}`;
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    let y = 20;
+    
+    const addText = (texto, size = 10, bold = false) => {
+        if (y > 270) {
+            doc.addPage();
+            y = 20;
+        }
+        doc.setFontSize(size);
+        if (bold) doc.setFont('helvetica', 'bold');
+        else doc.setFont('helvetica', 'normal');
+        const lines = doc.splitTextToSize(texto, 180);
+        doc.text(lines, 15, y);
+        y += lines.length * (size * 0.4);
+    };
+    
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text('GUÍA DE CONFIGURACIÓN', 105, 40, {align: 'center'});
+    doc.text('GOOGLE SHEETS', 105, 55, {align: 'center'});
+    doc.setFontSize(14);
+    doc.text('FinanzasPro v3.7', 105, 75, {align: 'center'});
+    
+    y = 110;
+    addText('PASO 1: Crear hoja de Google Sheets', 14, true);
+    addText('1. Ve a https://sheets.google.com');
+    addText('2. Crea una nueva hoja en blanco');
+    addText('3. Ponle nombre: "FinanzasPro"');
+    y += 5;
+    
+    addText('PASO 2: Abrir Apps Script', 14, true);
+    addText('1. Menú "Extensiones" → "Apps Script"');
+    y += 5;
+    
+    addText('PASO 3: Pegar el código de la página siguiente', 14, true);
+    addText('1. Borra el código por defecto');
+    addText('2. Copia TODO el código de la página 2');
+    addText('3. Pégalo en el editor');
+    addText('4. Guarda con Ctrl+S');
+    y += 5;
+    
+    addText('PASO 4: Implementar', 14, true);
+    addText('1. Clic en "Implementar" → "Nueva implementación"');
+    addText('2. Tipo: "Aplicación web"');
+    addText('3. Ejecutar como: "Yo"');
+    addText('4. Acceso: "Cualquier persona"');
+    y += 5;
+    
+    addText('PASO 5: Autorizar y copiar URL', 14, true);
+    addText('1. Autoriza los permisos');
+    addText('2. Copia la URL que termina en /exec');
+    addText('3. Pégala en FinanzasPro y clic en "Conectar"');
+    y += 5;
+    
+    addText('✅ ¡LISTO!', 14, true);
+    
+    // Página 2: Código del script
+    doc.addPage();
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CÓDIGO DEL APPS SCRIPT', 105, 30, {align: 'center'});
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Copia TODO este código y pégalo en el editor de Apps Script:', 15, 45);
+    
+    y = 55;
+    const lineas = codigoScript.split('\n');
+    doc.setFont('courier', 'normal');
+    doc.setFontSize(8);
+    
+    lineas.forEach(linea => {
+        if (y > 280) {
+            doc.addPage();
+            y = 20;
+        }
+        doc.text(linea.substring(0, 100), 15, y);
+        y += 4;
+    });
+    
+    doc.save('Guia_Google_Sheets_FinanzasPro.pdf');
+    alert('✅ Guía generada con el código del script. Abre el PDF y sigue los pasos.');
 }
 
 function abrirManualUsuario() { document.getElementById('modalManualUsuario').style.display = 'flex'; }
