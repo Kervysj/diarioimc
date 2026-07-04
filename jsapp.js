@@ -17,13 +17,13 @@ let DB = {
     ingresos: [],
     recordatorios: [],
     deudas: [],
-    cuentasPorCobrar: [], // NUEVO: Cuentas por cobrar
+    cuentasPorCobrar: [],
     empleados: [],
     nominaPagos: [],
     resumenDiario: [],
     notas: '',
-    saldosInicialesBloqueados: false, // NUEVO: Control de bloqueo
-    cierreCajaBloqueado: false // NUEVO: Control de bloqueo cierre de caja
+    saldosInicialesBloqueados: false,
+    cierreCajaBloqueado: false
 };
 
 // Variables globales
@@ -798,11 +798,11 @@ function mostrarAnalisisInteligente() {
         const diff = hoyData.NetoUSD - ayerData.NetoUSD;
         const pct = ayerData.NetoUSD !== 0 ? ((diff / Math.abs(ayerData.NetoUSD)) * 100).toFixed(1) : 0;
         const clase = diff >= 0 ? 'neto-positivo' : 'neto-negativo';
-        const emoji = diff >= 0 ? '' : '📉';
+        const emoji = diff >= 0 ? '📈' : '📉';
         html += `<div style="padding:10px; margin:5px 0; background:var(--bg-input); border-radius:8px;" class="${clase}">${emoji} vs ayer: <strong>${diff >= 0 ? '+' : ''}$${diff.toFixed(2)} (${pct}%)</strong></div>`;
     }
     
-    html += '<h3 style="color:#667eea;margin:20px 0 10px 0;"> Comparación Mensual</h3>';
+    html += '<h3 style="color:#667eea;margin:20px 0 10px 0;">📅 Comparación Mensual</h3>';
     if (mesPasadoData.IngresosUSD > 0) {
         const diffMes = mesActualData.NetoUSD - mesPasadoData.NetoUSD;
         const pctMes = mesPasadoData.NetoUSD !== 0 ? ((diffMes / Math.abs(mesPasadoData.NetoUSD)) * 100).toFixed(1) : 0;
@@ -810,10 +810,10 @@ function mostrarAnalisisInteligente() {
         html += `<div style="padding:10px; margin:5px 0; background:var(--bg-input); border-radius:8px;" class="${clase}">${diffMes >= 0 ? '🚀' : '⚠️'} Mes actual vs mes pasado: <strong>${diffMes >= 0 ? '+' : ''}$${diffMes.toFixed(2)} (${pctMes}%)</strong></div>`;
     }
     
-    html += `<div style="padding:10px; margin:5px 0; background:var(--bg-input); border-radius:8px;"> Promedio diario este mes: <strong>$${promedioMensual.toFixed(2)}</strong></div>`;
+    html += `<div style="padding:10px; margin:5px 0; background:var(--bg-input); border-radius:8px;">📊 Promedio diario este mes: <strong>$${promedioMensual.toFixed(2)}</strong></div>`;
     
     if (diasConsecutivosNegativos >= 2) {
-        html += `<div style="padding:10px; margin:5px 0; background:var(--bg-input); border-radius:8px; color:var(--danger);">️ <strong>${diasConsecutivosNegativos} días seguidos con pérdidas.</strong> Revisa gastos.</div>`;
+        html += `<div style="padding:10px; margin:5px 0; background:var(--bg-input); border-radius:8px; color:var(--danger);">⚠️ <strong>${diasConsecutivosNegativos} días seguidos con pérdidas.</strong> Revisa gastos.</div>`;
     } else if (diasConsecutivosNegativos === 1) {
         html += `<div style="padding:10px; margin:5px 0; background:var(--bg-input); border-radius:8px;">ℹ️ Ayer fue un día negativo, pero hoy puedes recuperarte.</div>`;
     }
@@ -869,7 +869,7 @@ function exportarAnalisisExcel() {
 
 function exportarAnalisisPDF() {
     if (DB.resumenDiario.length === 0) {
-        alert('️ No hay datos de análisis para exportar');
+        alert('⚠️ No hay datos de análisis para exportar');
         return;
     }
     const { jsPDF } = window.jspdf;
@@ -898,12 +898,13 @@ function exportarAnalisisPDF() {
     doc.save(`Analisis_${new Date().toISOString().split('T')[0]}.pdf`);
     alert('✅ PDF generado');
 }
+
 // ============================================================
 // GUARDAR INGRESO (CIERRE DE CAJA) CON BLOQUEO
 // ============================================================
 function guardarIngreso() {
     if (!validarSaldoInicial()) {
-        alert('️ Debes registrar el Saldo Inicial USD y/o Bs antes de guardar.');
+        alert('⚠️ Debes registrar el Saldo Inicial USD y/o Bs antes de guardar.');
         document.getElementById('saldoIniUSD').focus();
         return;
     }
@@ -1084,7 +1085,7 @@ function limpiarIngreso() {
 // ============================================================
 function guardarRecordatorio() {
     const descripcion = document.getElementById('recordatorioDescripcion').value.trim();
-    if (!descripcion) { alert('️ Debes ingresar una descripción'); return; }
+    if (!descripcion) { alert('⚠️ Debes ingresar una descripción'); return; }
     
     const recordatorio = {
         ID: Date.now(),
@@ -1177,7 +1178,7 @@ function guardarCuentaPorCobrar() {
     const nombre = document.getElementById('cobrarNombre').value.trim();
     const monto = parseFloat(document.getElementById('cobrarMonto').value) || 0;
     if (!nombre) { alert('⚠️ Debes ingresar el nombre del deudor'); return; }
-    if (monto <= 0) { alert('️ Debes ingresar un monto mayor a 0'); return; }
+    if (monto <= 0) { alert('⚠️ Debes ingresar un monto mayor a 0'); return; }
     
     const cuenta = {
         ID: Date.now(),
@@ -1224,7 +1225,7 @@ function renderizarCobrar() {
             const diasMora = calcularDiasMora(cuenta.Fecha);
             const tr = document.createElement('tr');
             const claseMora = diasMora > 30 ? 'badge-high' : diasMora > 7 ? 'badge-medium' : 'badge-low';
-            tr.innerHTML = `<td>${cuenta.Fecha}</td><td>${cuenta.Cedula || '-'}</td><td>${cuenta.Nombre}</td><td>${cuenta.Descripcion || '-'}</td><td>$${cuenta.MontoUSD.toFixed(2)}</td><td>$${cuenta.TotalAbonado.toFixed(2)}</td><td><strong>$${cuenta.SaldoPendiente.toFixed(2)}</strong></td><td><span class="badge ${claseMora}">${diasMora} días</span></td><td>${cuenta.Etiqueta}</td><td><button class="btn btn-success btn-sm" onclick="abrirModalCobro(${cuenta.ID})">💰</button> <button class="btn btn-danger btn-sm" onclick="eliminarCuentaPorCobrar(${cuenta.ID})">🗑️</button></td>`;
+            tr.innerHTML = `<td>${cuenta.Fecha}</td><td>${cuenta.Cedula || '-'}</td><td>${cuenta.Nombre}</td><td>${cuenta.Descripcion || '-'}</td><td>$${cuenta.MontoUSD.toFixed(2)}</td><td>$${cuenta.TotalAbonado.toFixed(2)}</td><td><strong>$${cuenta.SaldoPendiente.toFixed(2)}</strong></td><td><span class="badge ${claseMora}">${diasMora} días</span></td><td>${cuenta.Etiqueta}</td><td><button class="btn btn-success btn-sm" onclick="abrirModalCobro(${cuenta.ID})">💰</button> <button class="btn btn-danger btn-sm" onclick="eliminarCuentaPorCobrar(${cuenta.ID})">️</button></td>`;
             tbody.appendChild(tr);
         }
     });
@@ -1252,7 +1253,7 @@ function cerrarModalCobro() { document.getElementById('modalPagarCobrar').style.
 function confirmarPagoCobro() {
     const id = parseInt(document.getElementById('pagoCobrarID').value);
     const cuenta = DB.cuentasPorCobrar.find(c => c.ID === id);
-    if (!cuenta) { alert('❌ Cuenta no encontrada'); return; }
+    if (!cuenta) { alert(' Cuenta no encontrada'); return; }
     
     const montoCobro = parseFloat(document.getElementById('pagoCobrarMonto').value) || 0;
     const fechaCobro = document.getElementById('pagoCobrarFecha').value;
@@ -1341,7 +1342,7 @@ function actualizarListaProveedores() {
 function guardarDeuda() {
     const nombre = document.getElementById('deudaNombre').value.trim();
     const montoUSD = parseFloat(document.getElementById('deudaMontoUSD').value) || 0;
-    if (!nombre) { alert('️ Debes ingresar el nombre del proveedor'); return; }
+    if (!nombre) { alert('⚠️ Debes ingresar el nombre del proveedor'); return; }
     if (montoUSD <= 0) { alert('⚠️ Debes ingresar un monto mayor a 0'); return; }
     
     const deuda = {
@@ -1566,7 +1567,7 @@ function guardarEmpleado() {
     const sueldo = parseFloat(document.getElementById('empleadoSueldo').value) || 0;
     if (!nombre) { alert('⚠️ Debes ingresar el nombre'); return; }
     if (!cedula) { alert('⚠️ Debes ingresar la cédula'); return; }
-    if (sueldo <= 0) { alert('⚠️ Debes ingresar un sueldo mayor a 0'); return; }
+    if (sueldo <= 0) { alert('️ Debes ingresar un sueldo mayor a 0'); return; }
     
     const empleado = { ID: Date.now(), FechaIngreso: document.getElementById('empleadoFecha').value, Nombre: nombre, Cedula: cedula, TipoSueldo: document.getElementById('empleadoTipoSueldo').value, SueldoUSD: sueldo, Status: 'Activo' };
     DB.empleados.push(empleado);
@@ -1671,7 +1672,7 @@ function confirmarPagoNominaIndividual() {
     const cuentaOrigen = document.getElementById('nominaCuentaOrigenInd').value;
     const tasaUsada = parseFloat(document.getElementById('nominaTasaEditable').value) || 0;
     
-    if (!fechaPago) { alert('⚠️ Selecciona la fecha'); return; }
+    if (!fechaPago) { alert('️ Selecciona la fecha'); return; }
     
     let saldoDisponible = 0;
     if (cuentaOrigen === 'Empresa') saldoDisponible = DB.config.SaldoEmpresa_USD || 0;
@@ -1751,7 +1752,7 @@ function realizarBusqueda() {
         DB.deudas.forEach(d => {
             if (desde && d.Fecha < desde) return; if (hasta && d.Fecha > hasta) return;
             if (texto && !JSON.stringify(d).toLowerCase().includes(texto)) return;
-            resultados.push({ tipo: 'Deuda', fecha: d.Fecha, icono: '💳', titulo: `${d.Nombre}`, texto: `Factura: ${d.NroFactura} - $${d.MontoUSD.toFixed(2)}`, detalle: `Abonado: $${d.TotalAbonado.toFixed(2)} | Pendiente: $${d.SaldoPendiente.toFixed(2)}`, id: d.ID, data: d });
+            resultados.push({ tipo: 'Deuda', fecha: d.Fecha, icono: '', titulo: `${d.Nombre}`, texto: `Factura: ${d.NroFactura} - $${d.MontoUSD.toFixed(2)}`, detalle: `Abonado: $${d.TotalAbonado.toFixed(2)} | Pendiente: $${d.SaldoPendiente.toFixed(2)}`, id: d.ID, data: d });
         });
     }
     if (filtro === 'todos' || filtro === 'cobros') {
@@ -1765,7 +1766,7 @@ function realizarBusqueda() {
         DB.recordatorios.forEach(r => {
             if (desde && r.FechaRecordatorio < desde) return; if (hasta && r.FechaRecordatorio > hasta) return;
             if (texto && !JSON.stringify(r).toLowerCase().includes(texto)) return;
-            resultados.push({ tipo: 'Recordatorio', fecha: r.FechaRecordatorio, icono: '', titulo: r.Descripcion, texto: r.Detalle || 'Sin detalle', detalle: `Prioridad: ${r.Prioridad} | ${r.Completado ? '✅ Completado' : ' Pendiente'}`, id: r.ID, data: r });
+            resultados.push({ tipo: 'Recordatorio', fecha: r.FechaRecordatorio, icono: '🔔', titulo: r.Descripcion, texto: r.Detalle || 'Sin detalle', detalle: `Prioridad: ${r.Prioridad} | ${r.Completado ? '✅ Completado' : '⏳ Pendiente'}`, id: r.ID, data: r });
         });
     }
     if (filtro === 'todos' || filtro === 'nomina') {
@@ -1784,7 +1785,7 @@ function realizarBusqueda() {
         cont.innerHTML = `<p style="padding:10px;font-weight:600; color:var(--text-main);">${resultados.length} resultado(s)</p>` +
             resultados.map(r => {
                 let botonesAccion = '';
-                if (r.tipo === 'Deuda' && !r.data.Pagado) botonesAccion = `<button class="btn btn-success btn-sm" onclick="abrirModalPago(${r.id})">💵 Pagar</button> <button class="btn btn-primary btn-sm" onclick="editarDeuda(${r.id})">✏️ Editar</button>`;
+                if (r.tipo === 'Deuda' && !r.data.Pagado) botonesAccion = `<button class="btn btn-success btn-sm" onclick="abrirModalPago(${r.id})">💵 Pagar</button> <button class="btn btn-primary btn-sm" onclick="editarDeuda(${r.id})">️ Editar</button>`;
                 else if (r.tipo === 'Cobro' && !r.data.Pagado) botonesAccion = `<button class="btn btn-success btn-sm" onclick="abrirModalCobro(${r.id})">💰 Cobrar</button>`;
                 else if (r.tipo === 'Recordatorio' && !r.data.Completado) botonesAccion = `<button class="btn btn-success btn-sm" onclick="toggleRecordatorio(${r.id})">✅ Completar</button> <button class="btn btn-primary btn-sm" onclick="editarRecordatorio(${r.id})">✏️ Editar</button>`;
                 else if (r.tipo === 'Ingreso') botonesAccion = `<button class="btn btn-primary btn-sm" onclick="editarIngreso(${r.id})">✏️ Editar</button>`;
@@ -1839,7 +1840,7 @@ function verCierrePorFecha() {
     html += `💰 Cobros recibidos: <strong>+$${cobrosDia.toFixed(2)}</strong><br>`;
     html += `👥 Nómina pagada: <strong>-$${nominaDia.toFixed(2)}</strong><br>`;
     html += `💰 Saldo Final: <strong>$${ingresoDelDia.SaldoFin_USD.toFixed(2)}</strong> / Bs. ${ingresoDelDia.SaldoFin_Bs.toFixed(2)}<br>`;
-    html += `<br><strong> NETO DEL DÍA: $${netoDia.toFixed(2)}</strong>`;
+    html += `<br><strong>📊 NETO DEL DÍA: $${netoDia.toFixed(2)}</strong>`;
     if (detallesPagos.length > 0) html += `<br><br><strong>Detalle de pagos:</strong><br>` + detallesPagos.join('<br>');
     contenedor.style.display = 'block'; contenedor.innerHTML = html;
 }
@@ -1849,17 +1850,16 @@ function verCierrePorFecha() {
 // ============================================================
 function generarReporteTelegram() {
     const hoy = new Date().toLocaleDateString('es-VE');
-    const mesActual = hoy.substring(0, 7); // Formato YYYY-MM no funciona bien con toLocaleDateString, usamos ISO
     const mesISO = new Date().toISOString().substring(0, 7);
     
     const ingresosMes = DB.ingresos.filter(ing => ing.Fecha && ing.Fecha.startsWith(mesISO)).reduce((sum, ing) => sum + ing.Total_USD, 0);
     const deudasPendientes = DB.deudas.filter(d => !d.Pagado).reduce((sum, d) => sum + d.SaldoPendiente, 0);
     const porCobrar = DB.cuentasPorCobrar.filter(c => !c.Pagado).reduce((sum, c) => sum + c.SaldoPendiente, 0);
     
-    let reporte = `📊 *REPORTE FINANCIERO - ${DB.config.NombreNegocio}*\n`;
-    reporte += ` Fecha: ${hoy}\n\n`;
+    let reporte = ` *REPORTE FINANCIERO - ${DB.config.NombreNegocio}*\n`;
+    reporte += `📅 Fecha: ${hoy}\n\n`;
     reporte += `💵 *Ingresos del Mes:* $${ingresosMes.toFixed(2)}\n`;
-    reporte += ` *Deudas Pendientes:* $${deudasPendientes.toFixed(2)}\n`;
+    reporte += `💸 *Deudas Pendientes:* $${deudasPendientes.toFixed(2)}\n`;
     reporte += `💰 *Por Cobrar:* $${porCobrar.toFixed(2)}\n\n`;
     reporte += ` *Saldos Actuales:*\n`;
     reporte += `- Binance: $${(DB.config.SaldoBinance_USD||0).toFixed(2)}\n`;
@@ -1867,7 +1867,6 @@ function generarReporteTelegram() {
     reporte += `- Empresa USD: $${(DB.config.SaldoEmpresa_USD||0).toFixed(2)}\n`;
     reporte += `- Empresa Bs: Bs.${(DB.config.SaldoEmpresa_Bs||0).toFixed(2)}\n`;
     
-    // Copiar al portapapeles
     navigator.clipboard.writeText(reporte).then(() => {
         alert('✅ Reporte copiado al portapapeles.\n\n⚠️ ADVERTENCIA: Para enviarlo al bot, pégalo en el chat.\n\n📞 Soporte Técnico: Kervys - 04149956831');
     }).catch(() => {
@@ -1975,13 +1974,13 @@ function cambiarEstadoGS(estado, texto) {
     if (estado === 'conectado') { dot.textContent = '🟢 Conectado'; dot.style.color = '#10b981'; GS_CONECTADO = true; const btnDesc = document.getElementById('btnDesconectarGS'); if (btnDesc) btnDesc.style.display = 'inline-flex'; }
     else if (estado === 'desconectado') { dot.textContent = '🔴 Desconectado'; dot.style.color = '#ef4444'; GS_CONECTADO = false; const btnDesc = document.getElementById('btnDesconectarGS'); if (btnDesc) btnDesc.style.display = 'none'; }
     else if (estado === 'cargando') { dot.textContent = '🟡 ' + (texto || 'Conectando...'); dot.style.color = '#f59e0b'; }
-    else if (estado === 'error') { dot.textContent = '️ Error: ' + texto; dot.style.color = '#ef4444'; GS_CONECTADO = false; }
+    else if (estado === 'error') { dot.textContent = '⚠️ Error: ' + texto; dot.style.color = '#ef4444'; GS_CONECTADO = false; }
 }
 
 async function verificarConexion() { try { const res = await fetch(GS_URL + '?action=status'); const data = await res.json(); if (data.success) cambiarEstadoGS('conectado'); else cambiarEstadoGS('error', 'URL no válida'); } catch (err) { cambiarEstadoGS('error', 'No se puede conectar'); } }
 function conectarGoogleSheets() { const url = document.getElementById('urlGoogleSheets').value.trim(); if (!url) { alert('⚠️ Pega la URL de tu Apps Script'); return; } if (!url.includes('/exec')) { alert('⚠️ La URL debe terminar en /exec'); return; } GS_URL = url; localStorage.setItem('FinanzasPro_GS_URL', url); cambiarEstadoGS('cargando', 'Conectando...'); verificarConexion(); }
 function desconectarGoogleSheets() { if (confirm('¿Desconectar?')) { GS_URL = ''; GS_CONECTADO = false; localStorage.removeItem('FinanzasPro_GS_URL'); document.getElementById('urlGoogleSheets').value = ''; cambiarEstadoGS('desconectado'); } }
-async function cargarDesdeSheets() { if (!GS_URL) { alert('⚠️ Primero conecta tu Google Sheet'); return; } cambiarEstadoGS('cargando', 'Cargando datos...'); try { const res = await fetch(GS_URL + '?action=load'); const data = await res.json(); if (data.success) { DB = data.data; if (!DB.resumenDiario) DB.resumenDiario = []; if (!DB.cuentasPorCobrar) DB.cuentasPorCobrar = []; if (!DB.config.SaldoZelle_USD) DB.config.SaldoZelle_USD = 0; if (DB.config) document.getElementById('ingresoTasa').value = DB.config.TasaBCV || 0; guardarEnLocalStorage(); renderizarIngresos(); renderizarRecordatorios(); renderizarDeudas(); renderizarCobrar(); renderizarEmpleados(); renderizarHistorialNomina(); recalcularResumenDiario(); actualizarBloqueCierre(); actualizarDashboard(); actualizarListaProveedores(); actualizarPanelSaldos(); actualizarContexto(); cambiarEstadoGS('conectado'); alert('✅ Datos cargados desde Google Sheets'); } else { cambiarEstadoGS('error', data.error || 'Error al cargar'); } } catch (err) { cambiarEstadoGS('error', err.message); alert(' Error: ' + err.message); } }
+async function cargarDesdeSheets() { if (!GS_URL) { alert('️ Primero conecta tu Google Sheet'); return; } cambiarEstadoGS('cargando', 'Cargando datos...'); try { const res = await fetch(GS_URL + '?action=load'); const data = await res.json(); if (data.success) { DB = data.data; if (!DB.resumenDiario) DB.resumenDiario = []; if (!DB.cuentasPorCobrar) DB.cuentasPorCobrar = []; if (!DB.config.SaldoZelle_USD) DB.config.SaldoZelle_USD = 0; if (DB.config) document.getElementById('ingresoTasa').value = DB.config.TasaBCV || 0; guardarEnLocalStorage(); renderizarIngresos(); renderizarRecordatorios(); renderizarDeudas(); renderizarCobrar(); renderizarEmpleados(); renderizarHistorialNomina(); recalcularResumenDiario(); actualizarBloqueCierre(); actualizarDashboard(); actualizarListaProveedores(); actualizarPanelSaldos(); actualizarContexto(); cambiarEstadoGS('conectado'); alert('✅ Datos cargados desde Google Sheets'); } else { cambiarEstadoGS('error', data.error || 'Error al cargar'); } } catch (err) { cambiarEstadoGS('error', err.message); alert('❌ Error: ' + err.message); } }
 async function guardarEnSheets() { if (!GS_URL) { alert('⚠️ Primero conecta tu Google Sheet'); return; } recalcularResumenDiario(); cambiarEstadoGS('cargando', 'Guardando en la nube...'); try { await fetch(GS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'save', data: DB }) }); cambiarEstadoGS('conectado'); alert('✅ Datos guardados en Google Sheets'); } catch (err) { cambiarEstadoGS('error', err.message); alert('❌ Error: ' + err.message); } }
 
 function generarGuiaGoogleSheets() {
@@ -1996,5 +1995,4 @@ function generarGuiaGoogleSheets() {
     addText('✅ ¡LISTO!', 14, true); doc.save('Guia_Google_Sheets_FinanzasPro.pdf'); alert('✅ Guía generada');
 }
 
-// Función auxiliar para el modal de pago de nómina individual (necesita estar definida)
-// Nota: El HTML del modalPagoNomina debe existir. Si no está en el HTML anterior, agrégalo.
+function abrirManualUsuario() { document.getElementById('modalManualUsuario').style.display = 'flex'; }
