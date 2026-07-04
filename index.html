@@ -1255,7 +1255,33 @@
         <button class="btn btn-secondary" onclick="document.getElementById('modalReset').style.display='none'" title="Cancela">❌ Cancelar</button>
     </div>
 </div>
-
+<!-- Modal Pago Nómina Individual -->
+<div id="modalPagoNomina" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>💵 Pagar Nómina Individual</h3>
+            <span class="close-btn" onclick="cerrarModalPagoNomina()">&times;</span>
+        </div>
+        <p>Empleado: <strong id="nominaEmpNombre"></strong> | Cédula: <strong id="nominaEmpCedula"></strong></p>
+        <p>Sueldo: <strong id="nominaEmpSueldo"></strong> | Monto Bs: <strong id="nominaEmpMontoBs"></strong></p>
+        <input type="hidden" id="nominaEmpID">
+        <div class="form-grid">
+            <div class="form-group"><label>📅 Fecha de Pago</label><input type="date" id="nominaFechaPagoInd"></div>
+            <div class="form-group"><label>💱 Tasa BCV (Editable)</label><input type="number" step="0.01" id="nominaTasaEditable" oninput="document.getElementById('nominaEmpMontoBs').textContent = 'Bs. ' + (parseFloat(document.getElementById('nominaEmpSueldo').textContent.replace('$','')) * this.value).toFixed(2)"></div>
+            <div class="form-group"><label>🏦 Cuenta de Origen</label>
+                <select id="nominaCuentaOrigenInd">
+                    <option value="Empresa">🏢 Empresa (USD)</option>
+                    <option value="Empresa_Bs"> Empresa (Bs)</option>
+                    <option value="Binance">🪙 Binance</option>
+                    <option value="Zelle">💳 Zelle</option>
+                </select>
+            </div>
+        </div>
+        <div id="alertaSaldoNomina" class="alert alert-warning" style="display:none;">⚠️ Saldo insuficiente</div>
+        <button class="btn btn-success" onclick="confirmarPagoNominaIndividual()">💾 Confirmar Pago</button>
+        <button class="btn btn-secondary" onclick="cerrarModalPagoNomina()">❌ Cancelar</button>
+    </div>
+</div>
 <script src="jsapp.js"></script>
 </body>
 </html>
