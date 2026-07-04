@@ -1183,5 +1183,67 @@
     </div>
 </div>
 <script src="jsapp.js"></script>
+
+    <!-- Modal Pagar Deuda - COMPLETO -->
+<div id="modalPagoDeuda" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>💵 Registrar Pago</h3>
+            <span class="close-btn" onclick="cerrarModalPago()">&times;</span>
+        </div>
+        <p>Proveedor: <strong id="pagoDeudaNombre"></strong> | Factura: <strong id="pagoDeudaFactura"></strong> | Saldo: <strong id="pagoDeudaSaldo"></strong></p>
+        <input type="hidden" id="pagoDeudaID">
+        
+        <div class="saldos-panel" style="margin:15px 0;">
+            <div class="saldo-item"><h4>🪙 Binance</h4><p id="modalSaldoBinance">$0.00</p></div>
+            <div class="saldo-item"><h4>💳 Zelle</h4><p id="modalSaldoZelle">$0.00</p></div>
+            <div class="saldo-item"><h4>🏢 Empresa USD</h4><p id="modalSaldoEmpresa">$0.00</p></div>
+            <div class="saldo-item"><h4>🏢 Empresa Bs</h4><p id="modalSaldoEmpresaBs">Bs. 0.00</p></div>
+            <div class="saldo-item"><h4>👤 Personal USD</h4><p id="modalSaldoPersonal">$0.00</p></div>
+            <div class="saldo-item"><h4>👤 Personal Bs</h4><p id="modalSaldoPersonalBs">Bs. 0.00</p></div>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group"><label>📅 Fecha de Pago</label><input type="date" id="pagoDeudaFecha"></div>
+            <div class="form-group"><label>💵 Monto a Abonar ($)</label><input type="number" step="0.01" id="pagoDeudaMonto" oninput="verificarSaldoDisponible()"></div>
+            <div class="form-group">
+                <label>🏦 Cuenta de Origen</label>
+                <select id="pagoDeudaCuenta" onchange="verificarSaldoDisponible()">
+                    <option value="Binance">🪙 Cuenta Binance (USD)</option>
+                    <option value="Zelle">💳 Cuenta Zelle (USD)</option>
+                    <option value="Empresa">🏢 Cuenta Empresa (USD)</option>
+                    <option value="Empresa_Bs">🏢 Cuenta Empresa (Bs)</option>
+                    <option value="Personal">👤 Cuenta Personal (USD)</option>
+                    <option value="Personal_Bs">👤 Cuenta Personal (Bs)</option>
+                </select>
+            </div>
+            <div class="form-group"><label>🔖 Referencia de Pago</label><input type="text" id="pagoDeudaReferencia"></div>
+        </div>
+        <div class="form-group" style="margin-bottom:15px;">
+            <label>📝 Observación</label>
+            <textarea id="pagoDeudaObservacion" rows="2"></textarea>
+        </div>
+        <div id="alertaSaldoInsuficiente" class="alert alert-warning" style="display:none;">⚠️ <strong>Saldo insuficiente</strong> en la cuenta seleccionada.</div>
+        <button class="btn btn-success" onclick="confirmarPagoDeuda()">💾 Confirmar Pago</button>
+        <button class="btn btn-secondary" onclick="cerrarModalPago()">❌ Cancelar</button>
+    </div>
+</div>
+
+<!-- Modal Historial Pagos -->
+<div id="modalHistorialPagos" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>📜 Historial de Pagos</h3>
+            <span class="close-btn" onclick="cerrarModalHistorial()">&times;</span>
+        </div>
+        <input type="hidden" id="histDeudaID">
+        <table id="tablaHistorialPagosDeuda">
+            <thead>
+                <tr><th>Fecha</th><th>Monto $</th><th>Cuenta</th><th>Referencia</th><th>Observación</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
 </body>
 </html>
