@@ -4,24 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FinanzasPro v3.7</title>
-    
-    <!-- Librerías Externas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
     <style>
         :root {
-            --primary: #667eea;
-            --primary-dark: #5a67d8;
-            --success: #10b981;
-            --success-dark: #059669;
-            --danger: #ef4444;
-            --danger-dark: #dc2626;
-            --warning: #f59e0b;
-            --warning-dark: #d97706;
-            --info: #3b82f6;
             --bg-dark: #1e293b;
             --bg-darker: #0f172a;
             --bg-card: #334155;
@@ -29,9 +17,11 @@
             --text-primary: #f1f5f9;
             --text-secondary: #cbd5e1;
             --border-color: #475569;
+            --primary: #667eea;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
         }
-
-        /* Modo Claro */
         body.modo-claro {
             --bg-dark: #f8fafc;
             --bg-darker: #e2e8f0;
@@ -41,9 +31,7 @@
             --text-secondary: #475569;
             --border-color: #cbd5e1;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 100%);
@@ -51,7 +39,6 @@
             padding: 20px;
             min-height: 100vh;
         }
-
         .container {
             max-width: 1400px;
             margin: auto;
@@ -59,408 +46,293 @@
             padding: 25px;
             border-radius: 15px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            border: 1px solid var(--border-color);
         }
-
-        /* HEADER */
         .header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
             gap: 15px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--border-color);
         }
-
         .empresa-nombre {
-            font-size: 1.6em;
+            font-size: 1.8em;
             font-weight: bold;
             color: var(--primary);
             cursor: pointer;
         }
-
-        .header-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
-
+        .header-buttons { display: flex; gap: 10px; }
         .contexto-info {
             display: flex;
-            gap: 12px;
+            gap: 15px;
             flex-wrap: wrap;
             font-size: 0.9em;
             color: var(--text-secondary);
             margin-bottom: 20px;
         }
-
         .contexto-info span {
             background: var(--bg-input);
-            padding: 6px 12px;
+            padding: 8px 12px;
             border-radius: 8px;
-            border: 1px solid var(--border-color);
         }
-
-        /* TOP BAR CONFIG */
         .top-bar-config {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             align-items: center;
             background: var(--bg-input);
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
             flex-wrap: wrap;
             border: 2px solid var(--primary);
         }
-
         .top-bar-config input {
             flex: 1;
-            min-width: 200px;
-            padding: 8px;
+            min-width: 250px;
+            padding: 10px;
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 8px;
             background: var(--bg-dark);
             color: var(--text-primary);
         }
-
-        .estado-text { font-size: 0.85em; font-weight: 600; }
-
-        /* BOTÓN MODO */
         .btn-modo {
-            padding: 8px 14px;
+            padding: 8px 15px;
             border: 2px solid var(--border-color);
             border-radius: 8px;
             background: var(--bg-input);
             color: var(--text-primary);
             cursor: pointer;
             font-weight: 600;
-            font-size: 0.85em;
-            transition: 0.3s;
         }
-
-        .btn-modo:hover { border-color: var(--primary); transform: scale(1.05); }
-
-        /* TOOLTIPS */
+        .btn-modo:hover { border-color: var(--primary); }
         .info-tip {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             width: 16px;
             height: 16px;
-            background: var(--info);
+            background: var(--warning);
             color: white;
             border-radius: 50%;
             font-size: 10px;
-            font-weight: bold;
             cursor: help;
             margin-left: 4px;
-            position: relative;
         }
-
-        .info-tip:hover::after {
-            content: attr(title);
-            position: absolute;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--bg-darker);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            white-space: nowrap;
-            z-index: 1000;
-            border: 1px solid var(--border-color);
-        }
-
-        /* PANEL SALDOS */
         .saldos-panel {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 12px;
+            gap: 15px;
             background: var(--bg-dark);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
         }
-
         .saldo-item {
             text-align: center;
-            padding: 12px;
+            padding: 15px;
             background: var(--bg-input);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
+            border-radius: 10px;
         }
-
-        .saldo-item h4 { font-size: 0.8em; color: var(--text-secondary); margin-bottom: 5px; }
-        .saldo-item p { font-size: 1.2em; font-weight: bold; color: var(--primary); margin: 0; }
-
-        /* TABS */
+        .saldo-item h4 { font-size: 0.85em; color: var(--text-secondary); margin-bottom: 8px; }
+        .saldo-item p { font-size: 1.4em; font-weight: bold; color: var(--primary); margin: 0; }
         .tabs {
             display: flex;
-            gap: 5px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 25px;
             flex-wrap: wrap;
-            border-bottom: 2px solid var(--border-color);
         }
-
         .tab {
-            padding: 10px 16px;
+            padding: 12px 20px;
             cursor: pointer;
             border: none;
             background: var(--bg-input);
             color: var(--text-secondary);
             font-weight: 600;
             border-radius: 8px 8px 0 0;
-            transition: 0.3s;
         }
-
-        .tab:hover { color: var(--text-primary); }
-        .tab.active {
-            background: var(--primary);
-            color: white;
-        }
-
+        .tab.active { background: var(--primary); color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-
-        /* FORMS */
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
         }
-
         .form-group { display: flex; flex-direction: column; }
-
         label {
             font-weight: 600;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-size: 0.9em;
             color: var(--text-secondary);
-            display: flex;
-            align-items: center;
         }
-
         input, select, textarea {
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
             background: var(--bg-input);
             color: var(--text-primary);
-            font-size: 0.95em;
         }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        /* CAMPOS BLOQUEADOS */
         .locked-field {
             background-color: var(--bg-darker) !important;
-            opacity: 0.5;
+            opacity: 0.6;
             pointer-events: none;
-            color: var(--text-secondary);
         }
-
-        /* SECCIÓN BLOQUEADA */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-primary { background: var(--primary); }
+        .btn-success { background: var(--success); }
+        .btn-danger { background: var(--danger); }
+        .btn-warning { background: var(--warning); color: #000; }
+        .btn-secondary { background: #6b7280; }
+        .btn-info { background: var(--warning); }
+        .btn-sm { padding: 8px 15px; font-size: 0.85em; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td { padding: 12px; border-bottom: 1px solid var(--border-color); text-align: left; }
+        th { background: var(--bg-input); color: var(--text-primary); }
+        td { color: var(--text-secondary); }
+        .badge { padding: 5px 10px; border-radius: 12px; font-size: 0.75em; }
+        .badge-high { background: #fee2e2; color: #991b1b; }
+        .badge-medium { background: #fef3c7; color: #92400e; }
+        .badge-low { background: #d1fae5; color: #065f46; }
+        .alert {
+            padding: 18px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid;
+        }
+        .alert-warning { background: #fef3c7; color: #92400e; border-color: #f59e0b; }
+        .alert-info { background: #dbeafe; color: #1e40af; border-color: #3b82f6; }
+        .alert-success { background: #d1fae5; color: #065f46; border-color: #10b981; }
+        .bloque-cierre {
+            background: linear-gradient(135deg, #92400e, #78350f);
+            border: 2px solid #fcd34d;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            color: #fef3c7;
+        }
+        .bloque-cierre-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .bloque-cierre-item {
+            background: rgba(255,255,255,0.1);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .bloque-cierre-item strong { display: block; font-size: 1.2em; margin-top: 5px; }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .close-btn { cursor: pointer; font-size: 1.8em; }
+        #saveIndicator {
+            display: none;
+            position: fixed;
+            top: 20px; right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: bold;
+            z-index: 2000;
+        }
         .seccion-bloqueada {
             position: relative;
             opacity: 0.6;
             pointer-events: none;
         }
-
         .seccion-bloqueada::after {
             content: '🔒 BLOQUEADO - Se llena una vez por día';
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.85);
             color: white;
             padding: 15px 25px;
             border-radius: 10px;
             font-weight: bold;
-            font-size: 1.1em;
-            z-index: 10;
         }
-
-        /* BOTONES */
-        .btn {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            color: white;
-            transition: 0.3s;
-            font-size: 0.9em;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        .btn-primary { background: var(--primary); }
-        .btn-success { background: var(--success); }
-        .btn-danger { background: var(--danger); }
-        .btn-warning { background: var(--warning); color: #000; }
-        .btn-secondary { background: #6b7280; }
-        .btn-info { background: var(--info); }
-        .btn-sm { padding: 6px 12px; font-size: 0.8em; }
-
-        /* TABLAS */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            background: var(--bg-dark);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        th, td { padding: 10px; border-bottom: 1px solid var(--border-color); text-align: left; font-size: 0.9em; }
-        th { background: var(--bg-input); color: var(--text-primary); font-weight: 600; }
-        td { color: var(--text-secondary); }
-        tr:hover { background: var(--bg-input); }
-
-        /* BADGES */
-        .badge { padding: 3px 8px; border-radius: 10px; font-size: 0.75em; font-weight: 600; }
-        .badge-high { background: #fee2e2; color: #991b1b; }
-        .badge-medium { background: #fef3c7; color: #92400e; }
-        .badge-low { background: #d1fae5; color: #065f46; }
-
-        /* ALERTAS */
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            border-left: 4px solid;
-        }
-        .alert-warning { background: #fef3c7; color: #92400e; border-color: #f59e0b; }
-        .alert-info { background: #dbeafe; color: #1e40af; border-color: #3b82f6; }
-        .alert-success { background: #d1fae5; color: #065f46; border-color: #10b981; }
-
-        /* BLOQUE ÚLTIMO CIERRE */
-        .bloque-cierre {
-            background: linear-gradient(135deg, #92400e, #78350f);
-            border: 2px solid #fcd34d;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            color: #fef3c7;
-        }
-
-        .bloque-cierre h4 { margin-bottom: 10px; color: #fef3c7; }
-        .bloque-cierre-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-        .bloque-cierre-item { background: rgba(255,255,255,0.1); padding: 8px; border-radius: 6px; text-align: center; }
-        .bloque-cierre-item strong { display: block; font-size: 1.1em; margin-top: 3px; }
-
-        /* MODALES */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: var(--bg-card);
-            padding: 25px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 700px;
-            max-height: 90vh;
-            overflow-y: auto;
-            border: 2px solid var(--border-color);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .close-btn { cursor: pointer; font-size: 1.5em; color: var(--text-secondary); }
-        .close-btn:hover { color: var(--danger); }
-
-        /* INDICADOR GUARDADO */
-        #saveIndicator {
-            display: none;
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--success);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-weight: bold;
-            z-index: 2000;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-        }
-
-        /* NETO COLORS */
-        .neto-positivo { color: var(--success); font-weight: bold; }
-        .neto-negativo { color: var(--danger); font-weight: bold; }
-
-        /* RESPONSIVE */
         @media (max-width: 768px) {
             .form-grid { grid-template-columns: 1fr; }
             .tabs { flex-direction: column; }
-            .header-top { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
 <body>
-
 <div id="saveIndicator">💾 Guardado correctamente ✓</div>
-
 <div class="container">
-    <!-- HEADER -->
     <div class="header-top">
         <div>
-            <span class="empresa-nombre" onclick="editarNombreEmpresa()" title="Haz clic para cambiar el nombre de la empresa">
-                📊 <span id="nombreEmpresaDisplay">Mi Empresa</span>
-            </span>
+            <span class="empresa-nombre" onclick="editarNombreEmpresa()">📊 <span id="nombreEmpresaDisplay">Mi Empresa</span></span>
         </div>
         <div class="header-buttons">
-            <button class="btn btn-modo" onclick="cambiarModo()" id="btnModo" title="Cambiar entre modo oscuro y claro">🌙 Modo Claro</button>
-            <button class="btn btn-secondary btn-sm" onclick="refrescarTodo()" title="Refrescar la página">🔄</button>
-            <button class="btn btn-danger btn-sm" onclick="resetearSistema()" title="Reset completo del sistema (requiere clave)">🗑️ Reset</button>
+            <button class="btn-modo" onclick="cambiarModo()" id="btnModo">🌙 Modo Claro</button>
+            <button class="btn btn-secondary btn-sm" onclick="refrescarTodo()">🔄</button>
+            <button class="btn btn-danger btn-sm" onclick="resetearSistema()">🗑️ Reset</button>
         </div>
     </div>
-
     <div class="contexto-info">
         <span>📅 Fecha: <strong id="contextoFecha">--</strong></span>
         <span>💱 Tasa BCV: <strong id="contextoTasa">Bs. 0.00</strong></span>
         <span>🏢 Empresa: <strong id="contextoNegocio">Mi Empresa</strong></span>
     </div>
-
-    <!-- TOP BAR: GOOGLE SHEETS Y EXCEL -->
     <div class="top-bar-config">
         <input type="text" id="urlGoogleSheets" placeholder="🔗 Pega aquí tu URL de Apps Script (termina en /exec)">
-        <button class="btn btn-primary btn-sm" onclick="conectarGoogleSheets()" title="Conectar con Google Sheets">🔌 Conectar</button>
-        <button class="btn btn-warning btn-sm" onclick="desconectarGoogleSheets()" id="btnDesconectarGS" style="display:none;" title="Desconectar Google Sheets">🔌 Desconectar</button>
-        <button class="btn btn-success btn-sm" onclick="cargarExcelBtn()" title="Cargar datos desde Excel">📥 Cargar Excel</button>
-        <button class="btn btn-secondary btn-sm" onclick="guardarExcel()" title="Guardar todos los datos en Excel">💾 Guardar Excel</button>
-        <button class="btn btn-info btn-sm" onclick="generarPDF()" title="Generar reporte en PDF">📄 PDF</button>
-        <button class="btn btn-warning btn-sm" onclick="generarGuiaGoogleSheets()" title="Generar guía de configuración">📋 Guía</button>
-        <button class="btn btn-info btn-sm" onclick="generarReporteTelegram()" title="Enviar reporte por Telegram">📱 Telegram</button>
+        <button class="btn btn-primary btn-sm" onclick="conectarGoogleSheets()">🔌 Conectar</button>
+        <button class="btn btn-warning btn-sm" onclick="desconectarGoogleSheets()" id="btnDesconectarGS" style="display:none;">🔌 Desconectar</button>
+        <button class="btn btn-success btn-sm" onclick="cargarExcelBtn()">📥 Cargar Excel</button>
+        <button class="btn btn-secondary btn-sm" onclick="guardarExcel()">💾 Guardar Excel</button>
+        <button class="btn btn-info btn-sm" onclick="generarPDF()">📄 PDF</button>
+        <button class="btn btn-warning btn-sm" onclick="generarGuiaGoogleSheets()">📋 Guía</button>
+        <button class="btn btn-info btn-sm" onclick="generarReporteTelegram()">📱 Telegram</button>
         <input type="file" id="inputExcel" style="display:none" accept=".xlsx,.xls" onchange="cargarExcel(event)">
-        <span id="estadoGS" class="estado-text">🔴 Desconectado</span>
+        <span id="estadoGS">🔴 Desconectado</span>
     </div>
-
-    <!-- PANEL DE SALDOS -->
-    <h3 style="margin-bottom: 12px; color: var(--text-primary);">💰 Saldos Disponibles en Cuentas</h3>
+    <h3 style="margin-bottom: 15px;">💰 Saldos Disponibles en Cuentas</h3>
     <div class="saldos-panel">
         <div class="saldo-item"><h4>🪙 Binance (USD)</h4><p id="saldoBinanceDisplay">$0.00</p></div>
         <div class="saldo-item"><h4>💳 Zelle (USD)</h4><p id="saldoZelleDisplay">$0.00</p></div>
@@ -469,25 +341,19 @@
         <div class="saldo-item"><h4>👤 Personal (USD)</h4><p id="saldoPersonalDisplay">$0.00</p></div>
         <div class="saldo-item"><h4>👤 Personal (Bs)</h4><p id="saldoPersonalBsDisplay">Bs. 0.00</p></div>
     </div>
-
-    <!-- TABS -->
     <div class="tabs">
-        <button class="tab active" data-tab="tabIngresos" title="Registrar ingresos y cierre de caja">📈 Ingresos</button>
-        <button class="tab" data-tab="tabRecordatorios" title="Recordatorios y tareas pendientes">🔔 Recordatorios</button>
-        <button class="tab" data-tab="tabPagar" title="Pagar proveedores y deudas">💳 Pagar</button>
-        <button class="tab" data-tab="tabCobrar" title="Cuentas por cobrar">💰 Cobrar</button>
-        <button class="tab" data-tab="tabNomina" title="Gestión de nómina y empleados">👥 Nómina</button>
-        <button class="tab" data-tab="tabBusqueda" title="Búsqueda avanzada">🔍 Búsqueda</button>
-        <button class="tab" data-tab="tabAnalisis" title="Análisis financiero">📊 Análisis</button>
-        <button class="tab" data-tab="tabDashboard" title="Panel de control">📉 Dashboard</button>
+        <button class="tab active" data-tab="tabIngresos">📈 Ingresos</button>
+        <button class="tab" data-tab="tabRecordatorios">🔔 Recordatorios</button>
+        <button class="tab" data-tab="tabPagar">💳 Pagar</button>
+        <button class="tab" data-tab="tabCobrar">💰 Cobrar</button>
+        <button class="tab" data-tab="tabNomina">👥 Nómina</button>
+        <button class="tab" data-tab="tabBusqueda">🔍 Búsqueda</button>
+        <button class="tab" data-tab="tabAnalisis">📊 Análisis</button>
+        <button class="tab" data-tab="tabDashboard">📉 Dashboard</button>
     </div>
-        <!-- ========================================== -->
-    <!-- TAB: INGRESOS / CIERRE DE CAJA             -->
-    <!-- ========================================== -->
-    <div id="tabIngresos" class="tab-content active">
-        <h3 style="color: var(--text-primary); margin-bottom: 15px;">💰 Saldo Actual en Cuentas</h3>
-
-        <!-- Bloque Último Cierre -->
+        <div id="tabIngresos" class="tab-content active">
+        <h3 style="color: var(--text-primary); margin-bottom: 20px;">💰 Saldo Actual en Cuentas</h3>
+        
         <div id="bloqueUltimoCierre" class="bloque-cierre" style="display:none;">
             <h4>📊 ÚLTIMO CIERRE DE CAJA</h4>
             <div class="bloque-cierre-grid">
@@ -498,7 +364,7 @@
                 <div class="bloque-cierre-item">🪙 Binance: <strong id="cierreBinance">$0.00</strong></div>
                 <div class="bloque-cierre-item">💸 Se gastó el día anterior: <strong id="cierreGastado">$0.00</strong></div>
             </div>
-            <p style="margin-top:10px; font-size:0.85em;">ℹ️ Estos son los saldos con los que deberías iniciar hoy. Compáralos con tu banco real.</p>
+            <p style="margin-top:15px; font-size:0.9em;">ℹ️ Estos son los saldos con los que deberías iniciar hoy. Compáralos con tu banco real.</p>
         </div>
 
         <div id="alertaSaldoInicial" class="alert alert-warning" style="display:none;">
@@ -510,7 +376,7 @@
                 ⚠️ <strong>¡ALERTA DE DISCREPANCIA!</strong> El saldo que colocaste NO coincide con el cierre anterior.
                 <br><small>¿Gastaste y no registraste? ¿O te pagaron y no lo registraste?</small>
             </div>
-            <button class="btn btn-warning btn-sm" onclick="evaluarAjustarSaldo()">🔍 Evaluar / Ajustar</button>
+            <button class="btn btn-warning btn-sm" onclick="evaluarAjustarSaldo()" title="Evaluar y ajustar al saldo real">🔍 Evaluar / Ajustar</button>
         </div>
 
         <div class="form-grid">
@@ -545,18 +411,17 @@
             </div>
         </div>
 
-        <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+        <div style="display:flex; gap:15px; margin-bottom:25px; flex-wrap:wrap;">
             <button class="btn btn-success" onclick="guardarSaldosIniciales()" title="Guarda los saldos y bloquea los campos">💾 Paso 1: Guardar Saldos Iniciales</button>
             <button class="btn btn-warning" id="btnEditarSaldos" onclick="desbloquearSaldos()" style="display:none;" title="Desbloquea los campos para corregir">✏️ Editar Saldos</button>
         </div>
-
-        <div class="alert alert-info">
+        
+        <div class="alert alert-info" style="margin-bottom: 25px;">
             <strong>Paso 1:</strong> Guarda primero los saldos de tus cuentas antes de registrar ventas. Esto actualizará el panel de saldos.
         </div>
 
-        <hr style="margin: 25px 0; border-color: var(--border-color);">
+        <hr style="margin: 30px 0; border-color: var(--border-color);">
 
-        <!-- SECCIÓN CIERRE DE CAJA (SE BLOQUEA AL GUARDAR) -->
         <div id="contenedorCierreCaja">
             <div style="background: linear-gradient(135deg, #1e40af, #1e3a8a); padding: 12px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #60a5fa;">
                 <h3 style="color: white; margin: 0 0 5px 0;">📋 CIERRE DE CAJA</h3>
@@ -621,9 +486,6 @@
         </table>
     </div>
 
-    <!-- ========================================== -->
-    <!-- TAB: RECORDATORIOS (SIN MONTOS)            -->
-    <!-- ========================================== -->
     <div id="tabRecordatorios" class="tab-content">
         <h3 style="color: var(--text-primary); margin-bottom: 10px;">🔔 Recordatorios de Empresa</h3>
         <p style="color:var(--text-secondary); margin-bottom: 15px;"><i>Anota tareas, citas o pendientes. Si involucra dinero, ve a la pestaña Pagar o Cobrar.</i></p>
@@ -656,9 +518,6 @@
         </table>
     </div>
 
-    <!-- ========================================== -->
-    <!-- TAB: PAGAR (DEUDAS / PROVEEDORES)          -->
-    <!-- ========================================== -->
     <div id="tabPagar" class="tab-content">
         <h3 style="color: var(--text-primary); margin-bottom: 10px;">💳 Pagar - Proveedores / Deudas</h3>
         <p style="color:var(--text-secondary); margin-bottom: 15px;">📊 Saldo que quedó la última vez: USD: <strong id="saldoUltimoUSD">$0.00</strong> | Bs: <strong id="saldoUltimoBS">Bs. 0.00</strong></p>
@@ -719,9 +578,7 @@
             <tbody></tbody>
         </table>
     </div>
-        <!-- ========================================== -->
-    <!-- TAB: COBRAR (CUENTAS POR COBRAR)           -->
-    <!-- ========================================== -->
+
     <div id="tabCobrar" class="tab-content">
         <h3 style="color: var(--text-primary); margin-bottom: 10px;">💰 Cuentas por Cobrar</h3>
         <p style="color:var(--text-secondary); margin-bottom: 15px;"><i>Registra a las personas que le deben dinero a la empresa. Al cobrar, el dinero se acreditará al saldo de la cuenta seleccionada.</i></p>
@@ -754,9 +611,6 @@
         </table>
     </div>
 
-    <!-- ========================================== -->
-    <!-- TAB: NÓMINA                                -->
-    <!-- ========================================== -->
     <div id="tabNomina" class="tab-content">
         <h3 style="color: var(--text-primary); margin-bottom: 20px;">👥 Nómina</h3>
         <h4 style="margin: 20px 0 12px 0;">📋 Registro Empleados</h4>
@@ -830,9 +684,6 @@
         </table>
     </div>
 
-    <!-- ========================================== -->
-    <!-- TAB: BÚSQUEDA (FORMATO TARJETAS)           -->
-    <!-- ========================================== -->
     <div id="tabBusqueda" class="tab-content">
         <h3 style="color: var(--text-primary); margin-bottom: 15px;">🔍 Búsqueda General</h3>
         <div class="form-grid">
@@ -855,9 +706,6 @@
         <div id="resultadosBusqueda" style="margin-top:20px;"></div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- TAB: ANÁLISIS                              -->
-    <!-- ========================================== -->
     <div id="tabAnalisis" class="tab-content">
         <h3 style="color: var(--text-primary); margin-bottom: 10px;">📊 Análisis Financiero</h3>
         <p style="color:var(--text-secondary); margin-bottom: 15px;">ℹ️ Registro automático de ingresos, pagos y nómina por día. Compara meses y detecta tendencias.</p>
@@ -912,9 +760,6 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- TAB: DASHBOARD (ACTUALIZADO)               -->
-    <!-- ========================================== -->
     <div id="tabDashboard" class="tab-content">
         <h3 style="color: var(--text-primary); margin-bottom: 15px;">📉 Dashboard General</h3>
         <div class="saldos-panel" style="margin-bottom: 25px;">
@@ -963,13 +808,8 @@
         <button class="btn btn-primary" onclick="guardarNotas()" title="Guarda las notas">💾 Guardar Nota</button>
     </div>
 
-</div> <!-- Fin Container -->
+</div>
 
-<!-- ========================================== -->
-<!-- MODALES                                    -->
-<!-- ========================================== -->
-
-<!-- Modal Pagar Deuda -->
 <div id="modalPagoDeuda" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -1013,7 +853,6 @@
     </div>
 </div>
 
-<!-- Modal Pagar Cobrar (Acredita dinero) -->
 <div id="modalPagarCobrar" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -1041,7 +880,6 @@
     </div>
 </div>
 
-<!-- Modal Evaluar / Ajustar Saldo -->
 <div id="modalAjustarSaldo" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -1060,7 +898,6 @@
     </div>
 </div>
 
-<!-- Modal Historial Pagos -->
 <div id="modalHistorialPagos" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -1079,7 +916,6 @@
     </div>
 </div>
 
-<!-- Modal Editar Ingreso -->
 <div id="modalEditarIngreso" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -1110,7 +946,6 @@
     </div>
 </div>
 
-<!-- Modal Editar Empleado -->
 <div id="modalEditarEmpleado" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -1141,7 +976,6 @@
     </div>
 </div>
 
-<!-- Modal Editar Deuda -->
 <div id="modalEditarDeuda" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -1186,7 +1020,6 @@
     </div>
 </div>
 
-<!-- Modal Editar Recordatorio -->
 <div id="modalEditarRecordatorio" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -1210,7 +1043,6 @@
     </div>
 </div>
 
-<!-- Modal Análisis Inteligente -->
 <div id="modalAnalisisInteligente" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -1221,7 +1053,6 @@
     </div>
 </div>
 
-<!-- Modal Reset -->
 <div id="modalReset" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -1255,33 +1086,7 @@
         <button class="btn btn-secondary" onclick="document.getElementById('modalReset').style.display='none'" title="Cancela">❌ Cancelar</button>
     </div>
 </div>
-<!-- Modal Pago Nómina Individual -->
-<div id="modalPagoNomina" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>💵 Pagar Nómina Individual</h3>
-            <span class="close-btn" onclick="cerrarModalPagoNomina()">&times;</span>
-        </div>
-        <p>Empleado: <strong id="nominaEmpNombre"></strong> | Cédula: <strong id="nominaEmpCedula"></strong></p>
-        <p>Sueldo: <strong id="nominaEmpSueldo"></strong> | Monto Bs: <strong id="nominaEmpMontoBs"></strong></p>
-        <input type="hidden" id="nominaEmpID">
-        <div class="form-grid">
-            <div class="form-group"><label>📅 Fecha de Pago</label><input type="date" id="nominaFechaPagoInd"></div>
-            <div class="form-group"><label>💱 Tasa BCV (Editable)</label><input type="number" step="0.01" id="nominaTasaEditable" oninput="document.getElementById('nominaEmpMontoBs').textContent = 'Bs. ' + (parseFloat(document.getElementById('nominaEmpSueldo').textContent.replace('$','')) * this.value).toFixed(2)"></div>
-            <div class="form-group"><label>🏦 Cuenta de Origen</label>
-                <select id="nominaCuentaOrigenInd">
-                    <option value="Empresa">🏢 Empresa (USD)</option>
-                    <option value="Empresa_Bs"> Empresa (Bs)</option>
-                    <option value="Binance">🪙 Binance</option>
-                    <option value="Zelle">💳 Zelle</option>
-                </select>
-            </div>
-        </div>
-        <div id="alertaSaldoNomina" class="alert alert-warning" style="display:none;">⚠️ Saldo insuficiente</div>
-        <button class="btn btn-success" onclick="confirmarPagoNominaIndividual()">💾 Confirmar Pago</button>
-        <button class="btn btn-secondary" onclick="cerrarModalPagoNomina()">❌ Cancelar</button>
-    </div>
-</div>
+
 <script src="jsapp.js"></script>
 </body>
 </html>
