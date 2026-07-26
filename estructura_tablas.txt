@@ -1,0 +1,220 @@
+============================================================
+FINANZASPRO v3.3 - ESTRUCTURA DEL EXCEL
+============================================================
+
+Cuando haces clic en "💾 Guardar Excel", se genera un archivo
+.xlsx con 7 HOJAS (pestañas). Aquí te explico cada una:
+
+============================================================
+HOJA 1: Config
+============================================================
+Contiene la configuración general del sistema.
+Formato: 2 columnas (Clave | Valor)
+
+Columnas:
+- Clave: Nombre de la configuración
+- Valor: Valor de la configuración
+
+Datos que guarda:
+┌─────────────────────────┬──────────────────┐
+│ Clave                   │ Valor            │
+├─────────────────────────┼──────────────────┤
+│ TasaBCV                 │ 36.00            │
+│ SaldoBinance_USD        │ 500.00           │
+│ SaldoZelle_USD          │ 300.00           │
+│ SaldoEmpresa_USD        │ 1000.00          │
+│ SaldoPersonal_USD       │ 200.00           │
+│ SaldoEmpresa_Bs         │ 0                │
+│ SaldoPersonal_Bs        │ 0                │
+│ NombreNegocio           │ Mi Negocio       │
+└─────────────────────────┴──────────────────┘
+
+============================================================
+HOJA 2: Ingresos
+============================================================
+Contiene TODOS los cuadres de caja que has registrado.
+Cada fila = un día de cierre de caja.
+
+Columnas:
+- ID: Identificador único
+- Fecha: Fecha del cierre (YYYY-MM-DD)
+- TasaBCV: Tasa del BCV ese día
+- SaldoIni_USD: Saldo inicial en dólares
+- SaldoIni_Bs: Saldo inicial en bolívares
+- Efectivo_USD: Ventas en efectivo dólares
+- Efectivo_Bs: Ventas en efectivo bolívares
+- PagoMovil_Bs: Pagos móviles recibidos
+- TarjetaDebito: Monto por débito
+- TarjetaDebitoMoneda: USD o BS
+- TarjetaCredito: Monto por crédito
+- TarjetaCreditoMoneda: USD o BS
+- Transferencia_Bs: Transferencias recibidas
+- Zelle_USD: Pagos por Zelle
+- Binance_USD: Pagos por Binance
+- Observacion: Notas del día
+- Total_USD: TOTAL vendido en dólares
+- Total_Bs: TOTAL vendido en bolívares
+- SaldoFin_USD: Saldo final en dólares (lo que quedó en caja)
+- SaldoFin_Bs: Saldo final en bolívares (lo que quedó en caja)
+
+============================================================
+HOJA 3: Recordatorios
+============================================================
+Contiene todos los recordatorios que has creado.
+
+Columnas:
+- ID: Identificador único
+- FechaCreacion: Cuándo lo creaste
+- FechaRecordatorio: Fecha del recordatorio
+- Descripcion: Título corto
+- MontoUSD: Monto en dólares
+- MontoBs: Monto en bolívares
+- Detalle: Descripción larga
+- Prioridad: Alta / Media / Baja
+- Completado: true/false
+
+============================================================
+HOJA 4: Deudas
+============================================================
+Contiene todas las facturas/deudas registradas.
+
+Columnas:
+- ID: Identificador único
+- Fecha: Fecha de la factura
+- TasaBCV: Tasa del día
+- RIF: RIF o cédula del proveedor
+- Nombre: Nombre del proveedor
+- Descripcion: Descripción del gasto
+- NroFactura: Número de factura
+- MontoUSD: Monto total en dólares
+- MontoBs: Monto total en bolívares
+- Etiqueta: Proveedor/Persona/Servicio/Deuda/Extra
+- Prioridad: Alta/Media/Baja
+- CuentaOrigen: De qué cuenta se paga
+- Pagado: true/false
+- TotalAbonado: Total que has pagado hasta ahora
+- SaldoPendiente: Lo que falta por pagar
+- HistorialPagos: [ARRAY] Lista de abonos realizados
+  Cada abono tiene:
+  - Fecha
+  - MontoUSD
+  - MontoBs
+  - CuentaOrigen
+  - ReferenciaPago
+  - Observacion
+
+============================================================
+HOJA 5: Empleados
+============================================================
+Contiene la lista de empleados.
+
+Columnas:
+- ID: Identificador único
+- FechaIngreso: Fecha de ingreso a la empresa
+- Nombre: Nombre completo
+- Cedula: Cédula de identidad
+- TipoSueldo: Quincenal/Semanal/Diario/Mensual
+- SueldoUSD: Sueldo en dólares
+- Status: Activo/Inactivo
+
+============================================================
+HOJA 6: NominaPagos
+============================================================
+Contiene el historial de pagos de nómina realizados.
+
+Columnas:
+- ID: Identificador único
+- FechaPago: Fecha en que se pagó
+- CuentaOrigen: De qué cuenta salió el dinero
+- Nombre: Nombre del empleado
+- Cedula: Cédula
+- Tipo: Tipo de sueldo
+- Sueldo: Sueldo base
+- Bono: Bonos adicionales
+- Deuda: Deudas descontadas
+- Neto: Monto final pagado
+- Status: "Pagado"
+
+============================================================
+HOJA 7: ResumenDiario (NUEVO)
+============================================================
+🆕 Esta es la hoja del ANÁLISIS FINANCIERO.
+Se recalcula automáticamente cada vez que guardas algo.
+
+Cada fila = un día con actividad financiera.
+
+Columnas:
+- Fecha: Fecha del día
+- IngresosUSD: Total vendido en dólares ese día
+- IngresosBS: Total vendido en bolívares ese día
+- PagosUSD: Total pagado a deudas en dólares
+- PagosBS: Total pagado a deudas en bolívares
+- NominaUSD: Total pagado en nómina
+- NominaBS: Total pagado en nómina (convertido)
+- TotalEgresosUSD: Pagos + Nómina en USD
+- TotalEgresosBS: Pagos + Nómina en Bs
+- NetoUSD: Ingresos - Egresos en USD (ganancia real)
+- NetoBS: Ingresos - Egresos en Bs
+- TasaBCV: Tasa del día
+
+============================================================
+EJEMPLO DE FLUJO
+============================================================
+
+DÍA 1 (2026-07-01):
+- Vendiste $500 en efectivo
+- Pagaste una deuda de $100
+- Pagaste nómina de $200
+→ Se guarda en Ingresos: Total_USD = $500
+→ Se guarda en Deudas: HistorialPagos con $100
+→ Se guarda en NominaPagos: Neto = $200
+→ Se recalcula ResumenDiario:
+    IngresosUSD = $500
+    PagosUSD = $100
+    NominaUSD = $200
+    NetoUSD = $200 (ganaste $200 ese día)
+
+DÍA 2 (2026-07-02):
+- Vendiste $300
+- No pagaste nada
+→ ResumenDiario:
+    IngresosUSD = $300
+    PagosUSD = $0
+    NominaUSD = $0
+    NetoUSD = $300
+
+============================================================
+TOTAL ACUMULADO DEL MES
+============================================================
+
+En la pestaña "📊 Análisis" verás:
+- Ingresos totales: $800
+- Pagos totales: $100
+- Nómina total: $200
+- NETO DEL MES: $500 (lo que realmente ganaste)
+
+============================================================
+COMPATIBILIDAD CON VERSIONES ANTERIORES
+============================================================
+
+Si tienes un Excel de FinanzasPro v3.1 o v3.2:
+✅ Se cargará correctamente
+✅ Las hojas nuevas (ResumenDiario) se calcularán automáticamente
+✅ Los campos nuevos (SaldoZelle_USD) se inicializarán en 0
+✅ No perderás ningún dato
+
+============================================================
+CONSEJOS
+============================================================
+
+1. Guarda el Excel al final de cada día como respaldo
+2. Si cambias de PC, carga el Excel último
+3. Si usas Google Sheets, sincroniza al final del día
+4. La hoja "ResumenDiario" NO se edita manualmente,
+   se calcula sola a partir de Ingresos + Deudas + Nómina
+5. Si necesitas exportar solo el análisis, usa el botón
+   "📥 Exportar Análisis Excel" en la pestaña Análisis
+
+============================================================
+FIN DEL DOCUMENTO
+============================================================
